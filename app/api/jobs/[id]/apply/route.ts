@@ -76,8 +76,8 @@ export async function POST(
       data: {
         candidateId,
         jobId,
-        status: "pending",
-        matchPercentage: 0, // Will be calculated by LLM later
+        status: "PENDING",
+        score: 0, // Will be calculated by LLM later
       },
     });
 
@@ -106,7 +106,19 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      application: applicationWithDetails,
+      application: {
+        id: applicationWithDetails.id,
+        score: applicationWithDetails.score || 0,
+        status: applicationWithDetails.status,
+        appliedAt: applicationWithDetails.appliedAt.toISOString(),
+      },
+      matchDetails: {
+        overallScore: applicationWithDetails.score || 0,
+        textSimilarity: 0, // Will be calculated by LLM later
+        skillMatchPercentage: 0, // Will be calculated by LLM later
+        matchedSkills: [], // Will be filled by LLM later
+        missingSkills: [], // Will be filled by LLM later
+      },
       message: "Application submitted successfully",
     });
   } catch (error) {

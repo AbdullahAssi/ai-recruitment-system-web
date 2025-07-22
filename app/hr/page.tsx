@@ -65,12 +65,17 @@ export default function HRPage() {
 
   const handleJobSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validation
-    if (!jobData.title.trim() || !jobData.description.trim() || !jobData.location.trim()) {
+    if (
+      !jobData.title.trim() ||
+      !jobData.description.trim() ||
+      !jobData.location.trim()
+    ) {
       toast({
         title: "Missing Information",
-        description: "Please fill in all required fields (Title, Description, Location)",
+        description:
+          "Please fill in all required fields (Title, Description, Location)",
         variant: "destructive",
       });
       return;
@@ -93,7 +98,8 @@ export default function HRPage() {
         setJobData({ title: "", description: "", location: "" });
         toast({
           title: "Job Created Successfully",
-          description: "The job has been created and is ready for candidate matching",
+          description:
+            "The job has been created and is ready for candidate matching",
         });
       } else {
         toast({
@@ -135,7 +141,8 @@ export default function HRPage() {
         setMatchResult(data);
         toast({
           title: "Match Analysis Complete",
-          description: "The candidate-job match has been calculated successfully",
+          description:
+            "The candidate-job match has been calculated successfully",
         });
       } else {
         toast({
@@ -177,14 +184,45 @@ export default function HRPage() {
           <p className="text-gray-600">
             Create job descriptions and match with candidates
           </p>
-          <div className="mt-4">
-            <Link href="/hr/jobs">
-              <Button variant="outline">
-                <Briefcase className="w-4 h-4 mr-2" />
-                Manage Job Postings
-              </Button>
-            </Link>
-          </div>
+        </div>
+
+        {/* Navigation Cards */}
+        <div className="grid md:grid-cols-3 gap-4 mb-8">
+          <Link href="/hr/jobs">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardHeader className="text-center">
+                <Briefcase className="w-8 h-8 mx-auto mb-2 text-purple-600" />
+                <CardTitle className="text-lg">Job Management</CardTitle>
+                <p className="text-sm text-gray-600">
+                  Create and manage job postings
+                </p>
+              </CardHeader>
+            </Card>
+          </Link>
+
+          <Link href="/hr/candidates">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardHeader className="text-center">
+                <Users className="w-8 h-8 mx-auto mb-2 text-blue-600" />
+                <CardTitle className="text-lg">Candidates</CardTitle>
+                <p className="text-sm text-gray-600">
+                  View and manage candidate profiles
+                </p>
+              </CardHeader>
+            </Card>
+          </Link>
+
+          <Link href="/hr/analytics">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardHeader className="text-center">
+                <TrendingUp className="w-8 h-8 mx-auto mb-2 text-green-600" />
+                <CardTitle className="text-lg">Analytics</CardTitle>
+                <p className="text-sm text-gray-600">
+                  View hiring statistics and reports
+                </p>
+              </CardHeader>
+            </Card>
+          </Link>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
