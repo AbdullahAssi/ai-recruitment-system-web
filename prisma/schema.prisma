@@ -1,0 +1,120 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Candidate {
+  id          String   @id @default(cuid())
+  name        String
+  email       String   @unique
+  experience  Int      // years of experience
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  resumes         Resume[]
+  applications    Application[]
+  candidateSkills CandidateSkill[]
+
+  @@map("candidates")
+}
+
+model Resume {
+  id            String   @id @default(cuid())
+  candidateId   String
+  filePath      String
+  fileName      String
+  extractedText String?
+  uploadDate    DateTime @default(now())
+
+  candidate Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@map("resumes")
+}
+
+model Job {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  location    String?
+  requirements String?  // specific job requirements
+  isActive    Boolean  @default(true)
+  postedDate  DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  applications Application[]
+  jobSkills    JobSkill[]
+
+  @@map("jobs")
+}
+
+model JobSkill {
+  id        String @id @default(cuid())
+  jobId     String
+  skillName String
+  required  Boolean @default(true)
+  createdAt DateTime @default(now())
+
+  job Job @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@map("job_skills")
+}
+model Application {
+  id          String            @id @default(cuid())
+  candidateId String
+  jobId       String
+  score       Float?            // match score between 0-100
+  status      ApplicationStatus @default(PENDING)
+  appliedAt   DateTime          @default(now())
+
+  candidate Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  job       Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([candidateId, jobId])
+  @@map("applications")
+}
+
+model Skill {
+  id        String   @id @default(cuid())
+  skillName String   @unique
+  category  String?  // e.g., "Programming", "Soft Skills", "Tools"
+  createdAt DateTime @default(now())
+
+  candidateSkills CandidateSkill[]
+
+  @@map("skills")
+}
+
+model CandidateSkill {
+  candidateId String
+  skillId     String
+  level       SkillLevel @default(INTERMEDIATE)
+  createdAt   DateTime   @default(now())
+
+  candidate Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  skill     Skill     @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([candidateId, skillId])
+  @@map("candidate_skills")
+}
+
+enum ApplicationStatus {
+  PENDING
+  REVIEWED
+  SHORTLISTED
+  REJECTED
+}
+
+enum SkillLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
