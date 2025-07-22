@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 import {
   Upload,
   User,
@@ -38,10 +39,18 @@ export default function CandidatePage() {
       uploadDate: string;
     };
   } | null>(null);
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file) return;
+    if (!file) {
+      toast({
+        title: "Error",
+        description: "Please select a file to upload",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setLoading(true);
     const formDataToSend = new FormData();
@@ -61,12 +70,26 @@ export default function CandidatePage() {
         setResult(data);
         setFormData({ name: "", email: "", experience: "" });
         setFile(null);
+        toast({
+          title: "Success!",
+          description:
+            "Resume uploaded successfully. Your candidate ID is: " +
+            data.candidate.id,
+        });
       } else {
-        alert(data.error || "Failed to upload resume");
+        toast({
+          title: "Upload Failed",
+          description: data.error || "Failed to upload resume",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Error uploading resume:", error);
-      alert("Failed to upload resume");
+      toast({
+        title: "Upload Failed",
+        description: "An unexpected error occurred while uploading your resume",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }

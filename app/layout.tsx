@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Toaster } from '@/components/ui/toaster';
 import { Home } from 'lucide-react';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -57,11 +58,12 @@ export default function RootLayout({
         </nav>
         
         <main>{children}</main>
+        <Toaster />
         
         <footer className="bg-gray-50 border-t border-gray-200 py-8 mt-16">
           <div className="max-w-6xl mx-auto px-4 text-center">
             <p className="text-gray-600 text-sm">
-              © 2025 CV-JD Matcher. Built with Next.js, TypeScript, and Prisma.
+              © 2025 CV-JD Matcher. Built with Love For Final Project
             </p>
             <p className="text-gray-500 text-xs mt-2">
               Intelligent resume matching for modern recruitment.

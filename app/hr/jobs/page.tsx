@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
   DialogContent,
@@ -41,6 +42,7 @@ export default function HRJobsPage() {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -58,9 +60,20 @@ export default function HRJobsPage() {
       const data = await response.json();
       if (data.success) {
         setJobs(data.jobs);
+      } else {
+        toast({
+          title: "Failed to Load Jobs",
+          description: data.error || "Could not fetch job listings",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Error fetching jobs:", error);
+      toast({
+        title: "Failed to Load Jobs",
+        description: "An error occurred while loading job listings",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -68,6 +81,22 @@ export default function HRJobsPage() {
 
   const handleCreateJob = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validation
+    if (
+      !formData.title.trim() ||
+      !formData.description.trim() ||
+      !formData.location.trim()
+    ) {
+      toast({
+        title: "Missing Information",
+        description:
+          "Please fill in all required fields (Title, Description, Location)",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setCreating(true);
 
     try {
@@ -89,12 +118,24 @@ export default function HRJobsPage() {
           requirements: "",
         });
         fetchJobs(); // Refresh the jobs list
+        toast({
+          title: "Job Created Successfully",
+          description: "The job posting has been created and is now live",
+        });
       } else {
-        alert(data.error || "Failed to create job");
+        toast({
+          title: "Job Creation Failed",
+          description: data.error || "Failed to create job",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Error creating job:", error);
-      alert("Failed to create job");
+      toast({
+        title: "Job Creation Failed",
+        description: "An unexpected error occurred while creating the job",
+        variant: "destructive",
+      });
     } finally {
       setCreating(false);
     }

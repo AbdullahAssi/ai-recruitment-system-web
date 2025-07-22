@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
   DialogContent,
@@ -63,6 +64,7 @@ export default function JobsPage() {
   const [applicationResult, setApplicationResult] =
     useState<ApplicationResult | null>(null);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchJobs();
@@ -84,7 +86,11 @@ export default function JobsPage() {
 
   const handleApply = async (jobId: string) => {
     if (!candidateId.trim()) {
-      alert("Please enter your Candidate ID");
+      toast({
+        title: "Candidate ID Required",
+        description: "Please enter your Candidate ID to apply for jobs",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -104,12 +110,24 @@ export default function JobsPage() {
         setSelectedJob(jobs.find((job) => job.id === jobId) || null);
         // Refresh jobs to update application count
         fetchJobs();
+        toast({
+          title: "Application Submitted!",
+          description: "Your application has been submitted successfully",
+        });
       } else {
-        alert(data.error || "Failed to apply");
+        toast({
+          title: "Application Failed",
+          description: data.error || "Failed to apply to this job",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Error applying to job:", error);
-      alert("Failed to apply to job");
+      toast({
+        title: "Application Failed",
+        description: "An unexpected error occurred while submitting your application",
+        variant: "destructive",
+      });
     } finally {
       setApplying(null);
     }

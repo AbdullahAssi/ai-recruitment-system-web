@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
 import {
   Users,
   FileText,
@@ -53,6 +54,7 @@ export default function HRPage() {
   });
   const [candidateId, setCandidateId] = useState("");
   const [job, setJob] = useState<JobData | null>(null);
+  const { toast } = useToast();
   const [matchResult, setMatchResult] = useState<{
     matchResult: MatchResult;
     candidate: CandidateInfo;
@@ -63,6 +65,17 @@ export default function HRPage() {
 
   const handleJobSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validation
+    if (!jobData.title.trim() || !jobData.description.trim() || !jobData.location.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields (Title, Description, Location)",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -78,19 +91,38 @@ export default function HRPage() {
       if (data.success) {
         setJob(data.job);
         setJobData({ title: "", description: "", location: "" });
+        toast({
+          title: "Job Created Successfully",
+          description: "The job has been created and is ready for candidate matching",
+        });
       } else {
-        alert(data.error || "Failed to process job description");
+        toast({
+          title: "Job Creation Failed",
+          description: data.error || "Failed to process job description",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Error processing job description:", error);
-      alert("Failed to process job description");
+      toast({
+        title: "Job Creation Failed",
+        description: "An unexpected error occurred while creating the job",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const handleMatch = async () => {
-    if (!job || !candidateId) return;
+    if (!job || !candidateId) {
+      toast({
+        title: "Missing Information",
+        description: "Please create a job and enter a candidate ID first",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setMatchLoading(true);
     try {
@@ -101,12 +133,24 @@ export default function HRPage() {
 
       if (data.success) {
         setMatchResult(data);
+        toast({
+          title: "Match Analysis Complete",
+          description: "The candidate-job match has been calculated successfully",
+        });
       } else {
-        alert(data.error || "Failed to calculate match");
+        toast({
+          title: "Match Analysis Failed",
+          description: data.error || "Failed to calculate match",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Error calculating match:", error);
-      alert("Failed to calculate match");
+      toast({
+        title: "Match Analysis Failed",
+        description: "An unexpected error occurred while calculating the match",
+        variant: "destructive",
+      });
     } finally {
       setMatchLoading(false);
     }
