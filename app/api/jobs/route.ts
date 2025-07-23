@@ -4,11 +4,14 @@ import { prisma } from "@/lib/prisma";
 // Force dynamic rendering for this API route
 export const dynamic = "force-dynamic";
 
-// GET all active jobs
-export async function GET() {
+// GET all jobs (with optional includeInactive parameter)
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const includeInactive = searchParams.get("includeInactive") === "true";
+
     const jobs = await prisma.job.findMany({
-      where: { isActive: true },
+      where: includeInactive ? {} : { isActive: true },
       include: {
         applications: {
           include: {

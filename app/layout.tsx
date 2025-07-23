@@ -28,7 +28,7 @@ export default function RootLayout({
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">CV</span>
               </div>
-              <span className="font-bold text-gray-900">CV-JD Matcher</span>
+              <span className="font-bold text-gray-900">AI Recruitment System</span>
             </Link>
             
             <div className="flex items-center gap-2">
@@ -63,7 +63,7 @@ export default function RootLayout({
         <footer className="bg-gray-50 border-t border-gray-200 py-8 mt-16">
           <div className="max-w-6xl mx-auto px-4 text-center">
             <p className="text-gray-600 text-sm">
-              © 2025 CV-JD Matcher. Built with Love For Final Project
+              © {new Date().getFullYear()} AI Recruitment System. Built with Love For Final Project
             </p>
             <p className="text-gray-500 text-xs mt-2">
               Intelligent resume matching for modern recruitment.

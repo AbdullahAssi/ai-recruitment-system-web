@@ -10,7 +10,7 @@ export default function HomePage() {
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-            CV-JD Matcher
+            AI Recuritement System
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
             Intelligent resume and job description matching powered by advanced NLP and machine learning algorithms. 

@@ -11,107 +11,197 @@ export async function GET(request: NextRequest) {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startOfWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-    // Get candidate statistics
-    const totalCandidates = await prisma.candidate.count();
-    const candidatesThisMonth = await prisma.candidate.count({
-      where: {
-        createdAt: {
-          gte: startOfMonth,
+    const [
+      candidateStats,
+
+      jobStats,
+      applicationStats,
+      topJobsData,
+      // Recent activity data
+      recentActivityData,
+    ] = await Promise.all([
+      // Optimized candidate statistics
+      Promise.all([
+        prisma.candidate.count(),
+        prisma.candidate.count({
+          where: {
+            createdAt: {
+              gte: startOfMonth,
+            },
+          },
+        }),
+        prisma.candidate.count({
+          where: {
+            resumes: {
+              some: {},
+            },
+          },
+        }),
+        prisma.candidate.count({
+          where: {
+            applications: {
+              some: {
+                status: {
+                  in: ["PENDING", "REVIEWED"],
+                },
+              },
+            },
+          },
+        }),
+      ]),
+
+      // Optimized job statistics
+      Promise.all([
+        prisma.job.count(),
+        prisma.job.count({
+          where: {
+            isActive: true,
+          },
+        }),
+        prisma.job.count({
+          where: {
+            createdAt: {
+              gte: startOfMonth,
+            },
+          },
+        }),
+      ]),
+
+      // Optimized application statistics - use groupBy for better performance
+      Promise.all([
+        prisma.application.count(),
+        prisma.application.count({
+          where: {
+            appliedAt: {
+              gte: startOfWeek,
+            },
+          },
+        }),
+        prisma.application.groupBy({
+          by: ["status"],
+          _count: {
+            id: true,
+          },
+        }),
+      ]),
+
+      // Get top performing jobs with optimized query
+      prisma.job.findMany({
+        where: {
+          applications: {
+            some: {},
+          },
         },
-      },
-    });
-    const candidatesWithResumes = await prisma.candidate.count({
-      where: {
-        resumes: {
-          some: {},
-        },
-      },
-    });
-    const candidatesWithActiveApplications = await prisma.candidate.count({
-      where: {
-        applications: {
-          some: {
-            status: {
-              in: ["PENDING", "REVIEWED"],
+        select: {
+          id: true,
+          title: true,
+          location: true,
+          _count: {
+            select: {
+              applications: true,
+            },
+          },
+          applications: {
+            select: {
+              score: true,
+            },
+            where: {
+              score: {
+                not: null,
+              },
             },
           },
         },
-      },
-    });
-
-    // Get job statistics
-    const totalJobs = await prisma.job.count();
-    const activeJobs = await prisma.job.count({
-      where: {
-        isActive: true,
-      },
-    });
-    const jobsThisMonth = await prisma.job.count({
-      where: {
-        createdAt: {
-          gte: startOfMonth,
-        },
-      },
-    });
-
-    // Get application statistics
-    const totalApplications = await prisma.application.count();
-    const applicationsThisWeek = await prisma.application.count({
-      where: {
-        appliedAt: {
-          gte: startOfWeek,
-        },
-      },
-    });
-    const pendingApplications = await prisma.application.count({
-      where: {
-        status: "PENDING",
-      },
-    });
-    const reviewedApplications = await prisma.application.count({
-      where: {
-        status: "REVIEWED",
-      },
-    });
-    const shortlistedApplications = await prisma.application.count({
-      where: {
-        status: "SHORTLISTED",
-      },
-    });
-    const rejectedApplications = await prisma.application.count({
-      where: {
-        status: "REJECTED",
-      },
-    });
-
-    // Get top performing jobs
-    const topJobs = await prisma.job.findMany({
-      where: {
-        applications: {
-          some: {},
-        },
-      },
-      include: {
-        applications: {
-          select: {
-            score: true,
+        orderBy: {
+          applications: {
+            _count: "desc",
           },
         },
-        _count: {
-          select: {
-            applications: true,
+        take: 5,
+      }),
+
+      // Get recent activity data in parallel
+      Promise.all([
+        prisma.application.findMany({
+          take: 5,
+          orderBy: {
+            appliedAt: "desc",
           },
-        },
-      },
-      orderBy: {
-        applications: {
-          _count: "desc",
-        },
-      },
-      take: 5,
+          select: {
+            appliedAt: true,
+            candidate: {
+              select: {
+                name: true,
+              },
+            },
+            job: {
+              select: {
+                title: true,
+              },
+            },
+          },
+        }),
+        prisma.candidate.findMany({
+          take: 3,
+          orderBy: {
+            createdAt: "desc",
+          },
+          select: {
+            name: true,
+            createdAt: true,
+          },
+        }),
+        prisma.job.findMany({
+          take: 2,
+          orderBy: {
+            createdAt: "desc",
+          },
+          select: {
+            title: true,
+            createdAt: true,
+          },
+        }),
+      ]),
+    ]);
+
+    // Process the results
+    const [
+      totalCandidates,
+      candidatesThisMonth,
+      candidatesWithResumes,
+      candidatesWithActiveApplications,
+    ] = candidateStats;
+    const [totalJobs, activeJobs, jobsThisMonth] = jobStats;
+    const [totalApplications, applicationsThisWeek, applicationStatusGroups] =
+      applicationStats;
+
+    // Process application status groups
+    const statusCounts = {
+      pending: 0,
+      reviewed: 0,
+      shortlisted: 0,
+      rejected: 0,
+    };
+
+    applicationStatusGroups.forEach((group: any) => {
+      switch (group.status) {
+        case "PENDING":
+          statusCounts.pending = group._count.id;
+          break;
+        case "REVIEWED":
+          statusCounts.reviewed = group._count.id;
+          break;
+        case "SHORTLISTED":
+          statusCounts.shortlisted = group._count.id;
+          break;
+        case "REJECTED":
+          statusCounts.rejected = group._count.id;
+          break;
+      }
     });
 
-    const topPerformingJobs = topJobs.map((job: any) => ({
+    // Process top performing jobs
+    const topPerformingJobs = topJobsData.map((job: any) => ({
       id: job.id,
       title: job.title,
       location: job.location || "Remote",
@@ -125,61 +215,22 @@ export async function GET(request: NextRequest) {
           : 0,
     }));
 
-    // Get recent activity
-    const recentApplications = await prisma.application.findMany({
-      take: 10,
-      orderBy: {
-        appliedAt: "desc",
-      },
-      include: {
-        candidate: {
-          select: {
-            name: true,
-          },
-        },
-        job: {
-          select: {
-            title: true,
-          },
-        },
-      },
-    });
+    // Process recent activity
+    const [recentApplications, recentCandidates, recentJobs] =
+      recentActivityData;
 
-    const recentCandidates = await prisma.candidate.findMany({
-      take: 5,
-      orderBy: {
-        createdAt: "desc",
-      },
-      select: {
-        name: true,
-        createdAt: true,
-      },
-    });
-
-    const recentJobs = await prisma.job.findMany({
-      take: 5,
-      orderBy: {
-        createdAt: "desc",
-      },
-      select: {
-        title: true,
-        createdAt: true,
-      },
-    });
-
-    // Format recent activity
     const recentActivity = [
-      ...recentApplications.slice(0, 5).map((app: any) => ({
+      ...recentApplications.map((app: any) => ({
         type: "application" as const,
         message: `${app.candidate.name} applied to ${app.job.title}`,
         timestamp: formatTimeAgo(app.appliedAt),
       })),
-      ...recentCandidates.slice(0, 3).map((candidate: any) => ({
+      ...recentCandidates.map((candidate: any) => ({
         type: "candidate" as const,
         message: `${candidate.name} registered as a new candidate`,
         timestamp: formatTimeAgo(candidate.createdAt),
       })),
-      ...recentJobs.slice(0, 2).map((job: any) => ({
+      ...recentJobs.map((job: any) => ({
         type: "job" as const,
         message: `New job "${job.title}" was posted`,
         timestamp: formatTimeAgo(job.createdAt),
@@ -206,20 +257,27 @@ export async function GET(request: NextRequest) {
       },
       applications: {
         total: totalApplications,
-        pending: pendingApplications,
-        reviewed: reviewedApplications,
-        shortlisted: shortlistedApplications,
-        rejected: rejectedApplications,
+        pending: statusCounts.pending,
+        reviewed: statusCounts.reviewed,
+        shortlisted: statusCounts.shortlisted,
+        rejected: statusCounts.rejected,
         thisWeek: applicationsThisWeek,
       },
       topPerformingJobs,
       recentActivity,
     };
 
-    return NextResponse.json({
-      success: true,
-      analytics,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        analytics,
+      },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+        },
+      }
+    );
   } catch (error) {
     console.error("Error fetching analytics:", error);
     return NextResponse.json(

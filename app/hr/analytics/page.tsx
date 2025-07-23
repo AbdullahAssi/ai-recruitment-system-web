@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import {
   Users,
@@ -13,6 +14,7 @@ import {
   Clock,
   XCircle,
   Eye,
+  RefreshCw,
 } from "lucide-react";
 
 interface AnalyticsData {
@@ -61,23 +63,30 @@ export default function AnalyticsPage() {
 
   const fetchAnalytics = async () => {
     try {
-      const response = await fetch("/api/analytics");
+      setLoading(true);
+      const response = await fetch("/api/analytics", {
+        cache: 'no-store', // Bypass cache for fresh data
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
 
       if (data.success) {
         setAnalytics(data.analytics);
       } else {
-        toast({
-          title: "Failed to Load Analytics",
-          description: data.error || "Could not fetch analytics data",
-          variant: "destructive",
-        });
+        throw new Error(data.error || "Could not fetch analytics data");
       }
     } catch (error) {
       console.error("Error fetching analytics:", error);
       toast({
         title: "Failed to Load Analytics",
-        description: "An error occurred while loading analytics data",
+        description: error instanceof Error ? error.message : "An error occurred while loading analytics data",
         variant: "destructive",
       });
     } finally {
@@ -132,9 +141,25 @@ export default function AnalyticsPage() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            HR Analytics Dashboard
-          </h1>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex-1"></div>
+            <h1 className="text-3xl font-bold text-gray-900 flex-1">
+              HR Analytics Dashboard
+            </h1>
+            <div className="flex-1 flex justify-end">
+              <Button
+                onClick={fetchAnalytics}
+                disabled={loading}
+                variant="default"
+                size="sm"
+                className="bg-purple-600 hover:bg-purple-700"
+                title="Refresh analytics data"
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+            </div>
+          </div>
           <p className="text-gray-600">
             Track hiring metrics and performance insights
           </p>

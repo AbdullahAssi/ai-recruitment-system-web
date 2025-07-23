@@ -21,6 +21,7 @@ model Candidate {
   resumes         Resume[]
   applications    Application[]
   candidateSkills CandidateSkill[]
+  emailHistory    EmailHistory[]
 
   @@map("candidates")
 }
@@ -51,6 +52,7 @@ model Job {
 
   applications Application[]
   jobSkills    JobSkill[]
+  emailHistory EmailHistory[]
 
   @@map("jobs")
 }
@@ -117,4 +119,57 @@ enum SkillLevel {
   INTERMEDIATE
   ADVANCED
   EXPERT
+}
+
+model EmailTemplate {
+  id          String        @id @default(cuid())
+  name        String        @unique
+  subject     String
+  body        String        // HTML email body
+  type        EmailType
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  emailHistory EmailHistory[]
+
+  @@map("email_templates")
+}
+
+model EmailHistory {
+  id          String      @id @default(cuid())
+  candidateId String
+  jobId       String?
+  templateId  String?
+  subject     String
+  body        String      // HTML email body
+  recipient   String      // email address
+  status      EmailStatus @default(PENDING)
+  sentAt      DateTime?
+  errorMessage String?
+  createdAt   DateTime    @default(now())
+
+  candidate Candidate     @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  job       Job?          @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  template  EmailTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+
+  @@map("email_history")
+}
+
+enum EmailType {
+  APPLICATION_RECEIVED
+  INTERVIEW_INVITE
+  APPLICATION_UNDER_REVIEW
+  APPLICATION_SHORTLISTED
+  APPLICATION_REJECTED
+  JOB_OFFER
+  FOLLOW_UP
+  CUSTOM
+}
+
+enum EmailStatus {
+  PENDING
+  SENT
+  FAILED
+  BOUNCED
 }
