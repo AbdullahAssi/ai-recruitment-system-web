@@ -81,6 +81,34 @@ export async function POST(
       },
     });
 
+    // Trigger AI scoring asynchronously with the latest resume
+    const latestResume = candidate.resumes[0];
+    try {
+      // Call AI scoring API
+      const aiScoreUrl = `${
+        process.env.NEXTAUTH_URL || "http://localhost:3000"
+      }/api/ai/score`;
+
+      fetch(aiScoreUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          resumeId: latestResume.id,
+          jobId: jobId,
+        }),
+      }).catch((error) => {
+        console.error("AI scoring failed:", error);
+        // Continue with normal flow even if AI scoring fails
+      });
+
+      console.log(`🤖 AI scoring initiated for application ${application.id}`);
+    } catch (aiError) {
+      console.error("Failed to initiate AI scoring:", aiError);
+      // Continue with normal flow
+    }
+
     // Fetch application with details for response
     const applicationWithDetails = await prisma.application.findUnique({
       where: { id: application.id },
@@ -119,7 +147,7 @@ export async function POST(
         matchedSkills: [], // Will be filled by LLM later
         missingSkills: [], // Will be filled by LLM later
       },
-      message: "Application submitted successfully",
+      message: "Application submitted successfully! AI scoring in progress...",
     });
   } catch (error) {
     console.error("Error submitting application:", error);

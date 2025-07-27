@@ -1,0 +1,57 @@
+MOEEZ AHMAD 
++92 3049846835 | moeezch7860@gmail.com  |  github.com/MoeezAhmad10 
+ 
+ 
+SUMMARY 
+As an Artificial Intelligence student, I am passionate about applying machine learning and data science to solve complex problems. 
+With practical experience in deep learning, neural networks, and AI technologies, I seek an entry-level position to contribute to 
+innovative and impactful AI projects. 
+ 
+ SKILLS 
+  Languages:                 Python, C++, Java, SQL 
+  Frameworks:                 TensorFlow, PyTorch, Keras, LangChain, FastAPI 
+  Libraries:                   Scikit-learn, Pandas, Numpy, Matplotlib, Seaborn, Pickel, NLTK, OpenCV 
+OTHER TOOLS:                      Power BI, Tableau, VS Code, Visual Studio, Collab, Jupyter Notebook, Anaconda, Open AI, Git-GitHub   
+Soft Skills:                  Communication, Team Work 
+ 
+  PROJECTS 
+Health Chatbot Using LangChain 
+• Developed a health-focused chatbot using Streamlit for the UI, integrating LangChain and OpenAI to answer user queries based on 
+verified medical documents related to brain tumor, lung, and kidney diseases. 
+• Implemented PDF parsing and FAISS vector search for efficient document retrieval, ensuring context-aware, accurate GPT 
+responses with a focus on safety and reliability. 
+Diabetes Prediction Using Machine Learning 
+• Developed an end-to-end machine learning pipeline to predict diabetes using the Kaggle Diabetes dataset. 
+• Performed data cleaning, exploratory data analysis, feature engineering, model selection, and evaluation. 
+• Achieved high accuracy using a Random Forest classifier. 
+Clothing Classification using ANN 
+• Developed a clothing classification model using Convolutional Neural Networks (CNN) on the Fashion-MNIST dataset. 
+• Trained the model to accurately predict apparel categories, leveraging deep learning for image-based classification. 
+SmartSpeller — Context-Aware Spelling Corrector 
+• Built SmartSpeller, an intelligent spelling correction tool using Python and Streamlit. 
+• Utilized a large text corpus with unigram and bigram language models for word frequency analysis and context-correction. 
+• Combined edit distance with contextual probabilities to accurately correct isolated words and improve suggestions based on 
+the previous word, enhancing real-world usability. 
+An NLP-based Emotion-Aware Conversational Agent 
+• EmotiSense chatbot uses a BERT-based emotion classification model to detect user emotions and generates context-
+aware, emphathetic responses through dialoGBT, enhancing human like interaction. 
+• It tracks user-specific chat history and includes an admin secured feature to view or clear records, ensuring both 
+personalization and privacy in sensitive applications. 
+ EDUCATION 
+2022-Present National University of Technology NUTECH 
+  Islamabad, Pakistan 
+BS Artificial Intelligence – 6th Semester 
+ 
+  2020 – 2022   Punjab Group of Colleges for Boys                                                                                               Pakpattan, Pakistan 
+                         FSC (Pre-Engineering) 
+ 
+Certifications 
+Machine Learning with Python – IBM 
+The Nuts and Bolts of Machine Learning – Google 
+Introduction to Python – Coursera Project Network 
+Get Started with Python – Google 
+Foundations of Data Science – Google  
+Foundations: Data, Data, Everywhere – Google 
+Introduction to FastAPI framework – Duke University 
+Introduction to frontend development –Meta 
+

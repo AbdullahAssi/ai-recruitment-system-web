@@ -40,6 +40,13 @@ import {
   BarChart3,
   PieChart as PieChartIcon,
   Activity,
+  Download,
+  Calendar,
+  Target,
+  TrendingDown,
+  Building2,
+  MapPin,
+  Filter,
 } from "lucide-react";
 
 interface AnalyticsData {
@@ -75,6 +82,35 @@ interface AnalyticsData {
     message: string;
     timestamp: string;
   }>;
+  // Advanced Analytics
+  timeToHire: {
+    average: number;
+    median: number;
+    trend: Array<{
+      month: string;
+      days: number;
+    }>;
+  };
+  sourceTracking: Array<{
+    source: string;
+    count: number;
+    percentage: number;
+    conversionRate: number;
+  }>;
+  conversionFunnel: {
+    applied: number;
+    reviewed: number;
+    shortlisted: number;
+    interviewed: number;
+    hired: number;
+  };
+  departmentStats: Array<{
+    department: string;
+    openPositions: number;
+    applications: number;
+    hired: number;
+    averageTimeToHire: number;
+  }>;
 }
 
 // Chart configuration
@@ -103,11 +139,24 @@ const chartConfig = {
     label: "Candidates",
     color: "#06b6d4",
   },
+  timeToHire: {
+    label: "Time to Hire",
+    color: "#f97316",
+  },
+  hired: {
+    label: "Hired",
+    color: "#059669",
+  },
+  interviewed: {
+    label: "Interviewed",
+    color: "#7c3aed",
+  },
 };
 
 export default function AnalyticsPage() {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [exportLoading, setExportLoading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -147,6 +196,50 @@ export default function AnalyticsPage() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const exportReport = async (format: "pdf" | "excel" | "csv") => {
+    try {
+      setExportLoading(true);
+      const response = await fetch(`/api/analytics/export?format=${format}`, {
+        method: "GET",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to export report");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.style.display = "none";
+      a.href = url;
+
+      let fileExtension = "txt";
+      if (format === "pdf") fileExtension = "pdf";
+      else if (format === "excel") fileExtension = "xlsx";
+      else if (format === "csv") fileExtension = "csv";
+
+      a.download = `hr-analytics-report.${fileExtension}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: "Export Successful",
+        description: `Report exported as ${format.toUpperCase()}`,
+      });
+    } catch (error) {
+      console.error("Export error:", error);
+      toast({
+        title: "Export Failed",
+        description: "Failed to export the report",
+        variant: "destructive",
+      });
+    } finally {
+      setExportLoading(false);
     }
   };
 
@@ -204,24 +297,60 @@ export default function AnalyticsPage() {
                 HR Analytics Dashboard
               </h1>
             </div>
-            <div className="flex-1 flex justify-end">
-              <Button
-                onClick={fetchAnalytics}
-                disabled={loading}
-                variant="default"
-                size="sm"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg"
-                title="Refresh analytics data"
-              >
-                <RefreshCw
-                  className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`}
-                />
-                Refresh
-              </Button>
+            <div className="flex-1 flex justify-end gap-2">
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => exportReport("csv")}
+                  disabled={exportLoading || loading}
+                  variant="outline"
+                  size="sm"
+                  className="border-blue-600 text-blue-600 hover:bg-blue-50"
+                  title="Export to CSV"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  CSV
+                </Button>
+                <Button
+                  onClick={() => exportReport("excel")}
+                  disabled={exportLoading || loading}
+                  variant="outline"
+                  size="sm"
+                  className="border-green-600 text-green-600 hover:bg-green-50"
+                  title="Export to Excel"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Excel
+                </Button>
+                <Button
+                  onClick={() => exportReport("pdf")}
+                  disabled={exportLoading || loading}
+                  variant="outline"
+                  size="sm"
+                  className="border-red-600 text-red-600 hover:bg-red-50"
+                  title="Export to PDF"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  PDF
+                </Button>
+                <Button
+                  onClick={fetchAnalytics}
+                  disabled={loading}
+                  variant="default"
+                  size="sm"
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg"
+                  title="Refresh analytics data"
+                >
+                  <RefreshCw
+                    className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`}
+                  />
+                  Refresh
+                </Button>
+              </div>
             </div>
           </div>
           <p className="text-gray-600 text-lg">
-            Track hiring metrics and performance insights
+            Track hiring metrics and performance insights with advanced
+            analytics
           </p>
         </div>
 
@@ -402,6 +531,313 @@ export default function AnalyticsPage() {
                   <div className="text-center">
                     <BarChart3 className="w-12 h-12 mx-auto mb-4 opacity-50" />
                     <p>No job performance data available yet</p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Advanced Analytics Section */}
+        <div className="grid lg:grid-cols-2 gap-8 mb-8">
+          {/* Time-to-Hire Metrics */}
+          <Card className="shadow-xl border-0 bg-white/70 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Calendar className="w-6 h-6 text-orange-600" />
+                Time-to-Hire Metrics
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="text-center p-4 bg-gradient-to-r from-orange-50 to-red-50 rounded-lg border">
+                  <div className="text-3xl font-bold text-orange-600 mb-1">
+                    {analytics?.timeToHire?.average || 0}
+                  </div>
+                  <p className="text-sm text-gray-600">Average Days</p>
+                </div>
+                <div className="text-center p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border">
+                  <div className="text-3xl font-bold text-amber-600 mb-1">
+                    {analytics?.timeToHire?.median || 0}
+                  </div>
+                  <p className="text-sm text-gray-600">Median Days</p>
+                </div>
+              </div>
+              {analytics?.timeToHire?.trend &&
+              analytics.timeToHire.trend.length > 0 ? (
+                <ChartContainer config={chartConfig} className="max-h-[200px]">
+                  <LineChart data={analytics.timeToHire.trend}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                    <YAxis tick={{ fontSize: 12 }} />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Line
+                      type="monotone"
+                      dataKey="days"
+                      stroke="#f97316"
+                      strokeWidth={3}
+                      dot={{ fill: "#f97316", strokeWidth: 2, r: 4 }}
+                      name="Days"
+                    />
+                  </LineChart>
+                </ChartContainer>
+              ) : (
+                <div className="flex items-center justify-center h-[200px] text-gray-500">
+                  <div className="text-center">
+                    <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>No time-to-hire trend data available</p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Conversion Funnel */}
+          <Card className="shadow-xl border-0 bg-white/70 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Target className="w-6 h-6 text-indigo-600" />
+                Conversion Funnel Analysis
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {analytics?.conversionFunnel ? (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border">
+                    <span className="font-medium">Applied</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl font-bold text-blue-600">
+                        {analytics.conversionFunnel.applied}
+                      </span>
+                      <div className="w-20 bg-gray-200 rounded-full h-2">
+                        <div className="bg-blue-600 h-2 rounded-full w-full"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-indigo-50 rounded-lg border">
+                    <span className="font-medium">Reviewed</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl font-bold text-indigo-600">
+                        {analytics.conversionFunnel.reviewed}
+                      </span>
+                      <div className="w-20 bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-indigo-600 h-2 rounded-full"
+                          style={{
+                            width: `${
+                              (analytics.conversionFunnel.reviewed /
+                                analytics.conversionFunnel.applied) *
+                              100
+                            }%`,
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg border">
+                    <span className="font-medium">Shortlisted</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl font-bold text-purple-600">
+                        {analytics.conversionFunnel.shortlisted}
+                      </span>
+                      <div className="w-20 bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-purple-600 h-2 rounded-full"
+                          style={{
+                            width: `${
+                              (analytics.conversionFunnel.shortlisted /
+                                analytics.conversionFunnel.applied) *
+                              100
+                            }%`,
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-violet-50 rounded-lg border">
+                    <span className="font-medium">Interviewed</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl font-bold text-violet-600">
+                        {analytics.conversionFunnel.interviewed}
+                      </span>
+                      <div className="w-20 bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-violet-600 h-2 rounded-full"
+                          style={{
+                            width: `${
+                              (analytics.conversionFunnel.interviewed /
+                                analytics.conversionFunnel.applied) *
+                              100
+                            }%`,
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border">
+                    <span className="font-medium">Hired</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl font-bold text-green-600">
+                        {analytics.conversionFunnel.hired}
+                      </span>
+                      <div className="w-20 bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-green-600 h-2 rounded-full"
+                          style={{
+                            width: `${
+                              (analytics.conversionFunnel.hired /
+                                analytics.conversionFunnel.applied) *
+                              100
+                            }%`,
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-[300px] text-gray-500">
+                  <div className="text-center">
+                    <Target className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>No conversion funnel data available</p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Source Tracking and Department Statistics */}
+        <div className="grid lg:grid-cols-2 gap-8 mb-8">
+          {/* Source Tracking */}
+          <Card className="shadow-xl border-0 bg-white/70 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <MapPin className="w-6 h-6 text-cyan-600" />
+                Candidate Source Tracking
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {analytics?.sourceTracking &&
+              analytics.sourceTracking.length > 0 ? (
+                <div className="space-y-4">
+                  {analytics.sourceTracking.map((source, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg border"
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-medium">{source.source}</span>
+                          <Badge className="bg-cyan-100 text-cyan-800">
+                            {source.percentage.toFixed(1)}%
+                          </Badge>
+                        </div>
+                        <div className="flex items-center justify-between text-sm text-gray-600">
+                          <span>{source.count} candidates</span>
+                          <span className="text-green-600 font-medium">
+                            {source.conversionRate.toFixed(1)}% conversion
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                          <div
+                            className="bg-cyan-600 h-2 rounded-full transition-all duration-500"
+                            style={{ width: `${source.percentage}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-[300px] text-gray-500">
+                  <div className="text-center">
+                    <MapPin className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>No source tracking data available</p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Department-wise Statistics */}
+          <Card className="shadow-xl border-0 bg-white/70 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Building2 className="w-6 h-6 text-emerald-600" />
+                Department-wise Hiring Stats
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {analytics?.departmentStats &&
+              analytics.departmentStats.length > 0 ? (
+                <div className="space-y-4 max-h-[400px] overflow-y-auto">
+                  {analytics.departmentStats.map((dept, index) => (
+                    <div
+                      key={index}
+                      className="p-4 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg border"
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="font-semibold text-emerald-800">
+                          {dept.department}
+                        </h4>
+                        <Badge className="bg-emerald-100 text-emerald-800">
+                          {dept.openPositions} open
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-3 gap-3 text-sm">
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-blue-600">
+                            {dept.applications}
+                          </div>
+                          <p className="text-gray-600">Applications</p>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-green-600">
+                            {dept.hired}
+                          </div>
+                          <p className="text-gray-600">Hired</p>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-orange-600">
+                            {dept.averageTimeToHire}
+                          </div>
+                          <p className="text-gray-600">Avg Days</p>
+                        </div>
+                      </div>
+                      <div className="mt-3">
+                        <div className="flex justify-between text-xs text-gray-600 mb-1">
+                          <span>Hiring Rate</span>
+                          <span>
+                            {((dept.hired / dept.applications) * 100).toFixed(
+                              1
+                            )}
+                            %
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-emerald-600 h-2 rounded-full transition-all duration-500"
+                            style={{
+                              width: `${
+                                (dept.hired / dept.applications) * 100
+                              }%`,
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-[300px] text-gray-500">
+                  <div className="text-center">
+                    <Building2 className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>No department statistics available</p>
                   </div>
                 </div>
               )}

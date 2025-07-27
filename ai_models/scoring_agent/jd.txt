@@ -1,0 +1,41 @@
+Position: Junior Machine Learning Engineer
+Location: Onsite / Remote / Hybrid
+Type: Full-time
+
+🧠 Role Overview:
+We are seeking a motivated and curious Junior Machine Learning Engineer to join our AI team. You will support the development, testing, and deployment of machine learning models and help in building scalable data-driven systems.
+
+🔧 Key Responsibilities:
+Assist in building, training, and evaluating machine learning models for real-world applications.
+
+Support data preprocessing, cleaning, and transformation pipelines.
+
+Collaborate with data scientists, software engineers, and product teams to integrate ML models into production systems.
+
+Conduct experiments and tune model performance using tools like scikit-learn, TensorFlow, or PyTorch.
+
+Help maintain and improve ML infrastructure, model versioning, and performance monitoring systems.
+
+Document experiments, code, and processes clearly.
+
+📌 Required Skills and Qualifications:
+Bachelor’s degree in Computer Science, Data Science, Artificial Intelligence, or related field.
+
+Strong understanding of machine learning fundamentals and algorithms (classification, regression, clustering).
+
+Proficient in Python and libraries like NumPy, pandas, scikit-learn.
+
+Familiarity with ML frameworks such as TensorFlow, Keras, or PyTorch.
+
+Experience working with Jupyter Notebooks and Git for version control.
+
+Basic knowledge of SQL and working with databases.
+
+✅ Preferred (Nice to Have):
+Experience with cloud services (AWS, GCP, or Azure).
+
+Exposure to deploying models using Flask, FastAPI, or similar frameworks.
+
+Participation in Kaggle competitions or personal ML projects.
+
+Understanding of MLOps tools like MLflow, DVC, or Docker.

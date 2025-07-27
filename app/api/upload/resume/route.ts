@@ -42,14 +42,14 @@ export async function POST(request: NextRequest) {
 
     // Save file to uploads directory
     const uploadDir = path.join(process.cwd(), "uploads");
-    
+
     // Ensure uploads directory exists
     try {
       await fs.access(uploadDir);
     } catch {
       await fs.mkdir(uploadDir, { recursive: true });
     }
-    
+
     const fileName = `${Date.now()}-${file.name}`;
     const filePath = path.join(uploadDir, fileName);
 
@@ -87,9 +87,36 @@ export async function POST(request: NextRequest) {
         candidateId: candidate.id,
         filePath: filePath,
         fileName: file.name || "unknown",
-        extractedText: "", // Will be processed by LLM later
+        extractedText: "", // Will be processed by AI
       },
     });
+
+    // Trigger AI processing asynchronously (don't wait for completion)
+    try {
+      // Call AI processing API
+      const aiProcessUrl = `${
+        process.env.NEXTAUTH_URL || "http://localhost:3000"
+      }/api/ai/process`;
+
+      fetch(aiProcessUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          resumeId: resume.id,
+          // You can add jobDescription here if you have a specific job context
+        }),
+      }).catch((error) => {
+        console.error("AI processing failed:", error);
+        // Continue with normal flow even if AI processing fails
+      });
+
+      console.log(`🤖 AI processing initiated for resume ${resume.id}`);
+    } catch (aiError) {
+      console.error("Failed to initiate AI processing:", aiError);
+      // Continue with normal flow
+    }
 
     return NextResponse.json({
       success: true,

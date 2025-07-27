@@ -1,0 +1,32 @@
++92 331 8991236
+Islamabad, Pakistan
+	TAQI MUSTAFA
+FRONTEND LEAD	github.com/taqimustafa
+linkedin.com/in/taqimustafa
+taqi.mustafa@hotmail.com
+
+
+TECHNICAL EXPERIENCE
+Technical Lead 	Embrace IT	Mar 2017 – Present
+As a Frontend Lead, I play a pivotal role in cross-functional collaboration, working closely with Product, Design, Backend, QA, and DevOps teams to drive the successful delivery of features. My responsibilities encompass designing, building, and maintaining web applications utilizing React. I actively engage in code reviews to uphold code quality, structural integrity, and adherence to industry standards.
+In addition to my technical contributions, I take on a mentoring role, guiding developers on algorithms, data structures, coding best practices, and fostering efficient workflows. My leadership extends to the introduction of Test Driven Development (TDD) methodologies, ensuring a robust and quality-focused approach to project development.
+Furthermore, I continuously seek opportunities to enhance team efficiency, streamline processes, and contribute to the overall success of the development lifecycle.
+
+Frontend Developer	Vanila.io	Sep 2016 – Mar 2017
+I served as a Frontend Developer in this role, contributing to projects and leveraging expertise in technologies such as React JS, MobX, and Meteor JS. My primary focus included HTML5 Canvas and Google Maps applications, ensuring a seamless and visually appealing user experience.
+
+Frontend Developer	Sajilni	Dec 2015 – Sep 2016
+As a Frontend Developer at Sajilni, an OASIS500 Company in Amman, Jordan, I played a pivotal role in innovating the platform. My primary contributions included spearheading the development of the Seating Chart Tool for efficient Ticket Management and executing a successful overhaul of the entire frontend application. By integrating modern design principles and optimizing user interactions, I significantly enhanced the platform's overall user experience, ensuring it met contemporary standards.
+ 
+Frontend Developer	Freelance	Jan 2014 – Dec 2015
+I specialize in building robust web applications, utilizing Vanilla JavaScript and JQuery for efficient functionality. My expertise extends to crafting hybrid mobile applications with Cordova and Phonegap, as well as hybrid desktop applications using Electron. I've also developed drawing applications leveraging the capabilities of Fabric JS and implemented Real Estate applications, incorporating extensive functionality through the Google Maps API. Additionally, I've engaged in 3D development using Three JS, contributing to a diverse skill set in web and mobile application development.
+
+Technologies
+React, Redux, GraphQL, WebRTC, WebGL, ThreeJS, Jotai, Recoil, Redux, Firebase, Jest, Enzyme, React Testing Library, Next.JS, Typescript, Ant Design, SCSS, emotions, styled-components, Tailwind CSS, Headless UI, Xeokit, IFC.JS.
+
+EDUCATION
+Islamabad, Pakistan	COMSATS University	Spring 2010 – Spring 2014
+•	B.S. in Computer Science with specialization in Image Processing. GPA: 3.31.
+•	Coursework: Compiler Construction; Artificial Intelligence; Operating Systems; Computer Architecture; Computer Vision; Computer Graphics; Databases; Algorithms; Software Engineering;
+
+

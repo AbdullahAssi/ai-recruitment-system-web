@@ -1,0 +1,11 @@
+# AI Models Environment Variables
+# Copy this to .env in the ai_models folder
+
+# OpenAI API Key for AI processing
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Database URL - should match your main Next.js app
+DATABASE_URL=your_neon_database_url_here
+
+# For direct Python connections (if using Prisma Accelerate)
+# DIRECT_DATABASE_URL=your_direct_postgresql_url_here

@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,84 +8,101 @@ datasource db {
 }
 
 model Candidate {
-  id          String   @id @default(cuid())
-  name        String
-  email       String   @unique
-  experience  Int      // years of experience
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  resumes         Resume[]
+  id              String           @id @default(cuid())
+  name            String
+  email           String           @unique
+  experience      Int
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
   applications    Application[]
   candidateSkills CandidateSkill[]
   emailHistory    EmailHistory[]
+  resumes         Resume[]
 
   @@map("candidates")
 }
 
 model Resume {
-  id            String   @id @default(cuid())
-  candidateId   String
-  filePath      String
-  fileName      String
-  extractedText String?
-  uploadDate    DateTime @default(now())
-
-  candidate Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  id                  String    @id @default(cuid())
+  candidateId         String
+  filePath            String
+  fileName            String
+  extractedText       String?
+  uploadDate          DateTime  @default(now())
+  certifications_json String?
+  email               String?
+  experience_json     String?
+  filename            String?
+  github              String?
+  linkedin            String?
+  name                String?
+  projects_json       String?
+  skills_json         String?
+  cvScores            CvScore[]
+  candidate           Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
   @@map("resumes")
 }
 
-model Job {
-  id          String   @id @default(cuid())
-  title       String
-  description String
-  location    String?
-  requirements String?  // specific job requirements
-  isActive    Boolean  @default(true)
-  postedDate  DateTime @default(now())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model CvScore {
+  id              String   @id @default(cuid())
+  resume_id       String
+  job_description String?
+  score           Int?
+  explanation     String?
+  scored_at       DateTime @default(now())
+  resume          Resume   @relation(fields: [resume_id], references: [id], onDelete: Cascade)
 
+  @@map("cv_scores")
+}
+
+model Job {
+  id           String         @id @default(cuid())
+  title        String
+  description  String
+  location     String?
+  requirements String?
+  isActive     Boolean        @default(true)
+  postedDate   DateTime       @default(now())
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
   applications Application[]
-  jobSkills    JobSkill[]
   emailHistory EmailHistory[]
+  jobSkills    JobSkill[]
 
   @@map("jobs")
 }
 
 model JobSkill {
-  id        String @id @default(cuid())
+  id        String   @id @default(cuid())
   jobId     String
   skillName String
-  required  Boolean @default(true)
+  required  Boolean  @default(true)
   createdAt DateTime @default(now())
-
-  job Job @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
 
   @@map("job_skills")
 }
+
 model Application {
   id          String            @id @default(cuid())
   candidateId String
   jobId       String
-  score       Float?            // match score between 0-100
+  score       Float?
   status      ApplicationStatus @default(PENDING)
   appliedAt   DateTime          @default(now())
-
-  candidate Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  job       Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  candidate   Candidate         @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  job         Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
 
   @@unique([candidateId, jobId])
   @@map("applications")
 }
 
 model Skill {
-  id        String   @id @default(cuid())
-  skillName String   @unique
-  category  String?  // e.g., "Programming", "Soft Skills", "Tools"
-  createdAt DateTime @default(now())
-
+  id              String           @id @default(cuid())
+  skillName       String           @unique
+  category        String?
+  createdAt       DateTime         @default(now())
   candidateSkills CandidateSkill[]
 
   @@map("skills")
@@ -99,12 +113,44 @@ model CandidateSkill {
   skillId     String
   level       SkillLevel @default(INTERMEDIATE)
   createdAt   DateTime   @default(now())
-
-  candidate Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  skill     Skill     @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  candidate   Candidate  @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  skill       Skill      @relation(fields: [skillId], references: [id], onDelete: Cascade)
 
   @@id([candidateId, skillId])
   @@map("candidate_skills")
+}
+
+model EmailTemplate {
+  id           String         @id @default(cuid())
+  name         String         @unique
+  subject      String
+  body         String
+  type         EmailType
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  emailHistory EmailHistory[]
+
+  @@map("email_templates")
+}
+
+model EmailHistory {
+  id           String         @id @default(cuid())
+  candidateId  String
+  jobId        String?
+  templateId   String?
+  subject      String
+  body         String
+  recipient    String
+  status       EmailStatus    @default(PENDING)
+  sentAt       DateTime?
+  errorMessage String?
+  createdAt    DateTime       @default(now())
+  candidate    Candidate      @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  job          Job?           @relation(fields: [jobId], references: [id])
+  template     EmailTemplate? @relation(fields: [templateId], references: [id])
+
+  @@map("email_history")
 }
 
 enum ApplicationStatus {
@@ -119,41 +165,6 @@ enum SkillLevel {
   INTERMEDIATE
   ADVANCED
   EXPERT
-}
-
-model EmailTemplate {
-  id          String        @id @default(cuid())
-  name        String        @unique
-  subject     String
-  body        String        // HTML email body
-  type        EmailType
-  isActive    Boolean       @default(true)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-
-  emailHistory EmailHistory[]
-
-  @@map("email_templates")
-}
-
-model EmailHistory {
-  id          String      @id @default(cuid())
-  candidateId String
-  jobId       String?
-  templateId  String?
-  subject     String
-  body        String      // HTML email body
-  recipient   String      // email address
-  status      EmailStatus @default(PENDING)
-  sentAt      DateTime?
-  errorMessage String?
-  createdAt   DateTime    @default(now())
-
-  candidate Candidate     @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  job       Job?          @relation(fields: [jobId], references: [id], onDelete: SetNull)
-  template  EmailTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
-
-  @@map("email_history")
 }
 
 enum EmailType {

@@ -52,6 +52,14 @@ interface Candidate {
     filePath: string;
     uploadDate: string;
     extractedText?: string;
+    name?: string;
+    email?: string;
+    linkedin?: string;
+    github?: string;
+    skills_json?: string;
+    experience_json?: string;
+    projects_json?: string;
+    certifications_json?: string;
   }[];
   applications: {
     id: string;
@@ -86,6 +94,20 @@ export default function CandidatesPage() {
   const [sendingEmail, setSendingEmail] = useState(false);
 
   const { toast } = useToast();
+
+  // Utility function to safely parse JSON
+  const safeJsonParse = (
+    jsonString: string | null | undefined,
+    fallback: any = []
+  ) => {
+    if (!jsonString) return fallback;
+    try {
+      return JSON.parse(jsonString);
+    } catch (error) {
+      console.error("Error parsing JSON:", error);
+      return fallback;
+    }
+  };
 
   useEffect(() => {
     fetchCandidates();
@@ -670,10 +692,44 @@ export default function CandidatesPage() {
                                     "MMM dd, yyyy"
                                   )}
                                 </p>
+                                {/* Show extracted contact info from latest resume */}
+                                {selectedCandidate.resumes.length > 0 && (
+                                  <>
+                                    {selectedCandidate.resumes[0].linkedin && (
+                                      <p className="text-sm">
+                                        <strong>LinkedIn:</strong>{" "}
+                                        <a
+                                          href={
+                                            selectedCandidate.resumes[0]
+                                              .linkedin
+                                          }
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-blue-600 hover:underline"
+                                        >
+                                          Profile
+                                        </a>
+                                      </p>
+                                    )}
+                                    {selectedCandidate.resumes[0].github && (
+                                      <p className="text-sm">
+                                        <strong>GitHub:</strong>{" "}
+                                        <a
+                                          href={`https://${selectedCandidate.resumes[0].github}`}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-blue-600 hover:underline"
+                                        >
+                                          Profile
+                                        </a>
+                                      </p>
+                                    )}
+                                  </>
+                                )}
                               </div>
                               <div className="bg-gray-50 p-4 rounded-lg">
                                 <h4 className="font-semibold mb-2">
-                                  Statistics
+                                  Profile Summary
                                 </h4>
                                 <p className="text-sm">
                                   <strong>Resumes:</strong>{" "}
@@ -683,6 +739,53 @@ export default function CandidatesPage() {
                                   <strong>Applications:</strong>{" "}
                                   {selectedCandidate.applications.length}
                                 </p>
+                                {/* Show skills count from latest resume */}
+                                {selectedCandidate.resumes.length > 0 && (
+                                  <>
+                                    {selectedCandidate.resumes[0]
+                                      .skills_json && (
+                                      <p className="text-sm">
+                                        <strong>Skills:</strong>{" "}
+                                        {
+                                          safeJsonParse(
+                                            selectedCandidate.resumes[0]
+                                              .skills_json,
+                                            []
+                                          ).length
+                                        }{" "}
+                                        identified
+                                      </p>
+                                    )}
+                                    {selectedCandidate.resumes[0]
+                                      .projects_json && (
+                                      <p className="text-sm">
+                                        <strong>Projects:</strong>{" "}
+                                        {
+                                          safeJsonParse(
+                                            selectedCandidate.resumes[0]
+                                              .projects_json,
+                                            []
+                                          ).length
+                                        }{" "}
+                                        listed
+                                      </p>
+                                    )}
+                                    {selectedCandidate.resumes[0]
+                                      .certifications_json && (
+                                      <p className="text-sm">
+                                        <strong>Certifications:</strong>{" "}
+                                        {
+                                          safeJsonParse(
+                                            selectedCandidate.resumes[0]
+                                              .certifications_json,
+                                            []
+                                          ).length
+                                        }{" "}
+                                        earned
+                                      </p>
+                                    )}
+                                  </>
+                                )}
                                 <p className="text-sm">
                                   <strong>Last Activity:</strong>{" "}
                                   {selectedCandidate.applications.length > 0
@@ -703,47 +806,292 @@ export default function CandidatesPage() {
                                 </p>
                               </div>
                             </div>
+
+                            {/* Skills Overview */}
+                            {selectedCandidate.resumes.length > 0 &&
+                              selectedCandidate.resumes[0].skills_json && (
+                                <div className="bg-blue-50 p-4 rounded-lg">
+                                  <h4 className="font-semibold mb-2">
+                                    Top Skills
+                                  </h4>
+                                  <div className="flex flex-wrap gap-2">
+                                    {safeJsonParse(
+                                      selectedCandidate.resumes[0].skills_json,
+                                      []
+                                    )
+                                      .slice(0, 12)
+                                      .map((skill: string, index: number) => (
+                                        <Badge key={index} variant="secondary">
+                                          {skill}
+                                        </Badge>
+                                      ))}
+                                    {safeJsonParse(
+                                      selectedCandidate.resumes[0].skills_json,
+                                      []
+                                    ).length > 12 && (
+                                      <Badge variant="outline">
+                                        +
+                                        {safeJsonParse(
+                                          selectedCandidate.resumes[0]
+                                            .skills_json,
+                                          []
+                                        ).length - 12}{" "}
+                                        more
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
                           </TabsContent>
 
                           <TabsContent value="resumes" className="space-y-4">
-                            {selectedCandidate.resumes.map((resume) => (
-                              <div
-                                key={resume.id}
-                                className="border p-4 rounded-lg"
-                              >
-                                <div className="flex justify-between items-center mb-2">
-                                  <h4 className="font-semibold flex items-center gap-2">
-                                    <FileText className="w-4 h-4" />
-                                    {resume.fileName}
-                                  </h4>
-                                  <Button
-                                    size="sm"
-                                    onClick={() =>
-                                      downloadResume(resume.id, resume.fileName)
-                                    }
-                                  >
-                                    <Download className="w-4 h-4 mr-1" />
-                                    Download
-                                  </Button>
-                                </div>
-                                <p className="text-sm text-gray-600 mb-2">
-                                  Uploaded:{" "}
-                                  {format(
-                                    new Date(resume.uploadDate),
-                                    "MMM dd, yyyy"
-                                  )}
-                                </p>
-                                {resume.extractedText && (
-                                  <div className="bg-gray-50 p-3 rounded text-xs max-h-32 overflow-y-auto">
-                                    <strong>Extracted Text Preview:</strong>
-                                    <p className="mt-1">
-                                      {resume.extractedText.substring(0, 300)}
-                                      ...
-                                    </p>
+                            {selectedCandidate.resumes.map((resume) => {
+                              // Parse JSON fields safely
+                              const skills = safeJsonParse(
+                                resume.skills_json,
+                                []
+                              );
+                              const projects = safeJsonParse(
+                                resume.projects_json,
+                                []
+                              );
+                              const certifications = safeJsonParse(
+                                resume.certifications_json,
+                                []
+                              );
+                              const workExperience = safeJsonParse(
+                                resume.experience_json,
+                                []
+                              );
+
+                              return (
+                                <div
+                                  key={resume.id}
+                                  className="border p-4 rounded-lg"
+                                >
+                                  <div className="flex justify-between items-center mb-4">
+                                    <h4 className="font-semibold flex items-center gap-2">
+                                      <FileText className="w-4 h-4" />
+                                      {resume.fileName}
+                                    </h4>
+                                    <Button
+                                      size="sm"
+                                      onClick={() =>
+                                        downloadResume(
+                                          resume.id,
+                                          resume.fileName
+                                        )
+                                      }
+                                    >
+                                      <Download className="w-4 h-4 mr-1" />
+                                      Download
+                                    </Button>
                                   </div>
-                                )}
-                              </div>
-                            ))}
+
+                                  <div className="grid md:grid-cols-2 gap-4 mb-4">
+                                    {/* Personal Information */}
+                                    <div className="bg-gray-50 p-3 rounded-lg">
+                                      <h5 className="font-medium mb-2 text-sm">
+                                        Personal Information
+                                      </h5>
+                                      {resume.name && (
+                                        <p className="text-xs mb-1">
+                                          <strong>Name:</strong> {resume.name}
+                                        </p>
+                                      )}
+                                      {resume.email && (
+                                        <p className="text-xs mb-1">
+                                          <strong>Email:</strong> {resume.email}
+                                        </p>
+                                      )}
+                                      {resume.linkedin && (
+                                        <p className="text-xs mb-1">
+                                          <strong>LinkedIn:</strong>{" "}
+                                          <a
+                                            href={resume.linkedin}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-600 hover:underline"
+                                          >
+                                            {resume.linkedin}
+                                          </a>
+                                        </p>
+                                      )}
+                                      {resume.github && (
+                                        <p className="text-xs mb-1">
+                                          <strong>GitHub:</strong>{" "}
+                                          <a
+                                            href={`https://${resume.github}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-600 hover:underline"
+                                          >
+                                            {resume.github}
+                                          </a>
+                                        </p>
+                                      )}
+                                      <p className="text-xs text-gray-600 mt-2">
+                                        Uploaded:{" "}
+                                        {format(
+                                          new Date(resume.uploadDate),
+                                          "MMM dd, yyyy"
+                                        )}
+                                      </p>
+                                    </div>
+
+                                    {/* Skills */}
+                                    <div className="bg-blue-50 p-3 rounded-lg">
+                                      <h5 className="font-medium mb-2 text-sm">
+                                        Skills
+                                      </h5>
+                                      {skills.length > 0 ? (
+                                        <div className="flex flex-wrap gap-1">
+                                          {skills
+                                            .slice(0, 8)
+                                            .map(
+                                              (
+                                                skill: string,
+                                                index: number
+                                              ) => (
+                                                <Badge
+                                                  key={index}
+                                                  variant="secondary"
+                                                  className="text-xs"
+                                                >
+                                                  {skill}
+                                                </Badge>
+                                              )
+                                            )}
+                                          {skills.length > 8 && (
+                                            <Badge
+                                              variant="outline"
+                                              className="text-xs"
+                                            >
+                                              +{skills.length - 8} more
+                                            </Badge>
+                                          )}
+                                        </div>
+                                      ) : (
+                                        <p className="text-xs text-gray-500">
+                                          No skills extracted
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Projects */}
+                                  {projects.length > 0 && (
+                                    <div className="bg-green-50 p-3 rounded-lg mb-3">
+                                      <h5 className="font-medium mb-2 text-sm">
+                                        Projects ({projects.length})
+                                      </h5>
+                                      <div className="space-y-2">
+                                        {projects
+                                          .slice(0, 3)
+                                          .map(
+                                            (
+                                              project: string,
+                                              index: number
+                                            ) => (
+                                              <div
+                                                key={index}
+                                                className="text-xs"
+                                              >
+                                                <p className="font-medium text-green-800">
+                                                  {project.split(":")[0]}
+                                                </p>
+                                                <p className="text-green-700">
+                                                  {project
+                                                    .split(":")
+                                                    .slice(1)
+                                                    .join(":")
+                                                    .trim()}
+                                                </p>
+                                              </div>
+                                            )
+                                          )}
+                                        {projects.length > 3 && (
+                                          <p className="text-xs text-green-600 font-medium">
+                                            +{projects.length - 3} more projects
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Certifications */}
+                                  {certifications.length > 0 && (
+                                    <div className="bg-purple-50 p-3 rounded-lg mb-3">
+                                      <h5 className="font-medium mb-2 text-sm">
+                                        Certifications ({certifications.length})
+                                      </h5>
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
+                                        {certifications
+                                          .slice(0, 6)
+                                          .map(
+                                            (cert: string, index: number) => (
+                                              <p
+                                                key={index}
+                                                className="text-xs text-purple-800"
+                                              >
+                                                • {cert}
+                                              </p>
+                                            )
+                                          )}
+                                        {certifications.length > 6 && (
+                                          <p className="text-xs text-purple-600 font-medium col-span-2">
+                                            +{certifications.length - 6} more
+                                            certifications
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Work Experience */}
+                                  {workExperience.length > 0 &&
+                                    workExperience[0] !== null && (
+                                      <div className="bg-orange-50 p-3 rounded-lg mb-3">
+                                        <h5 className="font-medium mb-2 text-sm">
+                                          Work Experience
+                                        </h5>
+                                        <div className="space-y-1">
+                                          {workExperience
+                                            .slice(0, 3)
+                                            .map(
+                                              (exp: string, index: number) => (
+                                                <p
+                                                  key={index}
+                                                  className="text-xs text-orange-800"
+                                                >
+                                                  • {exp}
+                                                </p>
+                                              )
+                                            )}
+                                          {workExperience.length > 3 && (
+                                            <p className="text-xs text-orange-600 font-medium">
+                                              +{workExperience.length - 3} more
+                                              experiences
+                                            </p>
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
+
+                                  {/* Extracted Text Preview */}
+                                  {resume.extractedText && (
+                                    <div className="bg-gray-50 p-3 rounded text-xs">
+                                      <strong>Extracted Text Preview:</strong>
+                                      <p className="mt-1 max-h-32 overflow-y-auto">
+                                        {resume.extractedText.substring(0, 300)}
+                                        {resume.extractedText.length > 300 &&
+                                          "..."}
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
                           </TabsContent>
 
                           <TabsContent

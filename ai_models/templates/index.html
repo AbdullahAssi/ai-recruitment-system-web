@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CV Parser Results</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>Parsed CVs</h1>
+    {% for resume in resumes %}
+    <div class="card">
+        <h2>{{ resume.name }} <span>({{ resume.filename }})</span></h2>
+        <p><strong>Email:</strong> {{ resume.email }}</p>
+        <p><strong>LinkedIn:</strong> <a href="{{ resume.linkedin }}">{{ resume.linkedin }}</a></p>
+        <p><strong>GitHub:</strong> <a href="{{ resume.github }}">{{ resume.github }}</a></p>
+
+        <h3>Skills</h3>
+        <ul>
+            {% for category, items in resume.skills.items() %}
+            <li><strong>{{ category }}:</strong> {{ items | join(', ') }}</li>
+            {% endfor %}
+        </ul>
+
+        <h3>Experience</h3>
+        <ul>
+            {% for job in resume.experience %}
+            <li>
+                <strong>{{ job.Position }}</strong> at {{ job.Company }} ({{ job.Duration }})<br>
+                <em>{{ job.Responsibilities }}</em>
+            </li>
+            {% endfor %}
+        </ul>
+
+        <h3>Projects</h3>
+        <ul>
+            {% for proj in resume.projects %}
+            <li><strong>{{ proj.Name }}</strong> ({{ proj.Date }}): {{ proj.Description }}</li>
+            {% endfor %}
+        </ul>
+
+        <h3>Certifications</h3>
+        <ul>
+            {% for cert in resume.certifications %}
+            <li>{{ cert }}</li>
+        <h3>Recruiter Evaluation</h3>
+<div class="evaluation">
+    <p><strong>Match Score:</strong> 85%</p>
+    <p><strong>Strengths:</strong> Strong Python and cloud experience</p>
+    <p><strong>Weaknesses:</strong> Missing CI/CD exposure</p>
+    <p><strong>Verdict:</strong> <span style="font-weight: bold;">Highly Suitable</span></p>
+</div>
+
+            {% endfor %}
+        </ul>
+    </div>
+    {% endfor %}
+</body>
+</html>
