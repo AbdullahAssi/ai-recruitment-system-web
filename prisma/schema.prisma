@@ -38,6 +38,10 @@ model Resume {
   name                String?
   projects_json       String?
   skills_json         String?
+  phone               String?
+  education_level     String?
+  experience_years    Int?
+  summary             String?
   cvScores            CvScore[]
   candidate           Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
@@ -61,6 +65,7 @@ model Job {
   title        String
   description  String
   location     String?
+  company      String?
   requirements String?
   isActive     Boolean        @default(true)
   postedDate   DateTime       @default(now())

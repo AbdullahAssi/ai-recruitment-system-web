@@ -68,9 +68,17 @@ class AIProcessingService:
 
             # Update resume record with extracted data
             if resume_id:
-                self._update_resume_with_extracted_data(
+                print(
+                    f"[INFO] Updating existing resume {resume_id} with extracted data"
+                )
+                update_success = self._update_resume_with_extracted_data(
                     resume_id, extracted_data, cv_text
                 )
+                if not update_success:
+                    print(f"[ERROR] Failed to update resume {resume_id}")
+                    raise Exception(
+                        f"Failed to update resume {resume_id} with extracted data"
+                    )
             else:
                 # Create new resume record
                 filename = os.path.basename(file_path)
@@ -115,6 +123,7 @@ class AIProcessingService:
     ):
         """Update existing resume record with extracted AI data."""
         try:
+            print(f"[INFO] Starting database update for resume {resume_id}")
             conn = get_connection()
             if not conn:
                 print("[ERROR] Could not get database connection")
@@ -128,6 +137,8 @@ class AIProcessingService:
             else:
                 data = extracted_data
 
+            print(f"[INFO] Updating resume with data: {json.dumps(data, indent=2)}")
+
             cursor.execute(
                 """
                 UPDATE resumes 
@@ -135,27 +146,39 @@ class AIProcessingService:
                     "extractedText" = %s,
                     name = %s,
                     email = %s,
+                    phone = %s,
                     linkedin = %s,
                     github = %s,
                     skills_json = %s,
                     experience_json = %s,
                     projects_json = %s,
-                    certifications_json = %s
+                    certifications_json = %s,
+                    education_level = %s,
+                    experience_years = %s,
+                    summary = %s
                 WHERE id = %s
             """,
                 (
                     cv_text,
                     data.get("name"),
                     data.get("email"),
+                    data.get("phone"),
                     data.get("linkedin"),
                     data.get("github"),
                     json.dumps(data.get("skills", [])),
                     json.dumps(data.get("work_experience", [])),
                     json.dumps(data.get("projects", [])),
                     json.dumps(data.get("certifications", [])),
+                    data.get("education_level"),
+                    data.get("experience_years"),
+                    data.get("summary"),
                     resume_id,
                 ),
             )
+
+            # Check how many rows were affected
+            rows_affected = cursor.rowcount
+            print(f"[INFO] Database update affected {rows_affected} rows")
 
             conn.commit()
             print(f"[SUCCESS] Updated resume {resume_id} with extracted data")
@@ -165,6 +188,8 @@ class AIProcessingService:
             if conn:
                 conn.rollback()
             print(f"[ERROR] Error updating resume {resume_id}: {e}")
+            print(f"[ERROR] Exception type: {type(e).__name__}")
+            print(f"[ERROR] Exception details: {str(e)}")
             return False
         finally:
             if conn:

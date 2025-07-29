@@ -61,6 +61,10 @@ export async function POST(request: NextRequest) {
       });
 
       pythonProcess.on("close", async (code) => {
+        console.log(`Python process closed with code: ${code}`);
+        console.log(`Python stdout: ${stdout}`);
+        console.log(`Python stderr: ${stderr}`);
+
         if (code !== 0) {
           console.error("Python script error:", stderr);
           resolve(
@@ -93,15 +97,11 @@ export async function POST(request: NextRequest) {
             result = JSON.parse(stdout);
           }
 
-          // Update the resume with processing status
-          await prisma.resume.update({
-            where: { id: resumeId },
-            data: {
-              extractedText: result.success
-                ? "AI processed"
-                : "Processing failed",
-            },
-          });
+          // The Python script already updated the resume with extracted data
+          // We don't need to override it here
+          console.log(
+            "Resume processing completed, data already updated by Python script"
+          );
 
           resolve(
             NextResponse.json({
@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error: "Internal server error",
-        details: error.message,
+        details: error instanceof Error ? error.message : String(error),
       },
       { status: 500 }
     );

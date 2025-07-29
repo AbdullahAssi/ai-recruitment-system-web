@@ -8,7 +8,15 @@ from text_extractor import extract_text_from_file
 
 load_dotenv()  # <-- This loads variables from .env
 api_key = os.getenv("OPENAI_API_KEY")
-# Don't print API key for security
+
+# Check if API key is properly configured
+if not api_key or api_key == "your_openai_api_key_here":
+    print("[WARNING] ⚠️  OpenAI API key not configured!")
+    print("[WARNING] Please set a valid OPENAI_API_KEY in your .env file")
+    print(
+        "[WARNING] Get your API key from: https://platform.openai.com/account/api-keys"
+    )
+    print("[WARNING] AI extraction will return default values until configured")
 
 # Set up OpenAI client with your API key
 openai.api_key = api_key
