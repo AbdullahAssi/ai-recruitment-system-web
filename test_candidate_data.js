@@ -3,7 +3,7 @@ const testCandidateData = async () => {
   try {
     // Get the first candidate
     const candidatesResponse = await fetch(
-      "http://localhost:3002/api/candidates"
+      "http://localhost:3000/api/candidates"
     );
     const candidatesData = await candidatesResponse.json();
 

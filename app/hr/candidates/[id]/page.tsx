@@ -183,14 +183,21 @@ export default function CandidateProfilePage() {
       const parsed = JSON.parse(jsonString);
       // Handle case where parsed data is null or not an array
       if (!parsed || !Array.isArray(parsed)) return [];
+
       // Filter out null, undefined, or empty objects for work experience
-      return parsed.filter(
-        (item) =>
-          item &&
-          typeof item === "object" &&
-          item !== null &&
-          Object.keys(item).length > 0
-      );
+      // But also handle string format like other fields
+      return parsed.filter((item) => {
+        if (!item) return false;
+
+        // If it's a string (like projects/certifications), treat it as valid
+        if (typeof item === "string" && item.trim() !== "") return true;
+
+        // If it's an object, check if it has meaningful content
+        if (typeof item === "object" && Object.keys(item).length > 0)
+          return true;
+
+        return false;
+      });
     } catch {
       return [];
     }
@@ -220,7 +227,7 @@ export default function CandidateProfilePage() {
           </p>
           <Button onClick={() => router.back()}>
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Go Back 
+            Go Back
           </Button>
         </div>
       </div>
@@ -398,6 +405,12 @@ export default function CandidateProfilePage() {
               <strong>Parsed Experience Count:</strong> {workExperience.length}
             </div>
             <div>
+              <strong>Work Experience Data:</strong>{" "}
+              <pre className="text-xs bg-white p-2 rounded mt-1 overflow-auto">
+                {JSON.stringify(workExperience, null, 2)}
+              </pre>
+            </div>
+            <div>
               <strong>Projects JSON:</strong>{" "}
               {latestResume?.projects_json || "Empty"}
             </div>
@@ -494,69 +507,121 @@ export default function CandidateProfilePage() {
               <CardContent className="space-y-4">
                 {workExperience.length > 0 ? (
                   workExperience
-                    .filter(
-                      (exp: any) =>
-                        exp &&
-                        (exp.position || exp.title || exp.role || exp.company)
-                    )
-                    .map((exp: any, index: number) => (
-                      <div
-                        key={index}
-                        className="border-l-4 border-purple-200 pl-4"
-                      >
-                        <div className="flex justify-between items-start mb-2">
-                          <div>
-                            <h4 className="font-semibold text-gray-900">
-                              {exp.position ||
-                                exp.title ||
-                                exp.role ||
-                                "Position"}
-                            </h4>
-                            <p className="text-purple-600 font-medium">
-                              {exp.company || "Company"}
-                            </p>
-                          </div>
-                          <div className="text-right text-sm text-gray-600">
-                            <div className="flex items-center gap-1">
-                              <Calendar className="w-3 h-3" />
-                              {exp.duration ||
-                                exp.period ||
-                                exp.years ||
-                                "Duration"}
-                            </div>
-                            {exp.location && (
-                              <div className="flex items-center gap-1 mt-1">
-                                <MapPin className="w-3 h-3" />
-                                {exp.location}
+                    .map((exp: any, index: number) => {
+                      // Handle string format (like "Position at Company: Description")
+                      if (typeof exp === "string") {
+                        // Try to parse work experience string
+                        const parts = exp.split(":");
+                        const titlePart = parts[0]?.trim() || "Work Experience";
+                        const description = parts[1]?.trim() || "";
+
+                        // Try to extract company from title (e.g., "Developer at Google")
+                        const atIndex = titlePart.lastIndexOf(" at ");
+                        const position =
+                          atIndex > 0
+                            ? titlePart.substring(0, atIndex).trim()
+                            : titlePart;
+                        const company =
+                          atIndex > 0
+                            ? titlePart.substring(atIndex + 4).trim()
+                            : "";
+
+                        return (
+                          <div
+                            key={index}
+                            className="border-l-4 border-purple-200 pl-4"
+                          >
+                            <div className="flex justify-between items-start mb-2">
+                              <div>
+                                <h4 className="font-semibold text-gray-900">
+                                  {position}
+                                </h4>
+                                {company && (
+                                  <p className="text-purple-600 font-medium">
+                                    {company}
+                                  </p>
+                                )}
                               </div>
+                            </div>
+                            {description && (
+                              <p className="text-gray-700 text-sm leading-relaxed">
+                                {description}
+                              </p>
                             )}
                           </div>
-                        </div>
-                        {exp.description && (
-                          <p className="text-gray-700 text-sm leading-relaxed">
-                            {exp.description}
-                          </p>
-                        )}
-                        {exp.technologies &&
-                          Array.isArray(exp.technologies) && (
-                            <div className="flex flex-wrap gap-1 mt-2">
-                              {exp.technologies
-                                .filter(
-                                  (tech: string) => tech && tech.trim() !== ""
-                                )
-                                .map((tech: string, techIndex: number) => (
-                                  <Badge
-                                    key={techIndex}
-                                    variant="outline"
-                                    className="text-xs"
-                                  >
-                                    {tech}
-                                  </Badge>
-                                ))}
+                        );
+                      }
+
+                      // Handle object format
+                      if (
+                        exp &&
+                        typeof exp === "object" &&
+                        (exp.position || exp.title || exp.role || exp.company)
+                      ) {
+                        return (
+                          <div
+                            key={index}
+                            className="border-l-4 border-purple-200 pl-4"
+                          >
+                            <div className="flex justify-between items-start mb-2">
+                              <div>
+                                <h4 className="font-semibold text-gray-900">
+                                  {exp.position ||
+                                    exp.title ||
+                                    exp.role ||
+                                    "Position"}
+                                </h4>
+                                <p className="text-purple-600 font-medium">
+                                  {exp.company || "Company"}
+                                </p>
+                              </div>
+                              <div className="text-right text-sm text-gray-600">
+                                <div className="flex items-center gap-1">
+                                  <Calendar className="w-3 h-3" />
+                                  {exp.duration ||
+                                    exp.period ||
+                                    exp.years ||
+                                    "Duration"}
+                                </div>
+                                {exp.location && (
+                                  <div className="flex items-center gap-1 mt-1">
+                                    <MapPin className="w-3 h-3" />
+                                    {exp.location}
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          )}
-                      </div>
-                    ))
+                            {exp.description && (
+                              <p className="text-gray-700 text-sm leading-relaxed">
+                                {exp.description}
+                              </p>
+                            )}
+                            {exp.technologies &&
+                              Array.isArray(exp.technologies) && (
+                                <div className="flex flex-wrap gap-1 mt-2">
+                                  {exp.technologies
+                                    .filter(
+                                      (tech: string) =>
+                                        tech && tech.trim() !== ""
+                                    )
+                                    .map((tech: string, techIndex: number) => (
+                                      <Badge
+                                        key={techIndex}
+                                        variant="outline"
+                                        className="text-xs"
+                                      >
+                                        {tech}
+                                      </Badge>
+                                    ))}
+                                </div>
+                              )}
+                          </div>
+                        );
+                      }
+
+                      return null; // Skip invalid entries
+                    })
+                    .filter(Boolean) // Remove null entries
                 ) : (
                   <p className="text-gray-500 italic">
                     No work experience extracted from resume.
