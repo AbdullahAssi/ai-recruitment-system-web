@@ -4,7 +4,7 @@ import { Poppins } from "next/font/google";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/toaster";
-import { Home, Brain } from "lucide-react";
+import { Home, Brain, BarChart3 } from "lucide-react";
 
 const poppins = Poppins({
   weight: ["300", "400", "500", "600", "700", "800", "900"],
@@ -33,7 +33,7 @@ export default function RootLayout({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 {/* <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center"> */}
-                  <Brain className="w-6 h-6 text-black" />
+                <Brain className="w-6 h-6 text-black" />
                 {/* </div> */}
                 <span className="text-2xl font-bold text-gray-900">
                   Recruit.ai
@@ -59,6 +59,12 @@ export default function RootLayout({
                 <Link href="/jobs">
                   <Button variant="ghost" size="sm">
                     Browse Jobs
+                  </Button>
+                </Link>
+                <Link href="/scores">
+                  <Button variant="ghost" size="sm">
+                    <BarChart3 className="w-4 h-4 mr-2" />
+                    AI Scores
                   </Button>
                 </Link>
               </div>

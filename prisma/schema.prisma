@@ -49,13 +49,18 @@ model Resume {
 }
 
 model CvScore {
-  id              String   @id @default(cuid())
-  resume_id       String
-  job_description String?
-  score           Int?
-  explanation     String?
-  scored_at       DateTime @default(now())
-  resume          Resume   @relation(fields: [resume_id], references: [id], onDelete: Cascade)
+  id            String      @id @default(cuid())
+  resumeId      String
+  jobId         String?
+  applicationId String?     @unique
+  score         Int?
+  explanation   String?
+  skillsMatch   Json?       // Detailed skill matching analysis
+  requirements  Json?       // Requirements analysis
+  scoredAt      DateTime    @default(now())
+  resume        Resume      @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  job           Job?        @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  application   Application? @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   @@map("cv_scores")
 }
@@ -74,6 +79,7 @@ model Job {
   applications Application[]
   emailHistory EmailHistory[]
   jobSkills    JobSkill[]
+  cvScores     CvScore[]      // Scores for this job
 
   @@map("jobs")
 }
@@ -98,6 +104,7 @@ model Application {
   appliedAt   DateTime          @default(now())
   candidate   Candidate         @relation(fields: [candidateId], references: [id], onDelete: Cascade)
   job         Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  cvScore     CvScore?          // AI scoring result for this application
 
   @@unique([candidateId, jobId])
   @@map("applications")

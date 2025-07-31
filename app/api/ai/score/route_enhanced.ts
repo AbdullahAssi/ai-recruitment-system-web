@@ -199,18 +199,19 @@ export async function GET(request: NextRequest) {
     }
 
     // Get scores with enhanced data
-    const whereClause: any = {};
-    if (jobId) whereClause.jobId = jobId;
-    if (applicationId) whereClause.applicationId = applicationId;
-
     const cvScores = await prisma.cvScore.findMany({
-      where: whereClause,
+      where: {
+        ...(jobId && { jobId }),
+        ...(applicationId && { applicationId }),
+      },
       include: {
         resume: {
           include: {
             candidate: true,
           },
         },
+        job: true,
+        application: true,
       },
       orderBy: {
         score: "desc",

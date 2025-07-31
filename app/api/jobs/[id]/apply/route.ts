@@ -84,7 +84,7 @@ export async function POST(
     // Trigger AI scoring asynchronously with the latest resume
     const latestResume = candidate.resumes[0];
     try {
-      // Call AI scoring API
+      // Call AI scoring API with application ID for enhanced scoring
       const aiScoreUrl = `${
         process.env.NEXTAUTH_URL || "http://localhost:3000"
       }/api/ai/score`;
@@ -97,13 +97,16 @@ export async function POST(
         body: JSON.stringify({
           resumeId: latestResume.id,
           jobId: jobId,
+          applicationId: application.id, // Pass application ID for enhanced scoring
         }),
       }).catch((error) => {
         console.error("AI scoring failed:", error);
         // Continue with normal flow even if AI scoring fails
       });
 
-      console.log(`🤖 AI scoring initiated for application ${application.id}`);
+      console.log(
+        `🤖 Enhanced AI scoring initiated for application ${application.id}`
+      );
     } catch (aiError) {
       console.error("Failed to initiate AI scoring:", aiError);
       // Continue with normal flow
@@ -132,6 +135,13 @@ export async function POST(
       },
     });
 
+    if (!applicationWithDetails) {
+      return NextResponse.json(
+        { error: "Failed to retrieve application details" },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json({
       success: true,
       application: {
@@ -142,10 +152,10 @@ export async function POST(
       },
       matchDetails: {
         overallScore: applicationWithDetails.score || 0,
-        textSimilarity: 0, // Will be calculated by LLM later
-        skillMatchPercentage: 0, // Will be calculated by LLM later
-        matchedSkills: [], // Will be filled by LLM later
-        missingSkills: [], // Will be filled by LLM later
+        textSimilarity: 0, 
+        skillMatchPercentage: 0, 
+        matchedSkills: [], 
+        missingSkills: [], 
       },
       message: "Application submitted successfully! AI scoring in progress...",
     });

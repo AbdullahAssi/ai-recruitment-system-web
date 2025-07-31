@@ -1,20 +1,19 @@
-import React from "react";
+import React from 'react';
 
 const HiringAutomationSection: React.FC = () => {
   return (
-    <section className="py-16 px-6 max-w-7xl mx-auto ">
+    <section className="py-16 px-6 max-w-7xl mx-auto">
       {/* Header Badge */}
       <div className="mb-8">
         <span className="inline-block px-4 py-2 border border-gray-300 text-gray-600 text-sm rounded-full">
           Changing the Norm
         </span>
       </div>
-
+      
       {/* Main Heading */}
       <div className="mb-16">
         <h2 className="text-2xl md:text-3xl font-bold text-black leading-tight max-w-5xl">
-          We have <span className="text-blue-500">simplified hiring</span> with
-          AI automation and data-driven insights.
+          We have <span className="text-blue-500">simplified hiring</span> with AI automation and data-driven insights.
         </h2>
       </div>
 
@@ -31,14 +30,8 @@ const HiringAutomationSection: React.FC = () => {
             </div>
           </div>
           <div className="p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">
-              AI-Powered
-              <br />
-              Screening
-            </h3>
-            <p className="text-gray-600 text-sm">
-              Unlock faster, smarter screening with automated resume analysis.
-            </p>
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">AI-Powered<br />Screening</h3>
+            <p className="text-gray-600 text-sm">Unlock faster, smarter screening with automated resume analysis.</p>
           </div>
         </div>
 
@@ -51,10 +44,7 @@ const HiringAutomationSection: React.FC = () => {
                 <div className="text-2xl font-bold text-black mb-2">Jan</div>
                 <div className="grid grid-cols-7 gap-1 text-xs text-gray-600">
                   {[...Array(31)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="w-6 h-6 flex items-center justify-center"
-                    >
+                    <div key={i} className="w-6 h-6 flex items-center justify-center">
                       {i + 1}
                     </div>
                   ))}
@@ -63,14 +53,8 @@ const HiringAutomationSection: React.FC = () => {
             </div>
           </div>
           <div className="p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">
-              Interview
-              <br />
-              Scheduling
-            </h3>
-            <p className="text-gray-600 text-sm">
-              Automate interview coordination and eliminate back-and-forth.
-            </p>
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">Interview<br />Scheduling</h3>
+            <p className="text-gray-600 text-sm">Automate interview coordination and eliminate back-and-forth.</p>
           </div>
         </div>
 
@@ -87,14 +71,8 @@ const HiringAutomationSection: React.FC = () => {
             </div>
           </div>
           <div className="p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">
-              Candidate
-              <br />
-              Skill Matching
-            </h3>
-            <p className="text-gray-600 text-sm">
-              Match candidates to roles based on skills and experience using AI.
-            </p>
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">Candidate<br />Skill Matching</h3>
+            <p className="text-gray-600 text-sm">Match candidates to roles based on skills and experience using AI.</p>
           </div>
         </div>
 
@@ -111,14 +89,8 @@ const HiringAutomationSection: React.FC = () => {
             </div>
           </div>
           <div className="p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">
-              Real-Time
-              <br />
-              Insights
-            </h3>
-            <p className="text-gray-600 text-sm">
-              View candidate funnel performance and hiring KPIs instantly.
-            </p>
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">Real-Time<br />Insights</h3>
+            <p className="text-gray-600 text-sm">View candidate funnel performance and hiring KPIs instantly.</p>
           </div>
         </div>
       </div>
