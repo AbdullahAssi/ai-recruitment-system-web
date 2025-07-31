@@ -24,11 +24,9 @@ export default function ScoresDashboard() {
 
   const [showFilters, setShowFilters] = useState(false);
   const [selectedScore, setSelectedScore] = useState<ScoringData | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
 
   const handleViewDetails = (scoreData: ScoringData) => {
     setSelectedScore(scoreData);
-    setDialogOpen(true);
   };
 
   if (loading) {
@@ -149,8 +147,12 @@ export default function ScoresDashboard() {
         {selectedScore && (
           <DetailedAnalysisDialog
             scoreData={selectedScore}
-            open={dialogOpen}
-            onOpenChange={setDialogOpen}
+            trigger={
+              <Button variant="outline" size="sm" className="hidden">
+                <Eye className="h-4 w-4 mr-2" />
+                View Details
+              </Button>
+            }
           />
         )}
       </div>

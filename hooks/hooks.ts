@@ -321,3 +321,10 @@ export function useBulkEmail(
     sendingEmail,
   };
 }
+
+// Re-export new modular hooks
+export { useApi } from "./useApi";
+export { useFilters } from "./useFilters";
+export { usePagination } from "./usePagination";
+export { useScores } from "./useScores";
+export { useAnalytics } from "./useAnalytics";

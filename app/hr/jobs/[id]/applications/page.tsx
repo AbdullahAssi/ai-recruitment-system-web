@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Users, Send } from "lucide-react";
@@ -9,6 +9,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -26,6 +35,7 @@ import {
   ApplicationCard,
   AIAnalysisDialog,
 } from "../../../../../components/applications";
+import { DetailedAnalysisDialog } from "../../../../../components/scores";
 import {
   useJobApplications,
   useAIScores,
@@ -78,6 +88,11 @@ export default function JobApplicationsPage({
     loadingScores: false,
   });
 
+  const [detailedAnalysisState, setDetailedAnalysisState] = useState({
+    open: false,
+    selectedApplication: null as Application | null,
+  });
+
   // Custom hooks for data management
   const { data, loading, updateApplicationStatus } = useJobApplications(
     params.id,
@@ -88,6 +103,16 @@ export default function JobApplicationsPage({
     useAIScores();
 
   const { emailTemplates } = useEmailTemplates();
+
+  // Update bulk email state when templates are loaded
+  useEffect(() => {
+    if (emailTemplates.length > 0) {
+      setBulkEmailState((prev) => ({
+        ...prev,
+        emailTemplates: emailTemplates,
+      }));
+    }
+  }, [emailTemplates]);
 
   // Memoized filtered and sorted applications for performance
   const filteredAndSortedApplications = useMemo(() => {
@@ -154,7 +179,38 @@ export default function JobApplicationsPage({
     }
   };
 
+  const handleOpenDetailedAnalysis = (application: Application) => {
+    setDetailedAnalysisState({
+      open: true,
+      selectedApplication: application,
+    });
+  };
+
   const handleSendBulkEmail = async () => {
+    // Validation
+    if (!bulkEmailState.selectedTemplate) {
+      toast({
+        title: "Email Content Missing",
+        description: "Please select a template or provide custom content",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (bulkEmailState.selectedTemplate === "custom") {
+      if (
+        !bulkEmailState.customSubject.trim() ||
+        !bulkEmailState.customBody.trim()
+      ) {
+        toast({
+          title: "Custom Email Incomplete",
+          description: "Please provide both subject and body for custom email",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     const success = await sendBulkEmail(
       bulkEmailState.selectedTemplate !== "custom"
         ? bulkEmailState.selectedTemplate
@@ -364,7 +420,106 @@ export default function JobApplicationsPage({
                         {bulkEmailState.selectedApplications.length} selected
                         candidates
                       </p>
-                      {/* Email template selection and form would go here */}
+
+                      {/* Template Selection */}
+                      <div className="space-y-2">
+                        <Label htmlFor="template-select">Email Template</Label>
+                        <Select
+                          value={bulkEmailState.selectedTemplate}
+                          onValueChange={(value) =>
+                            setBulkEmailState((prev) => ({
+                              ...prev,
+                              selectedTemplate: value,
+                              // Reset custom fields when selecting a template
+                              customSubject:
+                                value !== "custom" ? "" : prev.customSubject,
+                              customBody:
+                                value !== "custom" ? "" : prev.customBody,
+                            }))
+                          }
+                        >
+                          <SelectTrigger id="template-select">
+                            <SelectValue placeholder="Select an email template" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {bulkEmailState.emailTemplates.map((template) => (
+                              <SelectItem key={template.id} value={template.id}>
+                                {template.name}
+                              </SelectItem>
+                            ))}
+                            <SelectItem value="custom">
+                              Custom Template
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Custom Template Fields */}
+                      {bulkEmailState.selectedTemplate === "custom" && (
+                        <>
+                          <div className="space-y-2">
+                            <Label htmlFor="custom-subject">Subject</Label>
+                            <Input
+                              id="custom-subject"
+                              value={bulkEmailState.customSubject}
+                              onChange={(e) =>
+                                setBulkEmailState((prev) => ({
+                                  ...prev,
+                                  customSubject: e.target.value,
+                                }))
+                              }
+                              placeholder="Enter email subject"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="custom-body">Email Body</Label>
+                            <Textarea
+                              id="custom-body"
+                              value={bulkEmailState.customBody}
+                              onChange={(e) =>
+                                setBulkEmailState((prev) => ({
+                                  ...prev,
+                                  customBody: e.target.value,
+                                }))
+                              }
+                              placeholder="Enter email content"
+                              rows={6}
+                            />
+                          </div>
+                        </>
+                      )}
+
+                      {/* Template Preview */}
+                      {bulkEmailState.selectedTemplate &&
+                        bulkEmailState.selectedTemplate !== "custom" && (
+                          <div className="bg-gray-50 p-3 rounded-lg border">
+                            <Label className="text-sm font-medium">
+                              Template Preview:
+                            </Label>
+                            {(() => {
+                              const template =
+                                bulkEmailState.emailTemplates.find(
+                                  (t) =>
+                                    t.id === bulkEmailState.selectedTemplate
+                                );
+                              return template ? (
+                                <div className="mt-2 text-sm">
+                                  <p>
+                                    <strong>Subject:</strong> {template.subject}
+                                  </p>
+                                  <p className="mt-1 text-gray-600">
+                                    <strong>Body:</strong>{" "}
+                                    {template.body
+                                      .replace(/<[^>]*>/g, "")
+                                      .substring(0, 100)}
+                                    ...
+                                  </p>
+                                </div>
+                              ) : null;
+                            })()}
+                          </div>
+                        )}
+
                       <div className="flex justify-end gap-2">
                         <Button
                           variant="outline"
@@ -379,7 +534,13 @@ export default function JobApplicationsPage({
                         </Button>
                         <Button
                           onClick={handleSendBulkEmail}
-                          disabled={sendingEmail}
+                          disabled={
+                            sendingEmail ||
+                            !bulkEmailState.selectedTemplate ||
+                            (bulkEmailState.selectedTemplate === "custom" &&
+                              (!bulkEmailState.customSubject.trim() ||
+                                !bulkEmailState.customBody.trim()))
+                          }
                         >
                           {sendingEmail ? "Sending..." : "Send Emails"}
                         </Button>
@@ -420,6 +581,9 @@ export default function JobApplicationsPage({
                     updateApplicationStatus(application.id, newStatus)
                   }
                   onViewProfile={() => handleOpenProfileDialog(application)}
+                  onViewAIAnalysis={() =>
+                    handleOpenDetailedAnalysis(application)
+                  }
                 />
               ))}
             </div>
@@ -427,6 +591,80 @@ export default function JobApplicationsPage({
 
           {/* Pagination would go here if needed */}
         </div>
+
+        {/* Detailed Analysis Dialog */}
+        {detailedAnalysisState.selectedApplication?.aiAnalysis && (
+          <DetailedAnalysisDialog
+            scoreData={{
+              id: detailedAnalysisState.selectedApplication.id,
+              score:
+                detailedAnalysisState.selectedApplication.aiAnalysis
+                  .overallScore,
+              scoredAt: detailedAnalysisState.selectedApplication.appliedAt,
+              explanation: {
+                summary: "",
+                recommendation:
+                  detailedAnalysisState.selectedApplication.aiAnalysis
+                    .recommendation,
+                strengths:
+                  detailedAnalysisState.selectedApplication.aiAnalysis
+                    .strengths,
+                weaknesses:
+                  detailedAnalysisState.selectedApplication.aiAnalysis
+                    .weaknesses,
+                keySkillsMatch:
+                  detailedAnalysisState.selectedApplication.aiAnalysis
+                    .keyMatches,
+                missingSkills:
+                  detailedAnalysisState.selectedApplication.aiAnalysis
+                    .skillsMatch.missingSkills,
+                skills:
+                  detailedAnalysisState.selectedApplication.aiAnalysis.scores
+                    .skills,
+                experience:
+                  detailedAnalysisState.selectedApplication.aiAnalysis.scores
+                    .experience,
+                education:
+                  detailedAnalysisState.selectedApplication.aiAnalysis.scores
+                    .education,
+                fit: detailedAnalysisState.selectedApplication.aiAnalysis.scores
+                  .fit,
+              },
+              skillsMatch:
+                detailedAnalysisState.selectedApplication.aiAnalysis
+                  .skillsMatch,
+              requirements: {},
+              candidate: {
+                name: detailedAnalysisState.selectedApplication.candidate.name,
+                filename:
+                  detailedAnalysisState.selectedApplication.candidate.resumes[0]
+                    ?.fileName || "",
+                email:
+                  detailedAnalysisState.selectedApplication.candidate.email,
+                phone: "",
+                skills:
+                  detailedAnalysisState.selectedApplication.aiAnalysis
+                    .skillsMatch.matchedSkills || [],
+                experience: [],
+              },
+              job: {
+                title: "Job Title", // We don't have job data in this context
+                description: "",
+                requirements: "",
+                location: "",
+                company: "",
+              },
+              application: {
+                id: detailedAnalysisState.selectedApplication.id,
+                appliedAt: detailedAnalysisState.selectedApplication.appliedAt,
+              },
+            }}
+            open={detailedAnalysisState.open}
+            onOpenChange={(open) =>
+              setDetailedAnalysisState((prev) => ({ ...prev, open }))
+            }
+          />
+        )}
       </div>
     </div>
   );
