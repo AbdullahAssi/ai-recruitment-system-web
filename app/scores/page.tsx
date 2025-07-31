@@ -15,6 +15,13 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -93,8 +100,18 @@ export default function ScoresDashboard() {
     applicationId: "",
     jobId: "",
     resumeId: "",
+    candidateName: "",
+    jobTitle: "",
+    minScore: "",
+    maxScore: "",
+    recommendation: "",
+    dateFrom: "",
+    dateTo: "",
   });
   const [showFilters, setShowFilters] = useState(false);
+  const [searchDebounce, setSearchDebounce] = useState<NodeJS.Timeout | null>(
+    null
+  );
 
   const fetchScores = async () => {
     setLoading(true);
@@ -113,8 +130,72 @@ export default function ScoresDashboard() {
       console.log(data);
 
       if (data.success) {
-        setScores(data.data);
-        setPagination(data.pagination);
+        // Apply client-side filtering for fields not supported by API
+        let filteredScores = data.data;
+
+        // Filter by candidate name
+        if (filters.candidateName) {
+          filteredScores = filteredScores.filter((score: ScoringData) =>
+            score.candidate?.name
+              ?.toLowerCase()
+              .includes(filters.candidateName.toLowerCase())
+          );
+        }
+
+        // Filter by job title
+        if (filters.jobTitle) {
+          filteredScores = filteredScores.filter((score: ScoringData) =>
+            score.job?.title
+              ?.toLowerCase()
+              .includes(filters.jobTitle.toLowerCase())
+          );
+        }
+
+        // Filter by score range
+        if (filters.minScore) {
+          const minScore = parseInt(filters.minScore);
+          filteredScores = filteredScores.filter(
+            (score: ScoringData) => (score.score || 0) >= minScore
+          );
+        }
+
+        if (filters.maxScore) {
+          const maxScore = parseInt(filters.maxScore);
+          filteredScores = filteredScores.filter(
+            (score: ScoringData) => (score.score || 0) <= maxScore
+          );
+        }
+
+        // Filter by recommendation
+        if (filters.recommendation) {
+          filteredScores = filteredScores.filter(
+            (score: ScoringData) =>
+              score.explanation?.recommendation === filters.recommendation
+          );
+        }
+
+        // Filter by date range
+        if (filters.dateFrom) {
+          const fromDate = new Date(filters.dateFrom);
+          filteredScores = filteredScores.filter(
+            (score: ScoringData) => new Date(score.scoredAt) >= fromDate
+          );
+        }
+
+        if (filters.dateTo) {
+          const toDate = new Date(filters.dateTo);
+          toDate.setHours(23, 59, 59, 999); // Include the entire day
+          filteredScores = filteredScores.filter(
+            (score: ScoringData) => new Date(score.scoredAt) <= toDate
+          );
+        }
+
+        setScores(filteredScores);
+        setPagination({
+          ...data.pagination,
+          total: filteredScores.length,
+          totalPages: Math.ceil(filteredScores.length / data.pagination.limit),
+        });
       } else {
         console.error("Failed to fetch scores:", data.error);
       }
@@ -127,7 +208,52 @@ export default function ScoresDashboard() {
 
   useEffect(() => {
     fetchScores();
-  }, [pagination.page, filters]);
+  }, [pagination.page, filters.applicationId, filters.jobId, filters.resumeId]);
+
+  // Debounced effect for search filters
+  useEffect(() => {
+    if (searchDebounce) {
+      clearTimeout(searchDebounce);
+    }
+
+    const newDebounce = setTimeout(() => {
+      fetchScores();
+    }, 500);
+
+    setSearchDebounce(newDebounce);
+
+    return () => {
+      if (newDebounce) clearTimeout(newDebounce);
+    };
+  }, [
+    filters.candidateName,
+    filters.jobTitle,
+    filters.minScore,
+    filters.maxScore,
+    filters.recommendation,
+    filters.dateFrom,
+    filters.dateTo,
+  ]);
+
+  const clearFilters = () => {
+    setFilters({
+      applicationId: "",
+      jobId: "",
+      resumeId: "",
+      candidateName: "",
+      jobTitle: "",
+      minScore: "",
+      maxScore: "",
+      recommendation: "",
+      dateFrom: "",
+      dateTo: "",
+    });
+    setPagination({ ...pagination, page: 1 });
+  };
+
+  const hasActiveFilters = Object.values(filters).some(
+    (filter) => filter !== ""
+  );
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-green-600";
@@ -516,7 +642,22 @@ export default function ScoresDashboard() {
               >
                 <Filter className="h-4 w-4" />
                 {showFilters ? "Hide Filters" : "Show Filters"}
+                {hasActiveFilters && (
+                  <Badge className="ml-1 bg-blue-100 text-blue-800">
+                    {Object.values(filters).filter((f) => f !== "").length}
+                  </Badge>
+                )}
               </Button>
+              {hasActiveFilters && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearFilters}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  Clear Filters
+                </Button>
+              )}
               <Button onClick={fetchScores} disabled={loading}>
                 <Search className="h-4 w-4 mr-2" />
                 {loading ? "Loading..." : "Refresh"}
@@ -588,49 +729,361 @@ export default function ScoresDashboard() {
         {showFilters && (
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Filter className="h-5 w-5" />
-                Search Filters
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-5 w-5" />
+                  Advanced Search Filters
+                </div>
+                {hasActiveFilters && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={clearFilters}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    Clear All
+                  </Button>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-6">
+                {/* Basic Search */}
                 <div>
-                  <Label htmlFor="applicationId">Application ID</Label>
-                  <Input
-                    id="applicationId"
-                    value={filters.applicationId}
-                    onChange={(e) =>
-                      setFilters({ ...filters, applicationId: e.target.value })
-                    }
-                    placeholder="Search by application ID..."
-                  />
+                  <Label className="text-sm font-medium text-gray-700 mb-3 block">
+                    🔍 Quick Search
+                  </Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="candidateName" className="text-sm">
+                        Candidate Name
+                      </Label>
+                      <Input
+                        id="candidateName"
+                        value={filters.candidateName}
+                        onChange={(e) =>
+                          setFilters({
+                            ...filters,
+                            candidateName: e.target.value,
+                          })
+                        }
+                        placeholder="Search by candidate name..."
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="jobTitle" className="text-sm">
+                        Job Title
+                      </Label>
+                      <Input
+                        id="jobTitle"
+                        value={filters.jobTitle}
+                        onChange={(e) =>
+                          setFilters({ ...filters, jobTitle: e.target.value })
+                        }
+                        placeholder="Search by job title..."
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
                 </div>
+
+                <Separator />
+
+                {/* Score Range */}
                 <div>
-                  <Label htmlFor="jobId">Job ID</Label>
-                  <Input
-                    id="jobId"
-                    value={filters.jobId}
-                    onChange={(e) =>
-                      setFilters({ ...filters, jobId: e.target.value })
-                    }
-                    placeholder="Search by job ID..."
-                  />
+                  <Label className="text-sm font-medium text-gray-700 mb-3 block">
+                    📊 Score Range
+                  </Label>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="minScore" className="text-sm">
+                        Minimum Score
+                      </Label>
+                      <Input
+                        id="minScore"
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={filters.minScore}
+                        onChange={(e) =>
+                          setFilters({ ...filters, minScore: e.target.value })
+                        }
+                        placeholder="0"
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="maxScore" className="text-sm">
+                        Maximum Score
+                      </Label>
+                      <Input
+                        id="maxScore"
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={filters.maxScore}
+                        onChange={(e) =>
+                          setFilters({ ...filters, maxScore: e.target.value })
+                        }
+                        placeholder="100"
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="recommendation" className="text-sm">
+                        Recommendation
+                      </Label>
+                      <Select
+                        value={filters.recommendation || "all"}
+                        onValueChange={(value) =>
+                          setFilters({
+                            ...filters,
+                            recommendation: value === "all" ? "" : value,
+                          })
+                        }
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="All recommendations" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">
+                            All recommendations
+                          </SelectItem>
+                          <SelectItem value="HIGHLY_RECOMMENDED">
+                            Highly Recommended
+                          </SelectItem>
+                          <SelectItem value="RECOMMENDED">
+                            Recommended
+                          </SelectItem>
+                          <SelectItem value="CONSIDER">Consider</SelectItem>
+                          <SelectItem value="NOT_RECOMMENDED">
+                            Not Recommended
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 </div>
+
+                <Separator />
+
+                {/* Date Range */}
                 <div>
-                  <Label htmlFor="resumeId">Resume ID</Label>
-                  <Input
-                    id="resumeId"
-                    value={filters.resumeId}
-                    onChange={(e) =>
-                      setFilters({ ...filters, resumeId: e.target.value })
-                    }
-                    placeholder="Search by resume ID..."
-                  />
+                  <Label className="text-sm font-medium text-gray-700 mb-3 block">
+                    📅 Date Range
+                  </Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="dateFrom" className="text-sm">
+                        From Date
+                      </Label>
+                      <Input
+                        id="dateFrom"
+                        type="date"
+                        value={filters.dateFrom}
+                        onChange={(e) =>
+                          setFilters({ ...filters, dateFrom: e.target.value })
+                        }
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="dateTo" className="text-sm">
+                        To Date
+                      </Label>
+                      <Input
+                        id="dateTo"
+                        type="date"
+                        value={filters.dateTo}
+                        onChange={(e) =>
+                          setFilters({ ...filters, dateTo: e.target.value })
+                        }
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
                 </div>
+
+                <Separator />
+
+                {/* Advanced ID Filters */}
+                <div>
+                  <Label className="text-sm font-medium text-gray-700 mb-3 block">
+                    🔢 Advanced ID Filters
+                  </Label>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="applicationId" className="text-sm">
+                        Application ID
+                      </Label>
+                      <Input
+                        id="applicationId"
+                        value={filters.applicationId}
+                        onChange={(e) =>
+                          setFilters({
+                            ...filters,
+                            applicationId: e.target.value,
+                          })
+                        }
+                        placeholder="Search by application ID..."
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="jobId" className="text-sm">
+                        Job ID
+                      </Label>
+                      <Input
+                        id="jobId"
+                        value={filters.jobId}
+                        onChange={(e) =>
+                          setFilters({ ...filters, jobId: e.target.value })
+                        }
+                        placeholder="Search by job ID..."
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="resumeId" className="text-sm">
+                        Resume ID
+                      </Label>
+                      <Input
+                        id="resumeId"
+                        value={filters.resumeId}
+                        onChange={(e) =>
+                          setFilters({ ...filters, resumeId: e.target.value })
+                        }
+                        placeholder="Search by resume ID..."
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Filter Summary */}
+                {hasActiveFilters && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Filter className="h-4 w-4 text-blue-600" />
+                      <span className="text-sm font-medium text-blue-800">
+                        Active Filters (
+                        {Object.values(filters).filter((f) => f !== "").length})
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {Object.entries(filters).map(([key, value]) => {
+                        if (!value) return null;
+                        const displayName = key
+                          .replace(/([A-Z])/g, " $1")
+                          .replace(/^./, (str) => str.toUpperCase());
+                        return (
+                          <Badge
+                            key={key}
+                            variant="secondary"
+                            className="bg-blue-100 text-blue-800"
+                          >
+                            {displayName}: {value}
+                          </Badge>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {/* Quick Filter Shortcuts */}
+        <div className="mb-6">
+          <div className="flex flex-wrap gap-2 items-center">
+            <span className="text-sm text-gray-600 mr-2">Quick filters:</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                setFilters({ ...filters, minScore: "80", maxScore: "" })
+              }
+              className="text-green-600 hover:text-green-700"
+            >
+              High Performers (80+)
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                setFilters({ ...filters, recommendation: "HIGHLY_RECOMMENDED" })
+              }
+              className="text-blue-600 hover:text-blue-700"
+            >
+              Highly Recommended
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                setFilters({ ...filters, maxScore: "60", minScore: "" })
+              }
+              className="text-orange-600 hover:text-orange-700"
+            >
+              Need Review (≤60)
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                setFilters({
+                  ...filters,
+                  dateFrom: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+                    .toISOString()
+                    .split("T")[0],
+                })
+              }
+              className="text-purple-600 hover:text-purple-700"
+            >
+              Last 7 Days
+            </Button>
+          </div>
+        </div>
+
+        {/* Results Summary */}
+        {!loading && scores.length > 0 && (
+          <div className="mb-4 p-3 bg-gray-50 rounded-lg border">
+            <div className="flex items-center justify-between text-sm text-gray-600">
+              <div className="flex items-center gap-4">
+                <span>
+                  Showing <strong>{scores.length}</strong> of{" "}
+                  <strong>{pagination.total}</strong> evaluations
+                </span>
+                {hasActiveFilters && (
+                  <span className="text-blue-600">• Filters applied</span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <span>
+                  Avg Score:{" "}
+                  <strong
+                    className={getScoreColor(
+                      scores.length > 0
+                        ? Math.round(
+                            scores.reduce((sum, s) => sum + (s.score || 0), 0) /
+                              scores.length
+                          )
+                        : 0
+                    )}
+                  >
+                    {scores.length > 0
+                      ? Math.round(
+                          scores.reduce((sum, s) => sum + (s.score || 0), 0) /
+                            scores.length
+                        )
+                      : 0}
+                  </strong>
+                </span>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Scores List */}
