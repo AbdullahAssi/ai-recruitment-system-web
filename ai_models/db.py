@@ -207,8 +207,8 @@ def insert_resume_data(
         conn.close()
 
 
-def insert_cv_score(resume_id, job_id, score, details):
-    """Insert CV score into the database."""
+def insert_cv_score(resume_id, job_id, score, details, application_id=None, **kwargs):
+    """Insert CV score into the database with enhanced scoring support."""
     conn = get_connection()
     if not conn:
         return None
@@ -216,24 +216,65 @@ def insert_cv_score(resume_id, job_id, score, details):
     try:
         cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
+        # Generate a unique ID for the score
+        score_id = generate_cuid()
+
+        # Extract enhanced scoring data if available
+        overall_score = kwargs.get("overall_score", score)
+        recommendation = kwargs.get("recommendation", "CONSIDER")
+        summary = kwargs.get("summary", "No summary available")
+
+        # Prepare comprehensive scoring data for JSON storage
+        enhanced_details = {
+            "overall_score": overall_score,
+            "skills_score": kwargs.get("skills_score", 0),
+            "experience_score": kwargs.get("experience_score", 0),
+            "education_score": kwargs.get("education_score", 0),
+            "fit_score": kwargs.get("fit_score", 0),
+            "detailed_analysis": kwargs.get("detailed_analysis", {}),
+            "recommendation": recommendation,
+            "summary": summary,
+            "raw_response": kwargs.get("raw_response", ""),
+        }
+
+        # Skills matching data
+        skills_match = kwargs.get("skills_match", {})
+
+        # Requirements analysis data
+        requirements_analysis = kwargs.get("requirements_analysis", {})
+
         cursor.execute(
             """
-            INSERT INTO cv_scores (resume_id, job_id, score, details)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO cv_scores (
+                id, "resumeId", "jobId", "applicationId", score, 
+                explanation, "skillsMatch", requirements 
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
         """,
-            (resume_id, job_id, score, details),
+            (
+                score_id,
+                resume_id,
+                job_id,
+                application_id,
+                overall_score,
+                json.dumps(enhanced_details),
+                json.dumps(skills_match),
+                json.dumps(requirements_analysis),
+            ),
         )
 
         score_result = cursor.fetchone()
-        score_id = score_result["id"]
+        returned_score_id = score_result["id"]
 
         conn.commit()
-        print(f"[SUCCESS] Created CV score {score_id} for resume {resume_id}")
-        return score_id
+        print(
+            f"[SUCCESS] Created enhanced CV score {returned_score_id} for resume {resume_id}"
+        )
+        return returned_score_id
 
     except Exception as e:
-        print(f"[ERROR] Error inserting CV score: {e}")
+        print(f"[ERROR] Error inserting enhanced CV score: {e}")
         conn.rollback()
         return None
     finally:

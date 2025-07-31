@@ -100,12 +100,48 @@ def score_single_resume(resume_data, job_description, resume_id=None):
         safe_log(f"Received response from OpenAI: {len(response_text)} characters")
 
         try:
+            # Clean the response text by removing markdown code blocks and extra formatting
+            clean_response = response_text.strip()
+
+            # Handle markdown code blocks
+            if "```json" in clean_response:
+                start_marker = "```json"
+                end_marker = "```"
+                start_idx = clean_response.find(start_marker)
+                if start_idx != -1:
+                    start_idx += len(start_marker)
+                    end_idx = clean_response.find(end_marker, start_idx)
+                    if end_idx != -1:
+                        clean_response = clean_response[start_idx:end_idx].strip()
+            elif "```" in clean_response:
+                # Handle generic code blocks
+                start_marker = "```"
+                end_marker = "```"
+                start_idx = clean_response.find(start_marker)
+                if start_idx != -1:
+                    start_idx += len(start_marker)
+                    end_idx = clean_response.find(end_marker, start_idx)
+                    if end_idx != -1:
+                        clean_response = clean_response[start_idx:end_idx].strip()
+
+            # Find JSON object boundaries
+            json_start = clean_response.find("{")
+            json_end = clean_response.rfind("}")
+
+            if json_start != -1 and json_end != -1 and json_end > json_start:
+                clean_response = clean_response[json_start : json_end + 1]
+
+            safe_log(f"Cleaned response for JSON parsing: {clean_response[:200]}...")
+
             # Try to parse as JSON
-            scoring_result = json.loads(response_text)
-        except json.JSONDecodeError:
+            scoring_result = json.loads(clean_response)
+        except json.JSONDecodeError as e:
+            safe_log(f"WARNING: Could not parse response as JSON: {str(e)}")
+            safe_log(f"Raw response: {response_text}")
             safe_log(
-                "WARNING: Could not parse response as JSON, creating fallback score"
+                f"Cleaned response: {clean_response if 'clean_response' in locals() else 'Not cleaned'}"
             )
+
             # Fallback scoring if JSON parsing fails
             scoring_result = {
                 "overall_score": 50,
@@ -129,13 +165,16 @@ def score_single_resume(resume_data, job_description, resume_id=None):
             try:
                 safe_log(f"Storing score in database for resume ID: {resume_id}")
                 insert_cv_score(
-                    resume_id=resume_id,
+                    resume_id,
+                    None,  # job_id - not available in this context
+                    scoring_result["overall_score"],
+                    json.dumps(scoring_result["detailed_analysis"]),
                     overall_score=scoring_result["overall_score"],
                     skills_score=scoring_result["skills_score"],
                     experience_score=scoring_result["experience_score"],
                     education_score=scoring_result["education_score"],
                     fit_score=scoring_result["fit_score"],
-                    detailed_analysis=json.dumps(scoring_result["detailed_analysis"]),
+                    detailed_analysis=scoring_result["detailed_analysis"],
                     recommendation=scoring_result["recommendation"],
                     summary=scoring_result["summary"],
                 )
