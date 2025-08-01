@@ -1,5 +1,28 @@
 "use client";
 
+/**
+ * Job Applications Management Page
+ *
+ * This page provides comprehensive management of job applications including:
+ * - Detailed AI analysis dialog using the useScores hook
+ * - Dynamic fetching of AI scores for specific applications
+ * - Fallback to existing application AI analysis data
+ * - Loading states and error handling for AI analysis
+ *
+ * The DetailedAnalysisDialog integration:
+ * 1. Uses the useScores hook to fetch detailed AI analysis
+ * 2. Applies filters by applicationId and jobId to get specific scores
+ * 3. Shows loading state while fetching data
+ * 4. Falls back to existing aiAnalysis data if available
+ * 5. Handles cases where no analysis is available
+ *
+ * Key Components:
+ * - ApplicationCard: Displays individual applications with "View AI Analysis" button
+ * - DetailedAnalysisDialog: Shows comprehensive AI scoring breakdown
+ * - useScores: Hook for fetching and filtering AI score data
+ * - Loading/Error states for better UX
+ */
+
 import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -41,6 +64,7 @@ import {
   useAIScores,
   useEmailTemplates,
   useBulkEmail,
+  useScores,
 } from "../../../../../hooks/hooks";
 import { filterAndSortApplications } from "../../../../../lib/applicationUtil";
 import {
@@ -91,6 +115,8 @@ export default function JobApplicationsPage({
   const [detailedAnalysisState, setDetailedAnalysisState] = useState({
     open: false,
     selectedApplication: null as Application | null,
+    loadingScores: false,
+    selectedScore: null as any,
   });
 
   // Custom hooks for data management
@@ -104,6 +130,9 @@ export default function JobApplicationsPage({
 
   const { emailTemplates } = useEmailTemplates();
 
+  // Use the provided useScores hook for detailed analysis
+  const { scores, fetchScores, applyQuickFilter } = useScores();
+
   // Update bulk email state when templates are loaded
   useEffect(() => {
     if (emailTemplates.length > 0) {
@@ -113,6 +142,67 @@ export default function JobApplicationsPage({
       }));
     }
   }, [emailTemplates]);
+
+  // Effect to update detailed analysis when scores change (fallback)
+  useEffect(() => {
+    // Early return if dialog is not open or no selected application
+    if (
+      !detailedAnalysisState.open ||
+      !detailedAnalysisState.selectedApplication
+    ) {
+      return;
+    }
+
+    console.log("useEffect: scores changed", {
+      scoresLength: scores.length,
+      selectedApplication: detailedAnalysisState.selectedApplication?.id,
+      loadingScores: detailedAnalysisState.loadingScores,
+      open: detailedAnalysisState.open,
+    });
+
+    // Only process if we have scores available, still loading, and no score selected yet
+    if (
+      scores.length > 0 &&
+      detailedAnalysisState.loadingScores &&
+      !detailedAnalysisState.selectedScore
+    ) {
+      const scoreData = scores.find(
+        (score) =>
+          score.application?.id ===
+          detailedAnalysisState.selectedApplication?.id
+      );
+
+      console.log("Found score data in useEffect:", scoreData);
+
+      if (scoreData) {
+        setDetailedAnalysisState((prev) => ({
+          ...prev,
+          selectedScore: scoreData,
+          loadingScores: false,
+        }));
+      } else {
+        // No matching score found, stop loading after a timeout
+        setTimeout(() => {
+          // Double-check state before updating
+          setDetailedAnalysisState((prev) => {
+            if (prev.open && prev.loadingScores && !prev.selectedScore) {
+              return {
+                ...prev,
+                loadingScores: false,
+              };
+            }
+            return prev;
+          });
+        }, 3000);
+      }
+    }
+  }, [
+    scores,
+    detailedAnalysisState.open,
+    detailedAnalysisState.selectedApplication,
+    detailedAnalysisState.loadingScores,
+    detailedAnalysisState.selectedScore,
+  ]);
 
   // Memoized filtered and sorted applications for performance
   const filteredAndSortedApplications = useMemo(() => {
@@ -179,11 +269,89 @@ export default function JobApplicationsPage({
     }
   };
 
-  const handleOpenDetailedAnalysis = (application: Application) => {
+  const handleOpenDetailedAnalysis = async (application: Application) => {
+    console.log("=== handleOpenDetailedAnalysis called ===");
+    console.log("Application:", application.id, application.candidate.name);
+
     setDetailedAnalysisState({
       open: true,
       selectedApplication: application,
+      loadingScores: true,
+      selectedScore: null,
     });
+
+    console.log("State set - opening dialog with loading state");
+
+    try {
+      console.log(
+        "Applying quick filter for application:",
+        application.id,
+        "job:",
+        params.id
+      );
+
+      // Apply filter and wait for fetch to complete, getting data directly
+      const fetchedScores = await applyQuickFilter({
+        applicationId: application.id,
+        jobId: params.id,
+      });
+
+      console.log("Quick filter applied and scores fetched:", fetchedScores);
+
+      // Find the score data for this specific application from the fetched data
+      const scoreData = fetchedScores.find(
+        (score) => score.application?.id === application.id
+      );
+
+      console.log("Found score data:", scoreData);
+
+      // Update state with the found score data - only open dialog if we have data
+      if (scoreData) {
+        console.log("Setting selectedScore and stopping loading");
+        setDetailedAnalysisState((prev) => ({
+          ...prev,
+          selectedScore: scoreData,
+          loadingScores: false,
+        }));
+      } else {
+        console.log(
+          "No API score data found, checking for fallback aiAnalysis"
+        );
+        // No score data found - check if we have fallback data
+        if (application.aiAnalysis) {
+          console.log("Found aiAnalysis fallback data, using that instead");
+          setDetailedAnalysisState((prev) => ({
+            ...prev,
+            selectedScore: null, // Will use fallback aiAnalysis data
+            loadingScores: false,
+          }));
+        } else {
+          console.log("No aiAnalysis data available either");
+          // No data available at all
+          setDetailedAnalysisState((prev) => ({
+            ...prev,
+            loadingScores: false,
+          }));
+          toast({
+            title: "No Analysis Available",
+            description:
+              "No AI analysis data is available for this application",
+            variant: "destructive",
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching detailed analysis:", error);
+      setDetailedAnalysisState((prev) => ({
+        ...prev,
+        loadingScores: false,
+      }));
+      toast({
+        title: "Error",
+        description: "Failed to load detailed AI analysis",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSendBulkEmail = async () => {
@@ -593,77 +761,178 @@ export default function JobApplicationsPage({
         </div>
 
         {/* Detailed Analysis Dialog */}
-        {detailedAnalysisState.selectedApplication?.aiAnalysis && (
-          <DetailedAnalysisDialog
-            scoreData={{
-              id: detailedAnalysisState.selectedApplication.id,
-              score:
-                detailedAnalysisState.selectedApplication.aiAnalysis
-                  .overallScore,
-              scoredAt: detailedAnalysisState.selectedApplication.appliedAt,
-              explanation: {
-                summary: "",
-                recommendation:
-                  detailedAnalysisState.selectedApplication.aiAnalysis
-                    .recommendation,
-                strengths:
-                  detailedAnalysisState.selectedApplication.aiAnalysis
-                    .strengths,
-                weaknesses:
-                  detailedAnalysisState.selectedApplication.aiAnalysis
-                    .weaknesses,
-                keySkillsMatch:
-                  detailedAnalysisState.selectedApplication.aiAnalysis
-                    .keyMatches,
-                missingSkills:
-                  detailedAnalysisState.selectedApplication.aiAnalysis
-                    .skillsMatch.missingSkills,
-                skills:
-                  detailedAnalysisState.selectedApplication.aiAnalysis.scores
-                    .skills,
-                experience:
-                  detailedAnalysisState.selectedApplication.aiAnalysis.scores
-                    .experience,
-                education:
-                  detailedAnalysisState.selectedApplication.aiAnalysis.scores
-                    .education,
-                fit: detailedAnalysisState.selectedApplication.aiAnalysis.scores
-                  .fit,
-              },
-              skillsMatch:
-                detailedAnalysisState.selectedApplication.aiAnalysis
-                  .skillsMatch,
-              requirements: {},
-              candidate: {
-                name: detailedAnalysisState.selectedApplication.candidate.name,
-                filename:
-                  detailedAnalysisState.selectedApplication.candidate.resumes[0]
-                    ?.fileName || "",
-                email:
-                  detailedAnalysisState.selectedApplication.candidate.email,
-                phone: "",
-                skills:
-                  detailedAnalysisState.selectedApplication.aiAnalysis
-                    .skillsMatch.matchedSkills || [],
-                experience: [],
-              },
-              job: {
-                title: "Job Title", // We don't have job data in this context
-                description: "",
-                requirements: "",
-                location: "",
-                company: "",
-              },
-              application: {
-                id: detailedAnalysisState.selectedApplication.id,
-                appliedAt: detailedAnalysisState.selectedApplication.appliedAt,
-              },
-            }}
-            open={detailedAnalysisState.open}
-            onOpenChange={(open) =>
-              setDetailedAnalysisState((prev) => ({ ...prev, open }))
-            }
-          />
+        {detailedAnalysisState.open && (
+          <>
+            {detailedAnalysisState.loadingScores ? (
+              <Dialog
+                open={detailedAnalysisState.open}
+                onOpenChange={(open) => {
+                  console.log("Loading dialog onOpenChange:", open);
+                  if (!open) {
+                    // Dialog is closing - clear all state
+                    setDetailedAnalysisState((prev) => ({
+                      ...prev,
+                      open: false,
+                      selectedScore: null,
+                      selectedApplication: null,
+                      loadingScores: false,
+                    }));
+                  } else {
+                    // Dialog is opening - just update open state
+                    setDetailedAnalysisState((prev) => ({
+                      ...prev,
+                      open: true,
+                    }));
+                  }
+                }}
+              >
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Loading AI Analysis</DialogTitle>
+                  </DialogHeader>
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mb-4"></div>
+                    <p className="text-gray-600">
+                      Fetching detailed AI analysis...
+                    </p>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            ) : detailedAnalysisState.selectedScore ||
+              detailedAnalysisState.selectedApplication?.aiAnalysis ? (
+              <DetailedAnalysisDialog
+                scoreData={
+                  detailedAnalysisState.selectedScore || { // Fallback: Create scoreData from existing application aiAnalysis // Priority: Use fetched score data
+                    id: detailedAnalysisState.selectedApplication!.id,
+                    score:
+                      detailedAnalysisState.selectedApplication!.aiAnalysis!
+                        .overallScore,
+                    scoredAt:
+                      detailedAnalysisState.selectedApplication!.appliedAt,
+                    explanation: {
+                      summary: "",
+                      recommendation:
+                        detailedAnalysisState.selectedApplication!.aiAnalysis!
+                          .recommendation,
+                      strengths:
+                        detailedAnalysisState.selectedApplication!.aiAnalysis!
+                          .strengths,
+                      weaknesses:
+                        detailedAnalysisState.selectedApplication!.aiAnalysis!
+                          .weaknesses,
+                      keySkillsMatch:
+                        detailedAnalysisState.selectedApplication!.aiAnalysis!
+                          .keyMatches,
+                      missingSkills:
+                        detailedAnalysisState.selectedApplication!.aiAnalysis!
+                          .skillsMatch.missingSkills,
+                      skills:
+                        detailedAnalysisState.selectedApplication!.aiAnalysis!
+                          .scores.skills,
+                      experience:
+                        detailedAnalysisState.selectedApplication!.aiAnalysis!
+                          .scores.experience,
+                      education:
+                        detailedAnalysisState.selectedApplication!.aiAnalysis!
+                          .scores.education,
+                      fit: detailedAnalysisState.selectedApplication!
+                        .aiAnalysis!.scores.fit,
+                    },
+                    skillsMatch:
+                      detailedAnalysisState.selectedApplication!.aiAnalysis!
+                        .skillsMatch,
+                    requirements: {},
+                    candidate: {
+                      name: detailedAnalysisState.selectedApplication!.candidate
+                        .name,
+                      filename:
+                        detailedAnalysisState.selectedApplication!.candidate
+                          .resumes[0]?.fileName || "",
+                      email:
+                        detailedAnalysisState.selectedApplication!.candidate
+                          .email,
+                      phone: "",
+                      skills:
+                        detailedAnalysisState.selectedApplication!.aiAnalysis!
+                          .skillsMatch.matchedSkills || [],
+                      experience: [],
+                    },
+                    job: {
+                      title: data?.job?.title || "Job Title",
+                      description: data?.job?.description || "",
+                      requirements: data?.job?.requirements || "",
+                      location: data?.job?.location || "",
+                      company: "Company", // Static value as not available in job data
+                    },
+                    application: {
+                      id: detailedAnalysisState.selectedApplication!.id,
+                      appliedAt:
+                        detailedAnalysisState.selectedApplication!.appliedAt,
+                    },
+                  }
+                }
+                open={detailedAnalysisState.open}
+                onOpenChange={(open) => {
+                  console.log("DetailedAnalysisDialog onOpenChange:", open);
+                  if (!open) {
+                    // Dialog is closing - clear all state
+                    setDetailedAnalysisState((prev) => ({
+                      ...prev,
+                      open: false,
+                      selectedScore: null,
+                      selectedApplication: null,
+                      loadingScores: false,
+                    }));
+                  } else {
+                    // Dialog is opening - just update open state
+                    setDetailedAnalysisState((prev) => ({
+                      ...prev,
+                      open: true,
+                    }));
+                  }
+                }}
+              />
+            ) : (
+              <Dialog
+                open={detailedAnalysisState.open}
+                onOpenChange={(open) => {
+                  console.log("No Analysis dialog onOpenChange:", open);
+                  if (!open) {
+                    // Dialog is closing - clear all state
+                    setDetailedAnalysisState((prev) => ({
+                      ...prev,
+                      open: false,
+                      selectedScore: null,
+                      selectedApplication: null,
+                      loadingScores: false,
+                    }));
+                  } else {
+                    // Dialog is opening - just update open state
+                    setDetailedAnalysisState((prev) => ({
+                      ...prev,
+                      open: true,
+                    }));
+                  }
+                }}
+              >
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>No AI Analysis Available</DialogTitle>
+                  </DialogHeader>
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <p className="text-gray-600 text-center">
+                      No detailed AI analysis is available for this application
+                      yet.
+                      <br />
+                      <br />
+                      The analysis may not have been generated or may be
+                      processing.
+                    </p>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+          </>
         )}
       </div>
     </div>

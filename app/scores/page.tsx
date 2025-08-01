@@ -32,7 +32,11 @@ export default function ScoresDashboard() {
   };
 
   if (loading) {
-    return <LoadingState message="Loading AI scores..." />;
+    return (
+      <div className="min-h-screen flex items-center justify-center w-full">
+        <LoadingState message="Loading AI scores..." />
+      </div>
+    );
   }
 
   if (error) {

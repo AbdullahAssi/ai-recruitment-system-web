@@ -343,7 +343,7 @@ export function ApplicationCard({
           </div>
 
           <div className="flex gap-3">
-            {application.aiAnalysis && onViewAIAnalysis && (
+            {onViewAIAnalysis && (
               <Button
                 variant="outline"
                 size="sm"
@@ -352,7 +352,7 @@ export function ApplicationCard({
                 aria-label={`View AI analysis for ${application.candidate.name}`}
               >
                 <Brain className="h-4 w-4 mr-2" />
-                AI Analysis
+                {application.aiAnalysis ? "AI Analysis" : "Get AI Analysis"}
               </Button>
             )}
             <Button

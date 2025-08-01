@@ -9,10 +9,22 @@ export function ScoreBreakdown({
   explanation,
   className = "",
 }: ScoreBreakdownProps) {
-  if (!explanation || typeof explanation !== "object") return null;
+  if (!explanation || typeof explanation !== "object") {
+    console.log("ScoreBreakdown: Invalid explanation data", explanation);
+    return null;
+  }
 
   // Use scores object if available, otherwise fall back to direct properties
   const scores = explanation.scores || explanation;
+
+  console.log("ScoreBreakdown - explanation:", explanation);
+  console.log("ScoreBreakdown - scores used:", scores);
+  console.log("ScoreBreakdown - individual scores:", {
+    skills: scores.skills,
+    experience: scores.experience,
+    education: scores.education,
+    fit: scores.fit,
+  });
 
   return (
     <div className={`grid grid-cols-2 md:grid-cols-4 gap-3 ${className}`}>

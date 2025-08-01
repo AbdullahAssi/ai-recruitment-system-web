@@ -8,6 +8,14 @@ import {
   PaginationState,
 } from "../types/application.types";
 
+// Export modular hooks
+export { useJobs } from "./useJobs";
+export { useJobFilters } from "./useJobFilters";
+export { useScores } from "./useScores";
+export { useApi } from "./useApi";
+export { useFilters } from "./useFilters";
+export { usePagination } from "./usePagination";
+
 export function useJobApplications(
   jobId: string,
   paginationState: PaginationState
@@ -323,8 +331,4 @@ export function useBulkEmail(
 }
 
 // Re-export new modular hooks
-export { useApi } from "./useApi";
-export { useFilters } from "./useFilters";
-export { usePagination } from "./usePagination";
-export { useScores } from "./useScores";
 export { useAnalytics } from "./useAnalytics";

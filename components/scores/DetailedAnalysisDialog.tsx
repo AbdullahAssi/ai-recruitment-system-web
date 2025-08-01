@@ -26,14 +26,36 @@ export function DetailedAnalysisDialog({
   open,
   onOpenChange,
 }: DetailedAnalysisDialogProps) {
+  // Early return if no scoreData is provided
+  if (!scoreData) {
+    console.warn("DetailedAnalysisDialog: No scoreData provided");
+    return null;
+  }
+
+  // Debug log to verify scoreData structure
+  React.useEffect(() => {
+    if (open && scoreData) {
+      console.log("=== DetailedAnalysisDialog Debug Info ===");
+      console.log("Dialog opened with scoreData:", scoreData);
+      console.log("Score value:", scoreData.score);
+      console.log("Explanation:", scoreData.explanation);
+      console.log("SkillsMatch:", scoreData.skillsMatch);
+      console.log("Candidate:", scoreData.candidate);
+      console.log("========================================");
+    }
+  }, [open, scoreData]);
+
   const explanation = scoreData.explanation as any; // Allow dynamic properties
   const skillsMatch = scoreData.skillsMatch;
 
   // Handle different data formats - check if we have nested aiAnalysis structure
   const getAnalysisData = () => {
+    console.log("Using format:", explanation?.aiAnalysis ? "new (nested aiAnalysis)" : "legacy (direct properties)");
+    console.log("Explanation structure:", explanation);
+    
     if (explanation?.aiAnalysis) {
       // New format with nested aiAnalysis
-      return {
+      const newFormatData = {
         strengths: explanation.aiAnalysis.strengths || [],
         weaknesses: explanation.aiAnalysis.weaknesses || [],
         keySkillsMatch: explanation.aiAnalysis.key_matches || [],
@@ -45,9 +67,11 @@ export function DetailedAnalysisDialog({
         education: explanation.scores?.education || 0,
         fit: explanation.scores?.fit || 0,
       };
+      console.log("Using new format data:", newFormatData);
+      return newFormatData;
     }
     // Fallback to direct properties (original format)
-    return {
+    const legacyFormatData = {
       strengths: explanation?.strengths || [],
       weaknesses: explanation?.weaknesses || [],
       keySkillsMatch: explanation?.keySkillsMatch || [],
@@ -59,13 +83,15 @@ export function DetailedAnalysisDialog({
       education: explanation?.education || 0,
       fit: explanation?.fit || 0,
     };
+    console.log("Using legacy format data:", legacyFormatData);
+    return legacyFormatData;
   };
 
   const analysisData = getAnalysisData();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[80vh]">
+      <DialogContent key={scoreData?.id} className="max-w-4xl max-h-[80vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Brain className="h-5 w-5" />
@@ -78,6 +104,48 @@ export function DetailedAnalysisDialog({
         </DialogHeader>
         <ScrollArea className="h-[60vh] pr-4">
           <div className="space-y-6">
+            {/* Overall AI Service Score */}
+            <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-6 rounded-lg border border-purple-200">
+              <div className="flex items-center gap-3 mb-4">
+                <Brain className="h-6 w-6 text-purple-600" />
+                <h3 className="text-lg font-semibold text-purple-900">
+                  AI Service Analysis Results
+                </h3>
+              </div>
+              <div className="text-center">
+                <div className="text-5xl font-bold text-purple-600 mb-2">
+                  {scoreData.score ||
+                    explanation?.scores?.overall ||
+                    explanation?.overall ||
+                    0}
+                  %
+                </div>
+                <div className="text-sm text-purple-700 font-medium">
+                  AI Service Score
+                </div>
+                {explanation?.recommendation && (
+                  <div className="mt-3">
+                    <Badge
+                      variant={
+                        explanation.recommendation === "STRONG_FIT"
+                          ? "default"
+                          : explanation.recommendation === "GOOD_FIT"
+                          ? "secondary"
+                          : explanation.recommendation === "CONSIDER"
+                          ? "outline"
+                          : "destructive"
+                      }
+                      className="px-3 py-1"
+                    >
+                      {explanation.recommendation}
+                    </Badge>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <Separator />
+
             {/* Score Breakdown */}
             <div>
               <h4 className="font-semibold mb-3 flex items-center gap-2">

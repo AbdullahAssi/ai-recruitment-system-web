@@ -119,7 +119,12 @@ export function useScores() {
         total: filteredScores.length,
         totalPages: Math.ceil(filteredScores.length / pagination.pagination.limit),
       });
+      
+      // Return the filtered scores for immediate use
+      return filteredScores;
     }
+    
+    return [];
   }, [
     pagination.pagination.page,
     pagination.pagination.limit,
@@ -143,9 +148,16 @@ export function useScores() {
     fetchScores();
   }, [fetchScores]);
 
-  const applyQuickFilter = useCallback((filter: Partial<ScoreFilters>) => {
+  const applyQuickFilter = useCallback(async (filter: Partial<ScoreFilters>) => {
     filtersHook.updateFilters(filter);
-  }, [filtersHook]);
+    // Wait for the next tick to ensure filters are updated, then fetch
+    return new Promise<ScoringData[]>(resolve => {
+      setTimeout(async () => {
+        const result = await fetchScores();
+        resolve(result);
+      }, 0);
+    });
+  }, [filtersHook, fetchScores]);
 
   return {
     scores,
