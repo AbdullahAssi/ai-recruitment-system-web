@@ -15,6 +15,17 @@ export { useScores } from "./useScores";
 export { useApi } from "./useApi";
 export { useFilters } from "./useFilters";
 export { usePagination } from "./usePagination";
+export {
+  useCandidates,
+  useCandidateProfile,
+  useCandidateFilters,
+} from "./useCandidates";
+
+export type {
+  CandidateFilters,
+  Candidate,
+  CandidateProfile,
+} from "./useCandidates";
 
 export function useJobApplications(
   jobId: string,

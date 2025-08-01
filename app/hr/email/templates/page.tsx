@@ -320,7 +320,7 @@ export default function EmailTemplatesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br  from-gray-50 to-blue-100  flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading email templates...</p>
@@ -330,7 +330,7 @@ export default function EmailTemplatesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-100 ">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
@@ -827,28 +827,44 @@ export default function EmailTemplatesPage() {
                   ✅ SMTP Email Service Ready
                 </h4>
                 <p className="text-sm text-green-700 mb-3">
-                  Email service is configured and ready to send real emails via SMTP.
+                  Email service is configured and ready to send real emails via
+                  SMTP.
                 </p>
                 <div className="text-xs text-green-600 space-y-1">
-                  <p><strong>Server:</strong> mail.cymaxtech.com:587</p>
-                  <p><strong>From:</strong> CymaxTech HR Team &lt;m.abdullah@cymaxtech.com&gt;</p>
-                  <p><strong>Status:</strong> ✅ Connection verified</p>
+                  <p>
+                    <strong>Server:</strong> mail.cymaxtech.com:587
+                  </p>
+                  <p>
+                    <strong>From:</strong> CymaxTech HR Team
+                    &lt;m.abdullah@cymaxtech.com&gt;
+                  </p>
+                  <p>
+                    <strong>Status:</strong> ✅ Connection verified
+                  </p>
                 </div>
               </div>
 
               <div className="space-y-3">
                 <h4 className="font-medium">How to Send Bulk Emails:</h4>
                 <div className="bg-blue-50 p-4 rounded-lg text-sm">
-                  <p className="font-semibold mb-2">Steps to send bulk emails:</p>
+                  <p className="font-semibold mb-2">
+                    Steps to send bulk emails:
+                  </p>
                   <ol className="list-decimal list-inside space-y-1 text-blue-700">
-                    <li>Go to the <strong>Candidates</strong> or <strong>Applications</strong> page</li>
+                    <li>
+                      Go to the <strong>Candidates</strong> or{" "}
+                      <strong>Applications</strong> page
+                    </li>
                     <li>Select multiple candidates using checkboxes</li>
                     <li>Click "Send Bulk Email" from the actions menu</li>
                     <li>Choose this template or write custom content</li>
                     <li>Review variables and click send</li>
                   </ol>
                   <p className="text-xs text-blue-600 mt-2">
-                    <strong>Note:</strong> Variables like <code>{'{{candidateName}}'}</code> and <code>{'{{jobTitle}}'}</code> will be automatically replaced for each recipient.
+                    <strong>Note:</strong> Variables like{" "}
+                    <code>{"{{candidateName}}"}</code> and{" "}
+                    <code>{"{{jobTitle}}"}</code> will be automatically replaced
+                    for each recipient.
                   </p>
                 </div>
               </div>
@@ -857,7 +873,9 @@ export default function EmailTemplatesPage() {
                 <h4 className="font-medium">Email Features Available:</h4>
                 <div className="bg-gray-50 p-4 rounded-lg text-sm grid grid-cols-2 gap-4">
                   <div>
-                    <p className="font-semibold text-gray-800">✅ Real Email Sending:</p>
+                    <p className="font-semibold text-gray-800">
+                      ✅ Real Email Sending:
+                    </p>
                     <ul className="text-gray-600 text-xs space-y-1 mt-1">
                       <li>• SMTP delivery via CymaxTech server</li>
                       <li>• Template variable substitution</li>
@@ -867,7 +885,9 @@ export default function EmailTemplatesPage() {
                     </ul>
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-800">📊 Tracking & History:</p>
+                    <p className="font-semibold text-gray-800">
+                      📊 Tracking & History:
+                    </p>
                     <ul className="text-gray-600 text-xs space-y-1 mt-1">
                       <li>• Complete email history</li>
                       <li>• Delivery status tracking</li>
@@ -889,9 +909,9 @@ export default function EmailTemplatesPage() {
                 <Button
                   onClick={async () => {
                     try {
-                      const response = await fetch('/api/email/test');
+                      const response = await fetch("/api/email/test");
                       const data = await response.json();
-                      
+
                       if (data.success) {
                         toast({
                           title: "✅ Email Service Test Passed",
@@ -900,7 +920,9 @@ export default function EmailTemplatesPage() {
                       } else {
                         toast({
                           title: "❌ Email Service Test Failed",
-                          description: data.error || "Please check your SMTP configuration",
+                          description:
+                            data.error ||
+                            "Please check your SMTP configuration",
                           variant: "destructive",
                         });
                       }
@@ -920,7 +942,8 @@ export default function EmailTemplatesPage() {
                   onClick={() => {
                     toast({
                       title: "✅ Email Service Ready",
-                      description: "Navigate to candidates page to send bulk emails with this template.",
+                      description:
+                        "Navigate to candidates page to send bulk emails with this template.",
                     });
                     setShowBulkEmailDialog(false);
                   }}

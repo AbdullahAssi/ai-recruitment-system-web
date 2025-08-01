@@ -1,27 +1,5 @@
 "use client";
 
-/**
- * Job Applications Management Page
- *
- * This page provides comprehensive management of job applications including:
- * - Detailed AI analysis dialog using the useScores hook
- * - Dynamic fetching of AI scores for specific applications
- * - Fallback to existing application AI analysis data
- * - Loading states and error handling for AI analysis
- *
- * The DetailedAnalysisDialog integration:
- * 1. Uses the useScores hook to fetch detailed AI analysis
- * 2. Applies filters by applicationId and jobId to get specific scores
- * 3. Shows loading state while fetching data
- * 4. Falls back to existing aiAnalysis data if available
- * 5. Handles cases where no analysis is available
- *
- * Key Components:
- * - ApplicationCard: Displays individual applications with "View AI Analysis" button
- * - DetailedAnalysisDialog: Shows comprehensive AI scoring breakdown
- * - useScores: Hook for fetching and filtering AI score data
- * - Loading/Error states for better UX
- */
 
 import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -407,7 +385,7 @@ export default function JobApplicationsPage({
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br  from-gray-50 to-blue-100  flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading applications...</p>
@@ -419,7 +397,7 @@ export default function JobApplicationsPage({
   // Error state
   if (!data) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br  from-gray-50 to-blue-100  flex items-center justify-center">
         <div className="text-center">
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
             Job Not Found
@@ -439,8 +417,8 @@ export default function JobApplicationsPage({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-100 ">
+      <div className="max-w-7xl mx-auto py-7">
         {/* AI Analysis Dialog */}
         <AIAnalysisDialog
           open={aiDialogState.profileDialogOpen}
@@ -802,7 +780,8 @@ export default function JobApplicationsPage({
               detailedAnalysisState.selectedApplication?.aiAnalysis ? (
               <DetailedAnalysisDialog
                 scoreData={
-                  detailedAnalysisState.selectedScore || { // Fallback: Create scoreData from existing application aiAnalysis // Priority: Use fetched score data
+                  detailedAnalysisState.selectedScore || {
+                    // Fallback: Create scoreData from existing application aiAnalysis // Priority: Use fetched score data
                     id: detailedAnalysisState.selectedApplication!.id,
                     score:
                       detailedAnalysisState.selectedApplication!.aiAnalysis!
