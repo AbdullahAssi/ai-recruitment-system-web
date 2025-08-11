@@ -145,7 +145,7 @@ export async function PATCH(
     const updatedApplication = await prisma.application.update({
       where: {
         id: applicationId,
-        jobId: jobId, // Ensure application belongs to this job
+        jobId: jobId,
       },
       data: { status },
       include: {

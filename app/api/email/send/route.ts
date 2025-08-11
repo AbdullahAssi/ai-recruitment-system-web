@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
           candidateEmail: candidate.email,
           jobTitle: job?.title || "",
           jobLocation: job?.location || "",
-          companyName: "Your Company", // You can make this configurable
+          companyName: "Your Company", //configurable
         };
 
         // Process template
@@ -140,9 +140,9 @@ export async function POST(request: NextRequest) {
           },
         });
 
-        // ✅ ACTUAL EMAIL SENDING WITH SMTP
-        console.log(`📧 Sending email to: ${candidate.email}`);
-        console.log(`📧 Subject: ${processedSubject}`);
+        //  ACTUAL EMAIL SENDING WITH SMTP
+        console.log(`Sending email to: ${candidate.email}`);
+        console.log(` Subject: ${processedSubject}`);
 
         try {
           // Send actual email using SMTP
@@ -170,12 +170,12 @@ export async function POST(request: NextRequest) {
               messageId: emailResult.messageId,
             });
 
-            console.log(`✅ Email sent successfully to ${candidate.email}`);
+            console.log(`Email sent successfully to ${candidate.email}`);
           } else {
             throw new Error(emailResult.error || "Email sending failed");
           }
         } catch (emailError) {
-          console.error(`❌ Failed to send email to ${candidate.email}:`, emailError);
+          console.error(` Failed to send email to ${candidate.email}:`, emailError);
 
           // Update status to failed
           await prisma.emailHistory.update({
@@ -194,7 +194,7 @@ export async function POST(request: NextRequest) {
           });
         }
       } catch (error) {
-        console.error(`❌ Unexpected error processing ${candidate.email}:`, error);
+        console.error(` Unexpected error processing ${candidate.email}:`, error);
 
         failedEmails.push({
           candidateId: candidate.id,
@@ -207,7 +207,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `✅ SMTP EMAIL SERVICE: Processed ${candidates.length} candidates. Sent: ${emailRecords.length}, Failed: ${failedEmails.length}`,
+      message: ` SMTP EMAIL SERVICE: Processed ${candidates.length} candidates. Sent: ${emailRecords.length}, Failed: ${failedEmails.length}`,
       simulationMode: false,
       results: {
         sent: emailRecords,

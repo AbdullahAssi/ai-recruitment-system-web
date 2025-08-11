@@ -121,7 +121,6 @@ export default function JobApplicationsPage({
     }
   }, [emailTemplates]);
 
-  // Effect to update detailed analysis when scores change (fallback)
   useEffect(() => {
     // Early return if dialog is not open or no selected application
     if (

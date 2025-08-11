@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma";
 // Force dynamic rendering for this API route
 export const dynamic = "force-dynamic";
 
-// GET all jobs (with optional includeInactive parameter)
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);

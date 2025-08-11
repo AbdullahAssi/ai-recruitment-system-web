@@ -20,7 +20,6 @@ export async function POST(
       );
     }
 
-    // Check if candidate exists
     const candidate = await prisma.candidate.findUnique({
       where: { id: candidateId },
       include: {
@@ -45,7 +44,6 @@ export async function POST(
       );
     }
 
-    // Check if job exists
     const job = await prisma.job.findUnique({
       where: { id: jobId },
     });
@@ -54,7 +52,6 @@ export async function POST(
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
 
-    // Check if application already exists
     const existingApplication = await prisma.application.findUnique({
       where: {
         candidateId_jobId: {
@@ -71,20 +68,18 @@ export async function POST(
       );
     }
 
-    // Create application (matching will be done by LLM later)
     const application = await prisma.application.create({
       data: {
         candidateId,
         jobId,
         status: "PENDING",
-        score: 0, // Will be calculated by LLM later
+        score: 0, 
       },
     });
 
-    // Trigger AI scoring asynchronously with the latest resume
     const latestResume = candidate.resumes[0];
     try {
-      // Call AI scoring API with application ID for enhanced scoring
+      // AI scoring API with application ID for enhanced scoring
       const aiScoreUrl = `${
         process.env.NEXTAUTH_URL || "http://localhost:3000"
       }/api/ai/score`;
@@ -97,7 +92,7 @@ export async function POST(
         body: JSON.stringify({
           resumeId: latestResume.id,
           jobId: jobId,
-          applicationId: application.id, // Pass application ID for enhanced scoring
+          applicationId: application.id, // application ID for enhanced scoring
         }),
       }).catch((error) => {
         console.error("AI scoring failed:", error);
@@ -105,11 +100,10 @@ export async function POST(
       });
 
       console.log(
-        `🤖 Enhanced AI scoring initiated for application ${application.id}`
+        `Enhanced AI scoring initiated for application ${application.id}`
       );
     } catch (aiError) {
       console.error("Failed to initiate AI scoring:", aiError);
-      // Continue with normal flow
     }
 
     // Fetch application with details for response
