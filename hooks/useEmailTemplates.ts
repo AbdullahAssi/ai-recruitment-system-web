@@ -204,7 +204,7 @@ export function useEmailTemplates() {
   const createDefaultTemplates = useCallback(async () => {
     try {
       setCreating(true);
-      const response = await fetch("/api/email/templates/defaults", {
+      const response = await fetch("/api/email/templates/seed", {
         method: "POST",
       });
 

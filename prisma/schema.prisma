@@ -7,18 +7,69 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// User Model for Authentication
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String    // Hashed password
+  role          UserRole  @default(CANDIDATE)
+  name          String
+  phone         String?
+  isActive      Boolean   @default(true)
+  isVerified    Boolean   @default(false)
+  verificationToken String?
+  resetToken    String?
+  resetTokenExpiry DateTime?
+  lastLogin     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  candidate     Candidate?
+  hrProfile     HRProfile?
+
+  @@index([email])
+  @@map("users")
+}
+
+// HR Profile Model
+model HRProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  department  String?
+  position    String?
+  permissions Json?    // Store specific permissions
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("hr_profiles")
+}
+
 model Candidate {
   id              String           @id @default(cuid())
+  userId          String?          @unique  // Link to User for authentication
   name            String
   email           String           @unique
-  experience      Int
+  experience      Int?
+  phone           String?
+  location        String?
+  bio             String?
+  linkedinUrl     String?
+  githubUrl       String?
+  portfolioUrl    String?
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
+  
+  // Relations
+  user            User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
   applications    Application[]
   candidateSkills CandidateSkill[]
   emailHistory    EmailHistory[]
   resumes         Resume[]
 
+  @@index([email])
   @@map("candidates")
 }
 
@@ -195,4 +246,10 @@ enum EmailStatus {
   SENT
   FAILED
   BOUNCED
+}
+
+enum UserRole {
+  CANDIDATE
+  HR
+  ADMIN
 }
