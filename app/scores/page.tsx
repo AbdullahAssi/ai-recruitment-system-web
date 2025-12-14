@@ -2,8 +2,6 @@
 
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
 import { useScores } from "@/hooks/useScores";
 import { ScoringData } from "@/lib/types";
 import {

@@ -146,7 +146,7 @@ export default function CandidatesPage() {
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(12); // 12 candidates per page (4x3 grid)
+  const [itemsPerPage] = useState(9); // 12 candidates per page (4x3 grid)
 
   // Bulk email state
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);

@@ -13,16 +13,16 @@ export default function HRPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-100 p-4">
       <div className="max-w-6xl mx-auto py-8">
-        <div className="text-center mb-8">
+        {/* <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">HR Portal</h1>
           <p className="text-gray-600">
             Manage your recruitment process efficiently
           </p>
-        </div>
+        </div> */}
 
   {/* Quick Stats Section */}
         <div className="mt-12 text-center">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+          <h2 className="text-4xl font-semibold text-gray-900 mb-6">
             Welcome to your HR Dashboard
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto mb-10">
