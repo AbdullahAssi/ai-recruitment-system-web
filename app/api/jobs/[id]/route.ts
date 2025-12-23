@@ -28,6 +28,11 @@ export async function GET(
           },
           orderBy: { appliedAt: "desc" },
         },
+        _count: {
+          select: {
+            applications: true,
+          },
+        },
       },
     });
 
@@ -35,10 +40,7 @@ export async function GET(
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
 
-    return NextResponse.json({
-      success: true,
-      job,
-    });
+    return NextResponse.json(job);
   } catch (error) {
     console.error("Error fetching job:", error);
     return NextResponse.json({ error: "Failed to fetch job" }, { status: 500 });
