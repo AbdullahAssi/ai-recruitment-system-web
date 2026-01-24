@@ -1,10 +1,12 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  extensions = [vector]
 }
 
 // User Model for Authentication
@@ -59,6 +61,7 @@ model Candidate {
   linkedinUrl     String?
   githubUrl       String?
   portfolioUrl    String?
+  embedding       Unsupported("vector(1536)")?  // Vector embedding for semantic matching
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   
@@ -68,6 +71,8 @@ model Candidate {
   candidateSkills CandidateSkill[]
   emailHistory    EmailHistory[]
   resumes         Resume[]
+  quizAttempts    QuizAttempt[]
+  feedbackGiven   Feedback[]
 
   @@index([email])
   @@map("candidates")
@@ -93,6 +98,7 @@ model Resume {
   education_level     String?
   experience_years    Int?
   summary             String?
+  embedding           Unsupported("vector(1536)")?  // Vector embedding for semantic matching
   cvScores            CvScore[]
   candidate           Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
@@ -125,12 +131,14 @@ model Job {
   requirements String?
   isActive     Boolean        @default(true)
   postedDate   DateTime       @default(now())
+  embedding    Unsupported("vector(1536)")?  // Vector embedding for semantic matching
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   applications Application[]
   emailHistory EmailHistory[]
   jobSkills    JobSkill[]
   cvScores     CvScore[]      // Scores for this job
+  quizzes      Quiz[]
 
   @@map("jobs")
 }
@@ -156,6 +164,7 @@ model Application {
   candidate   Candidate         @relation(fields: [candidateId], references: [id], onDelete: Cascade)
   job         Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
   cvScore     CvScore?          // AI scoring result for this application
+  feedback    Feedback[]        // Feedback on AI predictions for this application
 
   @@unique([candidateId, jobId])
   @@map("applications")
@@ -252,4 +261,91 @@ enum UserRole {
   CANDIDATE
   HR
   ADMIN
+}
+
+// Quiz Model for Job-specific Assessments
+model Quiz {
+  id          String        @id @default(cuid())
+  jobId       String
+  title       String
+  description String?
+  duration    Int?          // Duration in minutes
+  passingScore Float        @default(70.0)  // Percentage required to pass
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  job         Job           @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  questions   Question[]
+  attempts    QuizAttempt[]
+
+  @@map("quizzes")
+}
+
+// Question Model for Quiz Questions
+model Question {
+  id            String   @id @default(cuid())
+  quizId        String
+  questionText  String
+  questionType  QuestionType @default(MULTIPLE_CHOICE)
+  options       Json?    // Array of options for multiple choice/checkbox
+  correctAnswer Json     // Correct answer(s)
+  points        Int      @default(1)
+  order         Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  quiz          Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@map("questions")
+}
+
+// QuizAttempt Model for Tracking Candidate Quiz Submissions
+model QuizAttempt {
+  id          String   @id @default(cuid())
+  quizId      String
+  candidateId String
+  answers     Json     // Candidate's answers
+  score       Float?   // Score achieved
+  passed      Boolean  @default(false)
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+  
+  quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@map("quiz_attempts")
+}
+
+// Feedback Model for Capturing User Corrections on AI Predictions
+model Feedback {
+  id              String       @id @default(cuid())
+  applicationId   String
+  candidateId     String
+  feedbackType    FeedbackType
+  aiPrediction    Json         // Original AI prediction/score
+  userCorrection  Json         // User's correction/actual outcome
+  notes           String?
+  isUsedForTraining Boolean    @default(false)  // Flag for using in model retraining
+  createdAt       DateTime     @default(now())
+  
+  application     Application  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  candidate       Candidate    @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@map("feedback")
+}
+
+// Enums for Quiz and Feedback
+enum QuestionType {
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+  SHORT_ANSWER
+  CODING
+}
+
+enum FeedbackType {
+  SCORE_CORRECTION      // When AI score doesn't match actual evaluation
+  SKILL_MATCH_CORRECTION // When skill matching is incorrect
+  STATUS_CORRECTION     // When predicted outcome differs from actual
+  GENERAL              // General feedback
 }
