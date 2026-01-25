@@ -35,19 +35,52 @@ export default function CandidateProfilePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!user?.candidate?.id) {
+      toast({
+        title: "Error",
+        description: "User profile not found",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
-      // Update profile API call (to be implemented)
-      toast({
-        title: "Success",
-        description: "Profile updated successfully",
+      const response = await fetch(`/api/candidates/${user.candidate.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: user.email,
+          experience: parseInt(formData.experience.toString()),
+          location: formData.location,
+          bio: formData.bio,
+          linkedinUrl: formData.linkedinUrl,
+          githubUrl: formData.githubUrl,
+          portfolioUrl: formData.portfolioUrl,
+          phone: formData.phone,
+        }),
       });
-      await refreshUser();
-    } catch (error) {
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast({
+          title: "Success",
+          description: "Profile updated successfully",
+        });
+        await refreshUser();
+      } else {
+        throw new Error(data.error || "Failed to update profile");
+      }
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to update profile",
+        description: error.message || "Failed to update profile",
         variant: "destructive",
       });
     } finally {
@@ -65,18 +98,51 @@ export default function CandidateProfilePage() {
       return;
     }
 
-    setLoading(true);
-    try {
-      // Resume upload API call (to be implemented)
-      toast({
-        title: "Success",
-        description: "Resume uploaded successfully",
-      });
-      setFile(null);
-    } catch (error) {
+    if (!user?.candidate?.id || !user?.name || !user?.email) {
       toast({
         title: "Error",
-        description: "Failed to upload resume",
+        description: "User profile not found",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("resume", file);
+      formData.append("name", user.name);
+      formData.append("email", user.email);
+      formData.append(
+        "experience",
+        (user.candidate.experience || 0).toString(),
+      );
+
+      const response = await fetch("/api/upload/resume", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast({
+          title: "Success",
+          description: "Resume uploaded successfully",
+        });
+        setFile(null);
+        // Reset file input
+        const fileInput = document.getElementById(
+          "resume-file",
+        ) as HTMLInputElement;
+        if (fileInput) fileInput.value = "";
+      } else {
+        throw new Error(data.error || "Failed to upload resume");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to upload resume",
         variant: "destructive",
       });
     } finally {
@@ -104,9 +170,9 @@ export default function CandidateProfilePage() {
         <CardContent>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="resume">Resume File (PDF, DOC, DOCX)</Label>
+              <Label htmlFor="resume-file">Resume File (PDF, DOC, DOCX)</Label>
               <Input
-                id="resume"
+                id="resume-file"
                 type="file"
                 accept=".pdf,.doc,.docx"
                 onChange={handleFileChange}

@@ -86,7 +86,7 @@ export default function JobDetailPage() {
           `/api/jobs/${jobId}/application?candidateId=${user.candidate.id}`,
           {
             credentials: "include",
-          }
+          },
         );
 
         if (appResponse.ok) {
@@ -210,7 +210,7 @@ export default function JobDetailPage() {
   };
 
   const getStatusLabel = (status: string) => {
-    return status.replace(/_/g, " ");
+    return status ? status.replace(/_/g, " ") : "N/A";
   };
 
   return (
