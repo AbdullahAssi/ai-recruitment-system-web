@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "@/components/ui/dialog";
 
 // Import modular components and hooks
@@ -46,6 +47,7 @@ export default function HRJobsPage() {
     description: "",
     location: "",
     requirements: "",
+    responsibilities: "",
   });
 
   // Event handlers
@@ -59,6 +61,7 @@ export default function HRJobsPage() {
         description: "",
         location: "",
         requirements: "",
+        responsibilities: "",
       });
     }
   };
@@ -70,6 +73,7 @@ export default function HRJobsPage() {
       description: job.description,
       location: job.location,
       requirements: job.requirements || "",
+      responsibilities: job.responsibilities || "",
     });
     setShowEditDialog(true);
   };
@@ -87,6 +91,7 @@ export default function HRJobsPage() {
         description: "",
         location: "",
         requirements: "",
+        responsibilities: "",
       });
     }
   };
@@ -98,6 +103,7 @@ export default function HRJobsPage() {
       description: "",
       location: "",
       requirements: "",
+      responsibilities: "",
     });
   };
 
@@ -109,6 +115,7 @@ export default function HRJobsPage() {
       description: "",
       location: "",
       requirements: "",
+      responsibilities: "",
     });
   };
 
@@ -169,6 +176,9 @@ export default function HRJobsPage() {
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Create New Job Posting</DialogTitle>
+              <DialogDescription>
+                Fill in the details to create a new job posting.
+              </DialogDescription>
             </DialogHeader>
             <JobForm
               formData={formData}
@@ -187,6 +197,9 @@ export default function HRJobsPage() {
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Edit Job Posting</DialogTitle>
+              <DialogDescription>
+                Edit the details of the job posting.
+              </DialogDescription>
             </DialogHeader>
             <JobForm
               formData={formData}

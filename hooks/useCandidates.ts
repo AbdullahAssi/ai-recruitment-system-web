@@ -175,8 +175,12 @@ export function useCandidateFilters(candidates: Candidate[]) {
     if (filters.searchTerm) {
       filtered = filtered.filter(
         (candidate) =>
-          candidate.name.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
-          candidate.email.toLowerCase().includes(filters.searchTerm.toLowerCase())
+          candidate.name
+            .toLowerCase()
+            .includes(filters.searchTerm.toLowerCase()) ||
+          candidate.email
+            .toLowerCase()
+            .includes(filters.searchTerm.toLowerCase()),
       );
     }
 

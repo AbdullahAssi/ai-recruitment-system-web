@@ -371,15 +371,32 @@ export const scoringService = {
     resumeId: string,
     jobDescription: string,
     jobId?: string,
+    applicationId?: string,
   ): Promise<ScoringResponse> => {
-    return fastAPIFetch<ScoringResponse>("/scoring/score-by-id", {
+    const response = await fastAPIFetch<any>("/scoring/score-by-id", {
       method: "POST",
       body: JSON.stringify({
         resume_id: resumeId,
         job_description: jobDescription,
         job_id: jobId,
+        application_id: applicationId,
       }),
     });
+
+    // Map FastAPI response (nested) to Client Interface (flat)
+    const result = response.result || {};
+    const breakdown = result.breakdown || {};
+    const analysis = result.detailed_analysis || {};
+
+    return {
+      score: result.overall_score || 0,
+      explanation: result.summary || "No summary available",
+      matched_skills: analysis.key_matches || [],
+      missing_skills: analysis.missing_requirements || [],
+      strengths: analysis.strengths || [],
+      weaknesses: analysis.weaknesses || [],
+      recommendation: result.recommendation || "CONSIDER",
+    };
   },
 
   /**

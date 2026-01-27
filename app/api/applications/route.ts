@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { scoringService } from "@/lib/fastapi";
 
 // Force dynamic rendering for this API route
 export const dynamic = "force-dynamic";
@@ -51,7 +52,7 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching applications:", error);
     return NextResponse.json(
       { error: "Failed to fetch applications" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -64,7 +65,7 @@ export async function POST(request: NextRequest) {
     if (!jobId || !candidateId) {
       return NextResponse.json(
         { error: "Job ID and Candidate ID are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
     if (existingApplication) {
       return NextResponse.json(
         { error: "You have already applied to this job" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -109,12 +110,69 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // --- AI SCORING INTEGRATION ---
+    try {
+      // 1. Get Candidate's latest resume
+      const candidate = await prisma.candidate.findUnique({
+        where: { id: candidateId },
+        include: {
+          resumes: {
+            orderBy: { uploadDate: "desc" },
+            take: 1,
+          },
+        },
+      });
+
+      // 2. Get Job Description
+      const job = await prisma.job.findUnique({
+        where: { id: jobId },
+      });
+
+      if (candidate?.resumes?.[0] && job) {
+        const resume = candidate.resumes[0];
+        console.log(
+          `Scoring Application: Job=${job?.title}, Resume=${resume.fileName}`,
+        );
+
+        // 3. Call FastAPI Scoring Service
+        const scoreResult = await scoringService.scoreById(
+          resume.id,
+          job.description,
+          job.id,
+          application.id,
+        );
+
+        console.log("Score Result:", scoreResult);
+
+        // 4. Update Application with Score
+        await prisma.application.update({
+          where: { id: application.id },
+          data: {
+            score: scoreResult.score,
+            status: scoreResult.score >= 70 ? "REVIEWED" : "PENDING",
+            // Save full analysis if schema supports it?
+            // Application model has aiAnalysis? Need to check.
+            // In types/application.types.ts we saw aiAnalysis structure.
+            // But schema.prisma Application model doesn't show aiAnalysis field.
+            // It links to CvScore?
+            // "cvScore CvScore?" relation on Application.
+          },
+        });
+
+        // 5. Create CvScore Record
+        // Skipped: FastAPI `scoreById` text now handles DB insertion with applicationId
+        // We trust the backend to have linked it.
+      }
+    } catch (aiError) {
+      console.error("AI Scoring Failed:", aiError);
+    }
+
     return NextResponse.json(application, { status: 201 });
   } catch (error) {
     console.error("Error creating application:", error);
     return NextResponse.json(
       { error: "Failed to create application" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

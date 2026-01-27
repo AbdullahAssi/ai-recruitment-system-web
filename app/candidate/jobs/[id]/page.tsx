@@ -91,8 +91,13 @@ export default function JobDetailPage() {
 
         if (appResponse.ok) {
           const appData = await appResponse.json();
-          // appData.application will be null if not applied yet
-          setApplication(appData.application || appData);
+          // Fix logic: check if explicitly null in response
+          if (appData.application === null) {
+            setApplication(null);
+          } else {
+            // Otherwise it's the application object directly
+            setApplication(appData);
+          }
         }
       }
     } catch (error: any) {
@@ -120,6 +125,24 @@ export default function JobDetailPage() {
 
     try {
       setApplying(true);
+
+      // Check for quiz first
+      const quizCheckResponse = await fetch(`/api/jobs/${jobId}/quiz`);
+      if (quizCheckResponse.ok) {
+        const quizData = await quizCheckResponse.json();
+        // If quiz exists and hasn't been passed (or strictly if it exists, depending on reqs)
+        if (quizData.quiz && !quizData.hasAttempted) {
+          toast({
+            title: "Quiz Required",
+            description:
+              "You must complete the skill quiz to apply for this position.",
+          });
+          router.push(
+            `/candidates/quizzes/${quizData.quiz.id}/start?jobId=${jobId}`,
+          );
+          return;
+        }
+      }
 
       const response = await fetch("/api/applications", {
         method: "POST",

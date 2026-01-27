@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching jobs:", error);
     return NextResponse.json(
       { error: "Failed to fetch jobs" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     if (!title || !description) {
       return NextResponse.json(
         { error: "Missing required fields: title, description" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -60,6 +60,7 @@ export async function POST(request: NextRequest) {
         description,
         location: location || "",
         requirements: requirements || "",
+        responsibilities: body.responsibilities || "",
       },
     });
 
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
     console.error("Error creating job:", error);
     return NextResponse.json(
       { error: "Failed to create job" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -129,6 +129,7 @@ model Job {
   location     String?
   company      String?
   requirements String?
+  responsibilities String?
   isActive     Boolean        @default(true)
   postedDate   DateTime       @default(now())
   embedding    Unsupported("vector(1536)")?  // Vector embedding for semantic matching

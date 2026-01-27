@@ -50,9 +50,14 @@ export function DetailedAnalysisDialog({
 
   // Handle different data formats - check if we have nested aiAnalysis structure
   const getAnalysisData = () => {
-    console.log("Using format:", explanation?.aiAnalysis ? "new (nested aiAnalysis)" : "legacy (direct properties)");
+    console.log(
+      "Using format:",
+      explanation?.aiAnalysis
+        ? "new (nested aiAnalysis)"
+        : "legacy (direct properties)",
+    );
     console.log("Explanation structure:", explanation);
-    
+
     if (explanation?.aiAnalysis) {
       // New format with nested aiAnalysis
       const newFormatData = {
@@ -67,10 +72,32 @@ export function DetailedAnalysisDialog({
         education: explanation.scores?.education || 0,
         fit: explanation.scores?.fit || 0,
       };
-      console.log("Using new format data:", newFormatData);
+      console.log("Using new format data (aiAnalysis):", newFormatData);
       return newFormatData;
     }
-    // Fallback to direct properties (original format)
+
+    if (explanation?.detailed_analysis) {
+      // Backend format (detailed_analysis)
+      const detailedFormatData = {
+        strengths: explanation.detailed_analysis.strengths || [],
+        weaknesses: explanation.detailed_analysis.weaknesses || [],
+        keySkillsMatch: explanation.detailed_analysis.key_matches || [], // Map key_matches to keySkillsMatch
+        missingSkills: explanation.detailed_analysis.missing_requirements || [], // Map missing_requirements
+        summary: explanation.summary || "",
+        recommendation: explanation.recommendation || "",
+        skills: explanation.skills_score || 0,
+        experience: explanation.experience_score || 0,
+        education: explanation.education_score || 0,
+        fit: explanation.fit_score || 0,
+      };
+      console.log(
+        "Using backend format data (detailed_analysis):",
+        detailedFormatData,
+      );
+      return detailedFormatData;
+    }
+
+    // Fallback to direct properties (legacy format)
     const legacyFormatData = {
       strengths: explanation?.strengths || [],
       weaknesses: explanation?.weaknesses || [],
@@ -130,10 +157,10 @@ export function DetailedAnalysisDialog({
                         explanation.recommendation === "STRONG_FIT"
                           ? "default"
                           : explanation.recommendation === "GOOD_FIT"
-                          ? "secondary"
-                          : explanation.recommendation === "CONSIDER"
-                          ? "outline"
-                          : "destructive"
+                            ? "secondary"
+                            : explanation.recommendation === "CONSIDER"
+                              ? "outline"
+                              : "destructive"
                       }
                       className="px-3 py-1"
                     >
@@ -152,7 +179,7 @@ export function DetailedAnalysisDialog({
                 <Target className="h-4 w-4" />
                 Score Breakdown
               </h4>
-              <ScoreBreakdown explanation={explanation} />
+              <ScoreBreakdown explanation={analysisData} />
             </div>
 
             <Separator />
@@ -180,7 +207,7 @@ export function DetailedAnalysisDialog({
                               <CheckCircle className="w-3 h-3 mr-1" />
                               {skill}
                             </Badge>
-                          )
+                          ),
                         )}
                       </div>
                     </div>
@@ -204,7 +231,7 @@ export function DetailedAnalysisDialog({
                               <XCircle className="w-3 h-3 mr-1" />
                               {skill}
                             </Badge>
-                          )
+                          ),
                         )}
                       </div>
                     </div>
@@ -227,7 +254,7 @@ export function DetailedAnalysisDialog({
                             >
                               {skill}
                             </Badge>
-                          )
+                          ),
                         )}
                       </div>
                     </div>
@@ -303,7 +330,7 @@ export function DetailedAnalysisDialog({
                               <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                               {strength}
                             </li>
-                          )
+                          ),
                         )}
                       </ul>
                     </div>
@@ -325,7 +352,7 @@ export function DetailedAnalysisDialog({
                               <XCircle className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
                               {weakness}
                             </li>
-                          )
+                          ),
                         )}
                       </ul>
                     </div>
@@ -347,7 +374,7 @@ export function DetailedAnalysisDialog({
                             >
                               {skill}
                             </Badge>
-                          )
+                          ),
                         )}
                       </div>
                     </div>
@@ -369,7 +396,7 @@ export function DetailedAnalysisDialog({
                             >
                               {skill}
                             </Badge>
-                          )
+                          ),
                         )}
                       </div>
                     </div>

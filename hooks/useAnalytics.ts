@@ -67,7 +67,7 @@ export function useAnalytics() {
 
   const fetchAnalytics = async () => {
     await executeRequest(async () => {
-      const response = await fetch("/api/hr/analytics");
+      const response = await fetch("/api/analytics");
       return await response.json();
     });
   };

@@ -73,7 +73,7 @@ export function ApplicationCard({
     <Card
       className={`shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 ${getApplicationBorderColor(
         application,
-        isSelected
+        isSelected,
       )}`}
     >
       <CardContent className="p-6">
@@ -119,6 +119,22 @@ export function ApplicationCard({
                   <Briefcase className="w-4 h-4 text-green-500" />
                   {application.candidate.experience} years experience
                 </p>
+                {/* Quiz Score Display */}
+                {typeof application.candidate.quizScore === "number" && (
+                  <p className="text-gray-600 flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-purple-500" />
+                    Quiz Score:
+                    <span
+                      className={`font-semibold ${
+                        application.candidate.quizPassed
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {application.candidate.quizScore}%
+                    </span>
+                  </p>
+                )}
               </div>
 
               {/* Enhanced AI Analysis Summary */}
@@ -163,7 +179,7 @@ export function ApplicationCard({
                     </span>
                     <Badge
                       className={`${getScoreBadgeColor(
-                        application.aiAnalysis.overallScore
+                        application.aiAnalysis.overallScore,
                       )} text-xs`}
                       variant="outline"
                     >
@@ -179,14 +195,14 @@ export function ApplicationCard({
             <div className="flex flex-col items-end gap-2">
               <div
                 className={`text-2xl font-bold px-4 py-3 rounded-xl shadow-lg ${getScoreColor(
-                  application.score
+                  application.score,
                 )}`}
               >
                 {application.score}%
               </div>
               <Badge
                 className={`${getStatusColor(
-                  application.status
+                  application.status,
                 )} shadow-sm font-medium`}
               >
                 {application.status}
@@ -203,10 +219,10 @@ export function ApplicationCard({
                     application.aiAnalysis.overallScore >= 80
                       ? "bg-green-500"
                       : application.aiAnalysis.overallScore >= 60
-                      ? "bg-yellow-500"
-                      : application.aiAnalysis.overallScore >= 40
-                      ? "bg-orange-500"
-                      : "bg-red-500"
+                        ? "bg-yellow-500"
+                        : application.aiAnalysis.overallScore >= 40
+                          ? "bg-orange-500"
+                          : "bg-red-500"
                   }`}
                 >
                   {Math.round(application.aiAnalysis.overallScore)}
@@ -228,7 +244,7 @@ export function ApplicationCard({
                   <strong>Applied:</strong>{" "}
                   {format(
                     new Date(application.appliedAt),
-                    "MMM dd, yyyy 'at' HH:mm"
+                    "MMM dd, yyyy 'at' HH:mm",
                   )}
                 </span>
               </p>
@@ -262,7 +278,7 @@ export function ApplicationCard({
                     {application.candidate.resumes[0].fileName.length > 20
                       ? `${application.candidate.resumes[0].fileName.substring(
                           0,
-                          20
+                          20,
                         )}...`
                       : application.candidate.resumes[0].fileName}
                   </span>
@@ -285,10 +301,10 @@ export function ApplicationCard({
                       application.aiAnalysis.overallScore >= 80
                         ? "text-green-600"
                         : application.aiAnalysis.overallScore >= 60
-                        ? "text-yellow-600"
-                        : application.aiAnalysis.overallScore >= 40
-                        ? "text-orange-600"
-                        : "text-red-600"
+                          ? "text-yellow-600"
+                          : application.aiAnalysis.overallScore >= 40
+                            ? "text-orange-600"
+                            : "text-red-600"
                     }`}
                   >
                     {application.aiAnalysis.overallScore}%
@@ -304,7 +320,7 @@ export function ApplicationCard({
                   <span className="text-gray-600">Recommendation:</span>
                   <Badge
                     className={`${getScoreBadgeColor(
-                      application.aiAnalysis.overallScore
+                      application.aiAnalysis.overallScore,
                     )} text-xs`}
                     variant="outline"
                   >

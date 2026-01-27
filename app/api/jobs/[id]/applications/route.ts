@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const jobId = params.id;
@@ -31,7 +31,7 @@ export async function GET(
           success: false,
           error: "Job not found",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -52,6 +52,16 @@ export async function GET(
                 id: true,
                 fileName: true,
                 uploadDate: true,
+              },
+            },
+            quizAttempts: {
+              where: { quiz: { jobId } },
+              orderBy: { score: "desc" },
+              take: 1,
+              select: {
+                score: true,
+                passed: true,
+                completedAt: true,
               },
             },
           },
@@ -88,6 +98,8 @@ export async function GET(
             fileName: resume.fileName,
             uploadDate: resume.uploadDate.toISOString(),
           })),
+          quizScore: app.candidate.quizAttempts[0]?.score || null,
+          quizPassed: app.candidate.quizAttempts[0]?.passed || null,
         },
       })),
       totalApplications: applications.length,
@@ -105,14 +117,14 @@ export async function GET(
         success: false,
         error: "Failed to fetch job applications",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const jobId = params.id;
@@ -125,7 +137,7 @@ export async function PATCH(
           success: false,
           error: "Application ID and status are required",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -137,7 +149,7 @@ export async function PATCH(
           success: false,
           error: "Invalid status value",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -175,7 +187,7 @@ export async function PATCH(
         success: false,
         error: "Failed to update application status",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
