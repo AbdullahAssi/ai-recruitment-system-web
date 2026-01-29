@@ -7,6 +7,18 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { MapPin, Briefcase, Building2, Search } from "lucide-react";
 import Link from "next/link";
+import { CompanyInfoCard } from "@/components/common/CompanyInfoCard";
+
+interface Company {
+  id: string;
+  name: string;
+  logo?: string | null;
+  industry?: string | null;
+  size?: string | null;
+  location?: string | null;
+  website?: string | null;
+  isVerified?: boolean;
+}
 
 interface Job {
   id: string;
@@ -16,6 +28,7 @@ interface Job {
   description: string;
   postedDate: string;
   isActive: boolean;
+  companyInfo?: Company | null;
 }
 
 export default function CandidateJobsPage() {
@@ -45,7 +58,8 @@ export default function CandidateJobsPage() {
     (job) =>
       job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.location?.toLowerCase().includes(searchTerm.toLowerCase())
+      job.companyInfo?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job.location?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (
@@ -85,33 +99,48 @@ export default function CandidateJobsPage() {
         <div className="space-y-4">
           {filteredJobs.map((job) => (
             <Card key={job.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <CardTitle className="text-xl mb-2">{job.title}</CardTitle>
-                    <div className="flex flex-wrap gap-3 text-sm text-gray-600">
-                      {job.company && (
-                        <span className="flex items-center">
-                          <Building2 className="w-4 h-4 mr-1" />
-                          {job.company}
-                        </span>
-                      )}
-                      {job.location && (
-                        <span className="flex items-center">
-                          <MapPin className="w-4 h-4 mr-1" />
-                          {job.location}
-                        </span>
-                      )}
-                    </div>
+              <CardContent className="p-6">
+                {/* Company Info */}
+                {job.companyData && (
+                  <div className="mb-4">
+                    <CompanyInfoCard
+                      company={job.companyData}
+                      variant="compact"
+                    />
                   </div>
-                  <Badge className="bg-green-100 text-green-800">Open</Badge>
+                )}
+
+                {/* Job Info */}
+                <div className="mb-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="text-xl font-bold text-gray-900">
+                      {job.title}
+                    </h3>
+                    <Badge className="bg-green-100 text-green-800">Open</Badge>
+                  </div>
+
+                  <div className="flex flex-wrap gap-3 text-sm text-gray-600 mb-3">
+                    {!job.companyData && job.company && (
+                      <span className="flex items-center">
+                        <Building2 className="w-4 h-4 mr-1" />
+                        {job.company}
+                      </span>
+                    )}
+                    {job.location && (
+                      <span className="flex items-center">
+                        <MapPin className="w-4 h-4 mr-1" />
+                        {job.location}
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="text-gray-600 line-clamp-2">
+                    {job.description}
+                  </p>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 mb-4 line-clamp-2">
-                  {job.description}
-                </p>
-                <div className="flex justify-between items-center">
+
+                {/* Footer */}
+                <div className="flex justify-between items-center pt-4 border-t">
                   <span className="text-sm text-gray-500">
                     Posted {new Date(job.postedDate).toLocaleDateString()}
                   </span>

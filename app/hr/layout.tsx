@@ -12,10 +12,11 @@ import {
   LogOut,
   Menu,
   X,
+  Building2,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
 const navigation = [
   { name: "Dashboard", href: "/hr", icon: LayoutDashboard },
@@ -23,12 +24,60 @@ const navigation = [
   { name: "Candidates", href: "/hr/candidates", icon: Users },
   { name: "Email Templates", href: "/hr/email/templates", icon: Mail },
   { name: "Analytics", href: "/hr/analytics", icon: BarChart3 },
+  { name: "Company", href: "/hr/company", icon: Building2 },
 ];
 
 export default function HRLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const pathname = usePathname();
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [checkingCompany, setCheckingCompany] = useState(true);
+
+  useEffect(() => {
+    checkCompanySetup();
+  }, [user]);
+
+  const checkCompanySetup = async () => {
+    if (!user || user.role !== "HR") {
+      setCheckingCompany(false);
+      return;
+    }
+
+    // Skip check if already on company setup page
+    if (pathname?.startsWith("/hr/company")) {
+      setCheckingCompany(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/hr/profile/${user.id}`);
+      const data = await response.json();
+
+      if (data.success && data.profile) {
+        // If no company, redirect to setup
+        if (!data.profile.companyId) {
+          router.push("/hr/company/setup");
+          return;
+        }
+      }
+    } catch (error) {
+      console.error("Failed to check company setup:", error);
+    } finally {
+      setCheckingCompany(false);
+    }
+  };
+
+  if (checkingCompany) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -135,6 +184,3 @@ export default function HRLayout({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-
-// Fix: Add missing import
-import { Building2 } from "lucide-react";

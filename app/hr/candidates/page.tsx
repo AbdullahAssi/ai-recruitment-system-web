@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Dialog,
   DialogContent,
@@ -42,15 +43,15 @@ import type { CandidateFilters } from "../../../hooks/hooks";
 import { createDownloadHandler } from "../../../lib/resumeDownload";
 
 // Pagination component
-const PaginationControls = ({ 
-  currentPage, 
-  totalPages, 
-  onPageChange, 
-  onPrevious, 
+const PaginationControls = ({
+  currentPage,
+  totalPages,
+  onPageChange,
+  onPrevious,
   onNext,
   startIndex,
   endIndex,
-  totalItems 
+  totalItems,
 }: {
   currentPage: number;
   totalPages: number;
@@ -66,12 +67,16 @@ const PaginationControls = ({
     const range = [];
     const rangeWithDots = [];
 
-    for (let i = Math.max(2, currentPage - delta); i <= Math.min(totalPages - 1, currentPage + delta); i++) {
+    for (
+      let i = Math.max(2, currentPage - delta);
+      i <= Math.min(totalPages - 1, currentPage + delta);
+      i++
+    ) {
       range.push(i);
     }
 
     if (currentPage - delta > 2) {
-      rangeWithDots.push(1, '...');
+      rangeWithDots.push(1, "...");
     } else {
       rangeWithDots.push(1);
     }
@@ -79,7 +84,7 @@ const PaginationControls = ({
     rangeWithDots.push(...range);
 
     if (currentPage + delta < totalPages - 1) {
-      rangeWithDots.push('...', totalPages);
+      rangeWithDots.push("...", totalPages);
     } else if (totalPages > 1) {
       rangeWithDots.push(totalPages);
     }
@@ -94,7 +99,7 @@ const PaginationControls = ({
       <div className="text-sm text-gray-600">
         Showing {startIndex} to {endIndex} of {totalItems} candidates
       </div>
-      
+
       <div className="flex items-center gap-2">
         <Button
           variant="outline"
@@ -112,8 +117,8 @@ const PaginationControls = ({
               key={index}
               variant={page === currentPage ? "default" : "outline"}
               size="sm"
-              onClick={() => typeof page === 'number' && onPageChange(page)}
-              disabled={page === '...'}
+              onClick={() => typeof page === "number" && onPageChange(page)}
+              disabled={page === "..."}
               className="w-10"
             >
               {page}
@@ -137,9 +142,25 @@ const PaginationControls = ({
 
 export default function CandidatesPage() {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [companyId, setCompanyId] = useState<string | undefined>();
+
+  // Fetch HR profile to get company ID
+  useEffect(() => {
+    const fetchCompanyId = async () => {
+      if (user?.id) {
+        const response = await fetch(`/api/hr/profile/${user.id}`);
+        const data = await response.json();
+        if (data.success && data.profile?.companyId) {
+          setCompanyId(data.profile.companyId);
+        }
+      }
+    };
+    fetchCompanyId();
+  }, [user]);
 
   // Core data hooks
-  const { candidates, loading, fetchCandidates } = useCandidates();
+  const { candidates, loading, fetchCandidates } = useCandidates(companyId);
   const { filters, filteredCandidates, updateFilter, clearFilters } =
     useCandidateFilters(candidates);
   const { emailTemplates } = useEmailTemplates();
@@ -177,10 +198,13 @@ export default function CandidatesPage() {
   }, [filteredCandidates, currentPage, itemsPerPage]);
 
   // Reset page when filters change
-  const handleFilterChange = useCallback((filterType: keyof CandidateFilters, value: string) => {
-    updateFilter(filterType, value);
-    setCurrentPage(1); // Reset to first page when filter changes
-  }, [updateFilter]);
+  const handleFilterChange = useCallback(
+    (filterType: keyof CandidateFilters, value: string) => {
+      updateFilter(filterType, value);
+      setCurrentPage(1); // Reset to first page when filter changes
+    },
+    [updateFilter],
+  );
 
   // Reset page when clearing filters
   const handleClearFilters = useCallback(() => {
@@ -189,22 +213,32 @@ export default function CandidatesPage() {
   }, [clearFilters]);
 
   // Memoized event handlers
-  const handleSelectAll = useCallback((checked: boolean) => {
-    if (checked) {
-      const allIds = paginationData.currentCandidates.map((candidate) => candidate.id);
-      setSelectedCandidates(allIds);
-    } else {
-      setSelectedCandidates([]);
-    }
-  }, [paginationData.currentCandidates]);
+  const handleSelectAll = useCallback(
+    (checked: boolean) => {
+      if (checked) {
+        const allIds = paginationData.currentCandidates.map(
+          (candidate) => candidate.id,
+        );
+        setSelectedCandidates(allIds);
+      } else {
+        setSelectedCandidates([]);
+      }
+    },
+    [paginationData.currentCandidates],
+  );
 
-  const handleSelectCandidate = useCallback((candidateId: string, checked: boolean) => {
-    if (checked) {
-      setSelectedCandidates((prev) => [...prev, candidateId]);
-    } else {
-      setSelectedCandidates((prev) => prev.filter((id) => id !== candidateId));
-    }
-  }, []);
+  const handleSelectCandidate = useCallback(
+    (candidateId: string, checked: boolean) => {
+      if (checked) {
+        setSelectedCandidates((prev) => [...prev, candidateId]);
+      } else {
+        setSelectedCandidates((prev) =>
+          prev.filter((id) => id !== candidateId),
+        );
+      }
+    },
+    [],
+  );
 
   // Memoized bulk email handler
   const sendBulkEmail = useCallback(async () => {

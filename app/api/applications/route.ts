@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const candidateId = searchParams.get("candidateId");
     const jobId = searchParams.get("jobId");
+    const companyId = searchParams.get("companyId"); // Filter by company for HR users
 
     let whereClause: any = {};
 
@@ -19,6 +20,13 @@ export async function GET(request: NextRequest) {
 
     if (jobId) {
       whereClause.jobId = jobId;
+    }
+
+    // Filter applications for jobs from specific company
+    if (companyId) {
+      whereClause.job = {
+        companyId: companyId,
+      };
     }
 
     const applications = await prisma.application.findMany({

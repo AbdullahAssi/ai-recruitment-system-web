@@ -54,7 +54,7 @@ export interface CandidateFilters {
   experienceFilter: string;
 }
 
-export function useCandidates() {
+export function useCandidates(companyId?: string) {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -62,7 +62,12 @@ export function useCandidates() {
   const fetchCandidates = async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/candidates");
+      const params = new URLSearchParams();
+      if (companyId) {
+        params.append("companyId", companyId);
+      }
+      const url = `/api/candidates${params.toString() ? `?${params.toString()}` : ""}`;
+      const response = await fetch(url);
       const data = await response.json();
 
       if (data.success) {
@@ -92,7 +97,7 @@ export function useCandidates() {
 
   useEffect(() => {
     fetchCandidates();
-  }, []);
+  }, [companyId]);
 
   return {
     candidates,

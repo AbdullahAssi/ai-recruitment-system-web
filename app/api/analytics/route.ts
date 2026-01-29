@@ -6,10 +6,16 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const companyId = searchParams.get("companyId"); // Filter by company for HR users
+
     // Get date ranges for filtering
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startOfWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    // Build company filter for jobs
+    const jobCompanyFilter = companyId ? { companyId } : {};
 
     const [
       candidateStats,
@@ -20,11 +26,32 @@ export async function GET(request: NextRequest) {
       // Recent activity data
       recentActivityData,
     ] = await Promise.all([
-      // Optimized candidate statistics
+      // Optimized candidate statistics - filter by company applications
       Promise.all([
-        prisma.candidate.count(),
+        prisma.candidate.count({
+          where: companyId
+            ? {
+                applications: {
+                  some: {
+                    job: {
+                      companyId,
+                    },
+                  },
+                },
+              }
+            : {},
+        }),
         prisma.candidate.count({
           where: {
+            ...(companyId && {
+              applications: {
+                some: {
+                  job: {
+                    companyId,
+                  },
+                },
+              },
+            }),
             createdAt: {
               gte: startOfMonth,
             },
@@ -32,6 +59,15 @@ export async function GET(request: NextRequest) {
         }),
         prisma.candidate.count({
           where: {
+            ...(companyId && {
+              applications: {
+                some: {
+                  job: {
+                    companyId,
+                  },
+                },
+              },
+            }),
             resumes: {
               some: {},
             },
@@ -41,6 +77,11 @@ export async function GET(request: NextRequest) {
           where: {
             applications: {
               some: {
+                ...(companyId && {
+                  job: {
+                    companyId,
+                  },
+                }),
                 status: {
                   in: ["PENDING", "REVIEWED"],
                 },
@@ -50,16 +91,20 @@ export async function GET(request: NextRequest) {
         }),
       ]),
 
-      // Optimized job statistics
+      // Optimized job statistics - filter by company
       Promise.all([
-        prisma.job.count(),
+        prisma.job.count({
+          where: jobCompanyFilter,
+        }),
         prisma.job.count({
           where: {
+            ...jobCompanyFilter,
             isActive: true,
           },
         }),
         prisma.job.count({
           where: {
+            ...jobCompanyFilter,
             createdAt: {
               gte: startOfMonth,
             },
@@ -67,11 +112,24 @@ export async function GET(request: NextRequest) {
         }),
       ]),
 
-      // Optimized application statistics - use groupBy for better performance
+      // Optimized application statistics - filter by company jobs
       Promise.all([
-        prisma.application.count(),
+        prisma.application.count({
+          where: companyId
+            ? {
+                job: {
+                  companyId,
+                },
+              }
+            : {},
+        }),
         prisma.application.count({
           where: {
+            ...(companyId && {
+              job: {
+                companyId,
+              },
+            }),
             appliedAt: {
               gte: startOfWeek,
             },
@@ -79,15 +137,23 @@ export async function GET(request: NextRequest) {
         }),
         prisma.application.groupBy({
           by: ["status"],
+          where: companyId
+            ? {
+                job: {
+                  companyId,
+                },
+              }
+            : {},
           _count: {
             id: true,
           },
         }),
       ]),
 
-      // Get top performing jobs with optimized query
+      // Get top performing jobs with optimized query - filter by company
       prisma.job.findMany({
         where: {
+          ...jobCompanyFilter,
           applications: {
             some: {},
           },
@@ -210,7 +276,7 @@ export async function GET(request: NextRequest) {
         job.applications.length > 0
           ? job.applications.reduce(
               (sum: number, app: any) => sum + (app.score || 0),
-              0
+              0,
             ) / job.applications.length
           : 0,
     }));
@@ -238,7 +304,7 @@ export async function GET(request: NextRequest) {
     ]
       .sort(
         (a, b) =>
-          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
       )
       .slice(0, 10);
 
@@ -279,10 +345,30 @@ export async function GET(request: NextRequest) {
         ],
       },
       sourceTracking: [
-        { source: "LinkedIn", count: 150, percentage: 45.5, conversionRate: 12.5 },
-        { source: "Job Boards", count: 100, percentage: 30.3, conversionRate: 8.2 },
-        { source: "Company Website", count: 50, percentage: 15.2, conversionRate: 18.0 },
-        { source: "Referrals", count: 30, percentage: 9.0, conversionRate: 25.0 },
+        {
+          source: "LinkedIn",
+          count: 150,
+          percentage: 45.5,
+          conversionRate: 12.5,
+        },
+        {
+          source: "Job Boards",
+          count: 100,
+          percentage: 30.3,
+          conversionRate: 8.2,
+        },
+        {
+          source: "Company Website",
+          count: 50,
+          percentage: 15.2,
+          conversionRate: 18.0,
+        },
+        {
+          source: "Referrals",
+          count: 30,
+          percentage: 9.0,
+          conversionRate: 25.0,
+        },
       ],
       conversionFunnel: {
         applied: totalApplications,
@@ -292,10 +378,34 @@ export async function GET(request: NextRequest) {
         hired: Math.floor(statusCounts.shortlisted * 0.3),
       },
       departmentStats: [
-        { department: "Engineering", openPositions: 5, applications: 120, hired: 8, averageTimeToHire: 25 },
-        { department: "Marketing", openPositions: 3, applications: 80, hired: 6, averageTimeToHire: 22 },
-        { department: "Sales", openPositions: 4, applications: 90, hired: 12, averageTimeToHire: 18 },
-        { department: "HR", openPositions: 2, applications: 45, hired: 3, averageTimeToHire: 28 },
+        {
+          department: "Engineering",
+          openPositions: 5,
+          applications: 120,
+          hired: 8,
+          averageTimeToHire: 25,
+        },
+        {
+          department: "Marketing",
+          openPositions: 3,
+          applications: 80,
+          hired: 6,
+          averageTimeToHire: 22,
+        },
+        {
+          department: "Sales",
+          openPositions: 4,
+          applications: 90,
+          hired: 12,
+          averageTimeToHire: 18,
+        },
+        {
+          department: "HR",
+          openPositions: 2,
+          applications: 45,
+          hired: 3,
+          averageTimeToHire: 28,
+        },
       ],
     };
 
@@ -308,7 +418,7 @@ export async function GET(request: NextRequest) {
         headers: {
           "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
         },
-      }
+      },
     );
   } catch (error) {
     console.error("Error fetching analytics:", error);
@@ -317,7 +427,7 @@ export async function GET(request: NextRequest) {
         success: false,
         error: "Failed to fetch analytics data",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

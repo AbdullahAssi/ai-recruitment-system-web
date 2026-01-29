@@ -22,6 +22,20 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { JobApplicationDialog } from "@/components/jobs/JobApplicationDialog";
+import { CompanyInfoCard } from "@/components/common/CompanyInfoCard";
+
+interface Company {
+  id: string;
+  name: string;
+  logo?: string | null;
+  industry?: string | null;
+  size?: string | null;
+  location?: string | null;
+  website?: string | null;
+  description?: string | null;
+  foundedYear?: number | null;
+  isVerified?: boolean;
+}
 
 interface Job {
   id: string;
@@ -38,6 +52,7 @@ interface Job {
   deadline?: string;
   isActive: boolean;
   createdAt: string;
+  companyInfo?: Company | null;
   _count: {
     applications: number;
   };
@@ -252,6 +267,11 @@ export default function JobDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column - Job Details */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Company Info */}
+          {job.companyInfo && (
+            <CompanyInfoCard company={job.companyInfo} showDescription={true} />
+          )}
+
           {/* Job Header */}
           <Card>
             <CardHeader>

@@ -38,7 +38,7 @@ export interface JobFormData {
   responsibilities: string;
 }
 
-export function useJobs() {
+export function useJobs(companyId?: string) {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -48,7 +48,11 @@ export function useJobs() {
   const fetchJobs = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/jobs?includeInactive=true");
+      const params = new URLSearchParams({ includeInactive: "true" });
+      if (companyId) {
+        params.append("companyId", companyId);
+      }
+      const response = await fetch(`/api/jobs?${params.toString()}`);
       const data = await response.json();
       if (data.success) {
         setJobs(data.jobs);
@@ -69,10 +73,10 @@ export function useJobs() {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, companyId]);
 
   const createJob = useCallback(
-    async (formData: JobFormData) => {
+    async (formData: JobFormData, userId?: string) => {
       // Validation
       if (
         !formData.title.trim() ||
@@ -96,7 +100,10 @@ export function useJobs() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(formData),
+          body: JSON.stringify({
+            ...formData,
+            userId,
+          }),
         });
 
         const data = await response.json();

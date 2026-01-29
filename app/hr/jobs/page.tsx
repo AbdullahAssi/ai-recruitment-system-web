@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +24,23 @@ import { useJobs, useJobFilters } from "../../../hooks/hooks";
 import { JobFormData, Job } from "../../../hooks/useJobs";
 
 export default function HRJobsPage() {
+  const { user } = useAuth();
+  const [companyId, setCompanyId] = useState<string | undefined>();
+
+  useEffect(() => {
+    // Fetch HR profile to get company ID
+    const fetchCompanyId = async () => {
+      if (user?.id) {
+        const response = await fetch(`/api/hr/profile/${user.id}`);
+        const data = await response.json();
+        if (data.success && data.profile?.companyId) {
+          setCompanyId(data.profile.companyId);
+        }
+      }
+    };
+    fetchCompanyId();
+  }, [user]);
+
   const {
     jobs,
     loading,
@@ -32,7 +50,7 @@ export default function HRJobsPage() {
     createJob,
     updateJob,
     toggleJobStatus,
-  } = useJobs();
+  } = useJobs(companyId);
 
   const { filters, filteredJobs, updateFilter } = useJobFilters(jobs);
 
@@ -53,7 +71,7 @@ export default function HRJobsPage() {
   // Event handlers
   const handleCreateJob = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = await createJob(formData);
+    const success = await createJob(formData, user?.id);
     if (success) {
       setShowCreateDialog(false);
       setFormData({

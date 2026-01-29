@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 // GET specific job
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const jobId = params.id;
@@ -15,6 +15,20 @@ export async function GET(
     const job = await prisma.job.findUnique({
       where: { id: jobId },
       include: {
+        companyInfo: {
+          select: {
+            id: true,
+            name: true,
+            logo: true,
+            industry: true,
+            location: true,
+            size: true,
+            website: true,
+            description: true,
+            foundedYear: true,
+            isVerified: true,
+          },
+        },
         applications: {
           include: {
             candidate: {
@@ -50,7 +64,7 @@ export async function GET(
 // PUT update job
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const jobId = params.id;
@@ -60,7 +74,7 @@ export async function PUT(
     if (!title || !description) {
       return NextResponse.json(
         { error: "Missing required fields: title, description" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -94,7 +108,7 @@ export async function PUT(
     console.error("Error updating job:", error);
     return NextResponse.json(
       { error: "Failed to update job" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -102,7 +116,7 @@ export async function PUT(
 // PATCH update job status
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const jobId = params.id;
@@ -112,7 +126,7 @@ export async function PATCH(
     if (typeof isActive !== "boolean") {
       return NextResponse.json(
         { error: "isActive must be a boolean value" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -143,7 +157,7 @@ export async function PATCH(
     console.error("Error updating job status:", error);
     return NextResponse.json(
       { error: "Failed to update job status" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -151,7 +165,7 @@ export async function PATCH(
 // DELETE job
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const jobId = params.id;
@@ -178,7 +192,7 @@ export async function DELETE(
     console.error("Error deleting job:", error);
     return NextResponse.json(
       { error: "Failed to delete job" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
