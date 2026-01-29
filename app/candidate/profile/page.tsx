@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,12 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, User } from "lucide-react";
+import { User } from "lucide-react";
+import { PrimaryResumeUpload } from "@/components/reusables/PrimaryResumeUpload";
 
 export default function CandidateProfilePage() {
   const { user, refreshUser } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
+  const [primaryResume, setPrimaryResume] = useState<any>(null);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -27,9 +28,24 @@ export default function CandidateProfilePage() {
     portfolioUrl: user?.candidate?.portfolioUrl || "",
   });
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+  useEffect(() => {
+    if (user?.candidate) {
+      fetchPrimaryResume();
+    }
+  }, [user]);
+
+  const fetchPrimaryResume = async () => {
+    if (!user?.candidate?.id) return;
+
+    try {
+      const response = await fetch(`/api/candidates/${user.candidate.id}`);
+      const data = await response.json();
+
+      if (data.success && data.candidate.primaryResume) {
+        setPrimaryResume(data.candidate.primaryResume);
+      }
+    } catch (error) {
+      console.error("Error fetching primary resume:", error);
     }
   };
 
@@ -88,68 +104,6 @@ export default function CandidateProfilePage() {
     }
   };
 
-  const handleResumeUpload = async () => {
-    if (!file) {
-      toast({
-        title: "Error",
-        description: "Please select a file",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!user?.candidate?.id || !user?.name || !user?.email) {
-      toast({
-        title: "Error",
-        description: "User profile not found",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const formData = new FormData();
-      formData.append("resume", file);
-      formData.append("name", user.name);
-      formData.append("email", user.email);
-      formData.append(
-        "experience",
-        (user.candidate.experience || 0).toString(),
-      );
-
-      const response = await fetch("/api/upload/resume", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        toast({
-          title: "Success",
-          description: "Resume uploaded successfully",
-        });
-        setFile(null);
-        // Reset file input
-        const fileInput = document.getElementById(
-          "resume-file",
-        ) as HTMLInputElement;
-        if (fileInput) fileInput.value = "";
-      } else {
-        throw new Error(data.error || "Failed to upload resume");
-      }
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to upload resume",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="space-y-6">
       <div>
@@ -159,37 +113,20 @@ export default function CandidateProfilePage() {
         </p>
       </div>
 
-      {/* Resume Upload */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Upload className="w-5 h-5 mr-2" />
-            Upload Resume
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="resume-file">Resume File (PDF, DOC, DOCX)</Label>
-              <Input
-                id="resume-file"
-                type="file"
-                accept=".pdf,.doc,.docx"
-                onChange={handleFileChange}
-                className="mt-2"
-              />
-            </div>
-            {file && (
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                <span className="text-sm">{file.name}</span>
-                <Button onClick={handleResumeUpload} disabled={loading}>
-                  {loading ? "Uploading..." : "Upload"}
-                </Button>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Primary Resume Upload */}
+      {user?.candidate?.id && (
+        <PrimaryResumeUpload
+          candidateId={user.candidate.id}
+          userName={user.name || ""}
+          userEmail={user.email || ""}
+          experience={user.candidate.experience || 0}
+          primaryResume={primaryResume}
+          onUploadSuccess={() => {
+            fetchPrimaryResume();
+            refreshUser();
+          }}
+        />
+      )}
 
       {/* Profile Information */}
       <Card>

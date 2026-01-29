@@ -61,16 +61,18 @@ model Candidate {
   linkedinUrl     String?
   githubUrl       String?
   portfolioUrl    String?
+  primaryResumeId String?          @unique  // ID of the primary/default resume for quick apply
   embedding       Unsupported("vector(1536)")?  // Vector embedding for semantic matching
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   
   // Relations
   user            User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  primaryResume   Resume?          @relation("PrimaryResume", fields: [primaryResumeId], references: [id], onDelete: SetNull)
   applications    Application[]
   candidateSkills CandidateSkill[]
   emailHistory    EmailHistory[]
-  resumes         Resume[]
+  resumes         Resume[]         @relation("CandidateResumes")
   quizAttempts    QuizAttempt[]
   feedbackGiven   Feedback[]
 
@@ -100,7 +102,9 @@ model Resume {
   summary             String?
   embedding           Unsupported("vector(1536)")?  // Vector embedding for semantic matching
   cvScores            CvScore[]
-  candidate           Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  candidate           Candidate @relation("CandidateResumes", fields: [candidateId], references: [id], onDelete: Cascade)
+  primaryForCandidate Candidate? @relation("PrimaryResume")
+  applicationsUsingThis Application[] @relation("ApplicationResume")
 
   @@map("resumes")
 }
@@ -159,15 +163,18 @@ model Application {
   id          String            @id @default(cuid())
   candidateId String
   jobId       String
+  resumeId    String?           // The specific resume used for this application (primary or job-specific)
   score       Float?
   status      ApplicationStatus @default(PENDING)
   appliedAt   DateTime          @default(now())
   candidate   Candidate         @relation(fields: [candidateId], references: [id], onDelete: Cascade)
   job         Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  resume      Resume?           @relation("ApplicationResume", fields: [resumeId], references: [id], onDelete: SetNull)
   cvScore     CvScore?          // AI scoring result for this application
   feedback    Feedback[]        // Feedback on AI predictions for this application
 
   @@unique([candidateId, jobId])
+  @@index([resumeId])
   @@map("applications")
 }
 

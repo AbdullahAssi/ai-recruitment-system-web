@@ -21,6 +21,7 @@ import {
   Clock,
 } from "lucide-react";
 import Link from "next/link";
+import { JobApplicationDialog } from "@/components/jobs/JobApplicationDialog";
 
 interface Job {
   id: string;
@@ -58,11 +59,30 @@ export default function JobDetailPage() {
   const [job, setJob] = useState<Job | null>(null);
   const [application, setApplication] = useState<Application | null>(null);
   const [loading, setLoading] = useState(true);
-  const [applying, setApplying] = useState(false);
+  const [showApplicationDialog, setShowApplicationDialog] = useState(false);
+  const [primaryResume, setPrimaryResume] = useState<any>(null);
 
   useEffect(() => {
     fetchJobDetails();
-  }, [jobId]);
+    if (user?.candidate?.id) {
+      fetchPrimaryResume();
+    }
+  }, [jobId, user]);
+
+  const fetchPrimaryResume = async () => {
+    if (!user?.candidate?.id) return;
+
+    try {
+      const response = await fetch(`/api/candidates/${user.candidate.id}`);
+      const data = await response.json();
+
+      if (data.success && data.candidate.primaryResume) {
+        setPrimaryResume(data.candidate.primaryResume);
+      }
+    } catch (error) {
+      console.error("Error fetching primary resume:", error);
+    }
+  };
 
   const fetchJobDetails = async () => {
     try {
@@ -124,8 +144,6 @@ export default function JobDetailPage() {
     }
 
     try {
-      setApplying(true);
-
       // Check for quiz first
       const quizCheckResponse = await fetch(`/api/jobs/${jobId}/quiz`);
       if (quizCheckResponse.ok) {
@@ -144,36 +162,14 @@ export default function JobDetailPage() {
         }
       }
 
-      const response = await fetch("/api/applications", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          jobId,
-          candidateId: user.candidate.id,
-        }),
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to submit application");
-      }
-
-      const data = await response.json();
-      setApplication(data);
-
-      toast({
-        title: "Application Submitted!",
-        description: "Your application has been successfully submitted",
-      });
+      // Open application dialog
+      setShowApplicationDialog(true);
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Failed to submit application",
+        description: error.message || "Failed to start application",
         variant: "destructive",
       });
-    } finally {
-      setApplying(false);
     }
   };
 
@@ -429,11 +425,10 @@ export default function JobDetailPage() {
 
                           <Button
                             onClick={handleApply}
-                            disabled={applying}
                             className="w-full"
                             size="lg"
                           >
-                            {applying ? "Submitting..." : "Apply Now"}
+                            Apply Now
                           </Button>
                         </div>
                       </>
@@ -451,6 +446,24 @@ export default function JobDetailPage() {
           </Card>
         </div>
       </div>
+
+      {/* Application Dialog */}
+      {user?.candidate?.id && job && (
+        <JobApplicationDialog
+          isOpen={showApplicationDialog}
+          onClose={() => setShowApplicationDialog(false)}
+          jobId={job.id}
+          jobTitle={job.title}
+          candidateId={user.candidate.id}
+          userName={user.name || ""}
+          userEmail={user.email || ""}
+          userExperience={user.candidate.experience || 0}
+          primaryResume={primaryResume}
+          onApplicationSuccess={() => {
+            fetchJobDetails();
+          }}
+        />
+      )}
     </div>
   );
 }

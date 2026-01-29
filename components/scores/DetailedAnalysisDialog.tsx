@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Brain, Target, CheckCircle, XCircle } from "lucide-react";
 import { ScoringData } from "@/lib/types";
 import { ScoreBreakdown } from "./ScoreBreakdown";
-
+import { GrScorecard } from "react-icons/gr";
 interface DetailedAnalysisDialogProps {
   scoreData: ScoringData;
   open: boolean;
@@ -176,7 +176,7 @@ export function DetailedAnalysisDialog({
             {/* Score Breakdown */}
             <div>
               <h4 className="font-semibold mb-3 flex items-center gap-2">
-                <Target className="h-4 w-4" />
+                <GrScorecard className="h-4 w-4" />
                 Score Breakdown
               </h4>
               <ScoreBreakdown explanation={analysisData} />

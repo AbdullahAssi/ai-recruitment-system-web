@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { jobId, candidateId } = body;
+    const { jobId, candidateId, resumeId } = body;
 
     if (!jobId || !candidateId) {
       return NextResponse.json(
@@ -84,11 +84,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Determine which resume to use
+    let finalResumeId = resumeId;
+
+    // If no resume provided, try to use primary resume
+    if (!finalResumeId) {
+      const candidate = await prisma.candidate.findUnique({
+        where: { id: candidateId },
+        select: { primaryResumeId: true },
+      });
+      finalResumeId = candidate?.primaryResumeId;
+    }
+
     // Create new application
     const application = await prisma.application.create({
       data: {
         jobId,
         candidateId,
+        resumeId: finalResumeId,
         status: "PENDING",
         appliedAt: new Date(),
       },
@@ -112,24 +125,21 @@ export async function POST(request: NextRequest) {
 
     // --- AI SCORING INTEGRATION ---
     try {
-      // 1. Get Candidate's latest resume
-      const candidate = await prisma.candidate.findUnique({
-        where: { id: candidateId },
-        include: {
-          resumes: {
-            orderBy: { uploadDate: "desc" },
-            take: 1,
-          },
-        },
-      });
+      // 1. Get the resume being used for this application
+      let resume = null;
+
+      if (finalResumeId) {
+        resume = await prisma.resume.findUnique({
+          where: { id: finalResumeId },
+        });
+      }
 
       // 2. Get Job Description
       const job = await prisma.job.findUnique({
         where: { id: jobId },
       });
 
-      if (candidate?.resumes?.[0] && job) {
-        const resume = candidate.resumes[0];
+      if (resume && job) {
         console.log(
           `Scoring Application: Job=${job?.title}, Resume=${resume.fileName}`,
         );
@@ -150,18 +160,8 @@ export async function POST(request: NextRequest) {
           data: {
             score: scoreResult.score,
             status: scoreResult.score >= 70 ? "REVIEWED" : "PENDING",
-            // Save full analysis if schema supports it?
-            // Application model has aiAnalysis? Need to check.
-            // In types/application.types.ts we saw aiAnalysis structure.
-            // But schema.prisma Application model doesn't show aiAnalysis field.
-            // It links to CvScore?
-            // "cvScore CvScore?" relation on Application.
           },
         });
-
-        // 5. Create CvScore Record
-        // Skipped: FastAPI `scoreById` text now handles DB insertion with applicationId
-        // We trust the backend to have linked it.
       }
     } catch (aiError) {
       console.error("AI Scoring Failed:", aiError);

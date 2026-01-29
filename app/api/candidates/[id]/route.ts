@@ -15,6 +15,14 @@ export async function GET(
     const candidate = await prisma.candidate.findUnique({
       where: { id: candidateId },
       include: {
+        primaryResume: {
+          select: {
+            id: true,
+            fileName: true,
+            filePath: true,
+            uploadDate: true,
+          },
+        },
         resumes: {
           orderBy: {
             uploadDate: "desc",

@@ -1,6 +1,6 @@
 # 🧠 Frontend Development Instructions for Copilot & Team
 
-This guide outlines how to build and organize components, logic, and styles across the **Next.js + TypeScript** job portal frontend that uses **TailwindCSS**, **ShadCN UI**, and **Lucide Icons**.
+This guide outlines how to build and organize components, logic, and styles across the **Next.js + TypeScript** job portal frontend that uses **TailwindCSS**, **ShadCN UI**, and **React Icons**.
 
 ---
 

@@ -16,6 +16,16 @@ export async function POST(request: NextRequest) {
     const experience = Array.isArray(fields.experience)
       ? parseInt(fields.experience[0])
       : parseInt(fields.experience);
+    const candidateId = Array.isArray(fields.candidateId)
+      ? fields.candidateId[0]
+      : fields.candidateId;
+    const isPrimary = Array.isArray(fields.isPrimary)
+      ? fields.isPrimary[0] === "true"
+      : fields.isPrimary === "true";
+    const isJobSpecific = Array.isArray(fields.isJobSpecific)
+      ? fields.isJobSpecific[0] === "true"
+      : fields.isJobSpecific === "true";
+    const jobId = Array.isArray(fields.jobId) ? fields.jobId[0] : fields.jobId;
     const file = Array.isArray(files.resume)
       ? files.resume[0]
       : (files.resume as File);
@@ -26,7 +36,7 @@ export async function POST(request: NextRequest) {
           error:
             "Missing required fields: name, email, experience, resume file",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -36,7 +46,7 @@ export async function POST(request: NextRequest) {
           error:
             "Invalid file type. Only PDF, DOC, DOCX, and TXT files are allowed.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -59,7 +69,7 @@ export async function POST(request: NextRequest) {
 
     // Create or find candidate
     let candidate = await prisma.candidate.findUnique({
-      where: { email },
+      where: candidateId ? { id: candidateId } : { email },
     });
 
     if (!candidate) {
@@ -73,7 +83,7 @@ export async function POST(request: NextRequest) {
     } else {
       // Update existing candidate info
       candidate = await prisma.candidate.update({
-        where: { email },
+        where: { id: candidate.id },
         data: {
           name,
           experience,
@@ -91,6 +101,16 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // If this is marked as primary resume, update candidate
+    if (isPrimary) {
+      await prisma.candidate.update({
+        where: { id: candidate.id },
+        data: {
+          primaryResumeId: resume.id,
+        },
+      });
+    }
+
     // Trigger AI processing asynchronously (don't wait for completion)
     try {
       // Call AI processing API
@@ -105,7 +125,7 @@ export async function POST(request: NextRequest) {
         },
         body: JSON.stringify({
           resumeId: resume.id,
-          // You can add jobDescription here if you have a specific job context
+          jobId: isJobSpecific ? jobId : undefined,
         }),
       }).catch((error) => {
         console.error("AI processing failed:", error);
@@ -120,6 +140,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      resumeId: resume.id,
       candidate: {
         id: candidate.id,
         name: candidate.name,
@@ -131,13 +152,15 @@ export async function POST(request: NextRequest) {
         fileName: resume.fileName,
         uploadDate: resume.uploadDate,
       },
-      message: "Resume uploaded successfully",
+      message: isPrimary
+        ? "Primary resume uploaded successfully"
+        : "Resume uploaded successfully",
     });
   } catch (error) {
     console.error("Error uploading resume:", error);
     return NextResponse.json(
       { error: "Failed to upload resume" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
