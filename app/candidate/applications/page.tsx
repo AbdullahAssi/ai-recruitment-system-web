@@ -5,7 +5,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText, Briefcase, MapPin, Calendar, Loader2 } from "lucide-react";
+import {
+  FileText,
+  Briefcase,
+  MapPin,
+  Calendar,
+  Loader2,
+  ClipboardList,
+} from "lucide-react";
 import Link from "next/link";
 
 interface Application {
@@ -59,7 +66,10 @@ export default function CandidateApplicationsPage() {
       case "rejected":
         return "destructive";
       case "interview":
+      case "quiz_pending":
         return "secondary";
+      case "quiz_completed":
+        return "outline";
       default:
         return "outline";
     }
@@ -139,6 +149,21 @@ export default function CandidateApplicationsPage() {
                         Applied on {formatDate(application.appliedAt)}
                       </div>
                     </div>
+
+                    {/* Quiz Action Button */}
+                    {application.status === "QUIZ_PENDING" && (
+                      <div className="mt-4">
+                        <Link href={`/candidate/quiz/${application.id}`}>
+                          <Button
+                            size="sm"
+                            className="bg-purple-600 hover:bg-purple-700"
+                          >
+                            <ClipboardList className="w-4 h-4 mr-2" />
+                            Take Quiz Assessment
+                          </Button>
+                        </Link>
+                      </div>
+                    )}
                   </div>
                   <Badge variant={getStatusBadgeVariant(application.status)}>
                     {application.status?.replace(/_/g, " ") || "Pending"}

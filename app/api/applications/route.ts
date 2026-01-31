@@ -111,6 +111,7 @@ export async function POST(request: NextRequest) {
         candidateId,
         resumeId: finalResumeId,
         status: "PENDING",
+        quizRequired: true, // Set to true by default - can be customized per job later
         appliedAt: new Date(),
       },
       include: {
@@ -175,7 +176,16 @@ export async function POST(request: NextRequest) {
       console.error("AI Scoring Failed:", aiError);
     }
 
-    return NextResponse.json(application, { status: 201 });
+    // Always redirect to quiz since quizRequired is true by default
+    return NextResponse.json(
+      {
+        success: true,
+        application,
+        message: "Application submitted successfully. Redirecting to quiz...",
+        redirectTo: `/candidate/quiz/${application.id}`,
+      },
+      { status: 201 },
+    );
   } catch (error) {
     console.error("Error creating application:", error);
     return NextResponse.json(

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -52,6 +53,7 @@ export function JobApplicationDialog({
   const [customFile, setCustomFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
 
   // Reset state when dialog opens
   useEffect(() => {
@@ -137,14 +139,20 @@ export function JobApplicationDialog({
         throw new Error(error.error || "Failed to submit application");
       }
 
+      const result = await response.json();
+
       toast({
         title: "Application Submitted!",
-        description:
-          "Your application has been successfully submitted and is being processed by AI",
+        description: "Redirecting to quiz assessment...",
       });
 
       onApplicationSuccess();
       onClose();
+
+      // Redirect to quiz if provided in response
+      if (result.redirectTo) {
+        router.push(result.redirectTo);
+      }
     } catch (error: any) {
       toast({
         title: "Error",

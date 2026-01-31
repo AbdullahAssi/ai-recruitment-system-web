@@ -10,9 +10,21 @@ import {
   Clock,
   TrendingUp,
   Upload,
+  ClipboardList,
+  AlertCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+
+interface PendingQuiz {
+  id: string;
+  appliedAt: string;
+  job: {
+    id: string;
+    title: string;
+    location: string;
+  };
+}
 
 export default function CandidatePage() {
   const { user } = useAuth();
@@ -22,6 +34,7 @@ export default function CandidatePage() {
     interviewScheduled: 0,
     jobsAvailable: 0,
   });
+  const [pendingQuizzes, setPendingQuizzes] = useState<PendingQuiz[]>([]);
 
   useEffect(() => {
     // Fetch candidate stats
@@ -48,6 +61,12 @@ export default function CandidatePage() {
           const interviewApps = applications.filter(
             (app: any) => app.status === "INTERVIEW",
           );
+
+          // Filter applications with pending quizzes
+          const quizPendingApps = applications.filter(
+            (app: any) => app.status === "QUIZ_PENDING",
+          );
+          setPendingQuizzes(quizPendingApps);
 
           setStats({
             totalApplications: applications.length,
@@ -136,6 +155,47 @@ export default function CandidatePage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Pending Quizzes Alert */}
+      {pendingQuizzes.length > 0 && (
+        <Card className="border-orange-200 bg-orange-50">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-orange-600" />
+              <CardTitle className="text-orange-900">
+                Pending Quiz Assessments ({pendingQuizzes.length})
+              </CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {pendingQuizzes.map((app) => (
+              <div
+                key={app.id}
+                className="flex items-center justify-between p-4 bg-white rounded-lg border border-orange-200"
+              >
+                <div>
+                  <h4 className="font-semibold text-gray-900">
+                    {app.job.title}
+                  </h4>
+                  <p className="text-sm text-gray-600">
+                    {app.job.location} • Applied{" "}
+                    {new Date(app.appliedAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <Link href={`/candidate/quiz/${app.id}`}>
+                  <Button
+                    size="sm"
+                    className="bg-orange-600 hover:bg-orange-700"
+                  >
+                    <ClipboardList className="w-4 h-4 mr-2" />
+                    Take Quiz
+                  </Button>
+                </Link>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Quick Actions */}
       <div className="grid md:grid-cols-3 gap-6">
