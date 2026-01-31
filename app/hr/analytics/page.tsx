@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -158,15 +159,37 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [exportLoading, setExportLoading] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [companyId, setCompanyId] = useState<string | undefined>();
+
+  // Fetch HR profile to get company ID
+  useEffect(() => {
+    const fetchCompanyId = async () => {
+      if (user?.id) {
+        const response = await fetch(`/api/hr/profile/${user.id}`);
+        const data = await response.json();
+        if (data.success && data.profile?.companyId) {
+          setCompanyId(data.profile.companyId);
+        }
+      }
+    };
+    fetchCompanyId();
+  }, [user]);
 
   useEffect(() => {
-    fetchAnalytics();
-  }, []);
+    if (companyId) {
+      fetchAnalytics();
+    }
+  }, [companyId]);
 
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/analytics", {
+      const params = new URLSearchParams();
+      if (companyId) {
+        params.append("companyId", companyId);
+      }
+      const response = await fetch(`/api/analytics?${params.toString()}`, {
         cache: "no-store", // Bypass cache for fresh data
         headers: {
           "Cache-Control": "no-cache",
@@ -814,7 +837,7 @@ export default function AnalyticsPage() {
                           <span>Hiring Rate</span>
                           <span>
                             {((dept.hired / dept.applications) * 100).toFixed(
-                              1
+                              1,
                             )}
                             %
                           </span>

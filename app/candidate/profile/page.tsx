@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,12 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, User } from "lucide-react";
+import { User } from "lucide-react";
+import { PrimaryResumeUpload } from "@/components/reusables/PrimaryResumeUpload";
 
 export default function CandidateProfilePage() {
   const { user, refreshUser } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
+  const [primaryResume, setPrimaryResume] = useState<any>(null);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -27,56 +28,75 @@ export default function CandidateProfilePage() {
     portfolioUrl: user?.candidate?.portfolioUrl || "",
   });
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+  useEffect(() => {
+    if (user?.candidate) {
+      fetchPrimaryResume();
+    }
+  }, [user]);
+
+  const fetchPrimaryResume = async () => {
+    if (!user?.candidate?.id) return;
+
+    try {
+      const response = await fetch(`/api/candidates/${user.candidate.id}`);
+      const data = await response.json();
+
+      if (data.success && data.candidate.primaryResume) {
+        setPrimaryResume(data.candidate.primaryResume);
+      }
+    } catch (error) {
+      console.error("Error fetching primary resume:", error);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
 
-    try {
-      // Update profile API call (to be implemented)
-      toast({
-        title: "Success",
-        description: "Profile updated successfully",
-      });
-      await refreshUser();
-    } catch (error) {
+    if (!user?.candidate?.id) {
       toast({
         title: "Error",
-        description: "Failed to update profile",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleResumeUpload = async () => {
-    if (!file) {
-      toast({
-        title: "Error",
-        description: "Please select a file",
+        description: "User profile not found",
         variant: "destructive",
       });
       return;
     }
 
     setLoading(true);
+
     try {
-      // Resume upload API call (to be implemented)
-      toast({
-        title: "Success",
-        description: "Resume uploaded successfully",
+      const response = await fetch(`/api/candidates/${user.candidate.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: user.email,
+          experience: parseInt(formData.experience.toString()),
+          location: formData.location,
+          bio: formData.bio,
+          linkedinUrl: formData.linkedinUrl,
+          githubUrl: formData.githubUrl,
+          portfolioUrl: formData.portfolioUrl,
+          phone: formData.phone,
+        }),
       });
-      setFile(null);
-    } catch (error) {
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast({
+          title: "Success",
+          description: "Profile updated successfully",
+        });
+        await refreshUser();
+      } else {
+        throw new Error(data.error || "Failed to update profile");
+      }
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to upload resume",
+        description: error.message || "Failed to update profile",
         variant: "destructive",
       });
     } finally {
@@ -93,37 +113,20 @@ export default function CandidateProfilePage() {
         </p>
       </div>
 
-      {/* Resume Upload */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Upload className="w-5 h-5 mr-2" />
-            Upload Resume
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="resume">Resume File (PDF, DOC, DOCX)</Label>
-              <Input
-                id="resume"
-                type="file"
-                accept=".pdf,.doc,.docx"
-                onChange={handleFileChange}
-                className="mt-2"
-              />
-            </div>
-            {file && (
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                <span className="text-sm">{file.name}</span>
-                <Button onClick={handleResumeUpload} disabled={loading}>
-                  {loading ? "Uploading..." : "Upload"}
-                </Button>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Primary Resume Upload */}
+      {user?.candidate?.id && (
+        <PrimaryResumeUpload
+          candidateId={user.candidate.id}
+          userName={user.name || ""}
+          userEmail={user.email || ""}
+          experience={user.candidate.experience || 0}
+          primaryResume={primaryResume}
+          onUploadSuccess={() => {
+            fetchPrimaryResume();
+            refreshUser();
+          }}
+        />
+      )}
 
       {/* Profile Information */}
       <Card>

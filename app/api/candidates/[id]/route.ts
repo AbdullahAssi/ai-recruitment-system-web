@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const candidateId = params.id;
@@ -15,6 +15,14 @@ export async function GET(
     const candidate = await prisma.candidate.findUnique({
       where: { id: candidateId },
       include: {
+        primaryResume: {
+          select: {
+            id: true,
+            fileName: true,
+            filePath: true,
+            uploadDate: true,
+          },
+        },
         resumes: {
           orderBy: {
             uploadDate: "desc",
@@ -67,7 +75,7 @@ export async function GET(
     if (!candidate) {
       return NextResponse.json(
         { error: "Candidate not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -75,22 +83,22 @@ export async function GET(
     const stats = {
       totalApplications: candidate.applications.length,
       pendingApplications: candidate.applications.filter(
-        (app: any) => app.status === "PENDING"
+        (app: any) => app.status === "PENDING",
       ).length,
       reviewedApplications: candidate.applications.filter(
-        (app: any) => app.status === "REVIEWED"
+        (app: any) => app.status === "REVIEWED",
       ).length,
       shortlistedApplications: candidate.applications.filter(
-        (app: any) => app.status === "SHORTLISTED"
+        (app: any) => app.status === "SHORTLISTED",
       ).length,
       rejectedApplications: candidate.applications.filter(
-        (app: any) => app.status === "REJECTED"
+        (app: any) => app.status === "REJECTED",
       ).length,
       averageScore:
         candidate.applications.length > 0
           ? candidate.applications.reduce(
               (sum: number, app: any) => sum + (app.score || 0),
-              0
+              0,
             ) / candidate.applications.length
           : 0,
       latestApplication: candidate.applications[0] || null,
@@ -108,19 +116,29 @@ export async function GET(
         success: false,
         error: "Failed to fetch candidate details",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const candidateId = params.id;
     const body = await request.json();
-    const { name, email, experience } = body;
+    const {
+      name,
+      email,
+      phone,
+      experience,
+      location,
+      bio,
+      linkedinUrl,
+      githubUrl,
+      portfolioUrl,
+    } = body;
 
     // Check if candidate exists
     const existingCandidate = await prisma.candidate.findUnique({
@@ -130,7 +148,7 @@ export async function PATCH(
     if (!existingCandidate) {
       return NextResponse.json(
         { error: "Candidate not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -148,7 +166,7 @@ export async function PATCH(
       if (emailConflict) {
         return NextResponse.json(
           { error: "Email already in use by another candidate" },
-          { status: 409 }
+          { status: 409 },
         );
       }
     }
@@ -159,6 +177,12 @@ export async function PATCH(
       data: {
         ...(name && { name }),
         ...(email && { email }),
+        ...(phone && { phone }),
+        ...(location && { location }),
+        ...(bio && { bio }),
+        ...(linkedinUrl && { linkedinUrl }),
+        ...(githubUrl && { githubUrl }),
+        ...(portfolioUrl && { portfolioUrl }),
         ...(experience !== undefined && { experience }),
       },
       include: {
@@ -195,14 +219,14 @@ export async function PATCH(
         success: false,
         error: "Failed to update candidate",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const candidateId = params.id;
@@ -215,7 +239,7 @@ export async function DELETE(
     if (!candidate) {
       return NextResponse.json(
         { error: "Candidate not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -235,7 +259,7 @@ export async function DELETE(
         success: false,
         error: "Failed to delete candidate",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

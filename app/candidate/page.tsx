@@ -26,21 +26,43 @@ export default function CandidatePage() {
   useEffect(() => {
     // Fetch candidate stats
     const fetchStats = async () => {
+      if (!user?.candidate?.id) return;
+
       try {
-        // API endpoints to be implemented
-        setStats({
-          totalApplications: 0,
-          pendingApplications: 0,
-          interviewScheduled: 0,
-          jobsAvailable: 0,
-        });
+        // Fetch applications
+        const appsResponse = await fetch(
+          `/api/applications?candidateId=${user.candidate.id}`,
+        );
+        const appsData = await appsResponse.json();
+
+        // Fetch available jobs
+        const jobsResponse = await fetch("/api/jobs");
+        const jobsData = await jobsResponse.json();
+
+        if (appsData.success && jobsData.success) {
+          const applications = appsData.applications || [];
+          const pendingApps = applications.filter(
+            (app: any) =>
+              app.status === "PENDING" || app.status === "UNDER_REVIEW",
+          );
+          const interviewApps = applications.filter(
+            (app: any) => app.status === "INTERVIEW",
+          );
+
+          setStats({
+            totalApplications: applications.length,
+            pendingApplications: pendingApps.length,
+            interviewScheduled: interviewApps.length,
+            jobsAvailable: jobsData.jobs?.length || 0,
+          });
+        }
       } catch (error) {
         console.error("Failed to fetch stats:", error);
       }
     };
 
     fetchStats();
-  }, []);
+  }, [user]);
 
   return (
     <div className="space-y-6">

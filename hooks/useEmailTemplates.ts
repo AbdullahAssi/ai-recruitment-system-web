@@ -54,9 +54,8 @@ export function useEmailTemplates() {
   const [previewTemplate, setPreviewTemplate] = useState<EmailTemplate | null>(
     null
   );
-  const [bulkEmailTemplate, setBulkEmailTemplate] = useState<EmailTemplate | null>(
-    null
-  );
+  const [bulkEmailTemplate, setBulkEmailTemplate] =
+    useState<EmailTemplate | null>(null);
 
   // Form management
   const { formData, setFormData, resetForm, updateField } =

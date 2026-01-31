@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useToast } from './use-toast';
+import { useState, useEffect, useCallback } from "react";
+import { useToast } from "./use-toast";
 
 export interface Job {
   id: string;
@@ -7,6 +7,7 @@ export interface Job {
   description: string;
   location: string;
   requirements: string;
+  responsibilities: string;
   isActive: boolean;
   postedDate: string;
   applications: Array<{
@@ -23,10 +24,10 @@ export interface Job {
 
 export interface FilterState {
   search: string;
-  status: 'all' | 'active' | 'inactive';
+  status: "all" | "active" | "inactive";
   location: string;
-  sortBy: 'date' | 'title' | 'applications';
-  sortOrder: 'asc' | 'desc';
+  sortBy: "date" | "title" | "applications";
+  sortOrder: "asc" | "desc";
 }
 
 export interface JobFormData {
@@ -34,9 +35,10 @@ export interface JobFormData {
   description: string;
   location: string;
   requirements: string;
+  responsibilities: string;
 }
 
-export function useJobs() {
+export function useJobs(companyId?: string) {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -46,7 +48,11 @@ export function useJobs() {
   const fetchJobs = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/jobs?includeInactive=true");
+      const params = new URLSearchParams({ includeInactive: "true" });
+      if (companyId) {
+        params.append("companyId", companyId);
+      }
+      const response = await fetch(`/api/jobs?${params.toString()}`);
       const data = await response.json();
       if (data.success) {
         setJobs(data.jobs);
@@ -67,161 +73,173 @@ export function useJobs() {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, companyId]);
 
-  const createJob = useCallback(async (formData: JobFormData) => {
-    // Validation
-    if (
-      !formData.title.trim() ||
-      !formData.description.trim() ||
-      !formData.location.trim()
-    ) {
-      toast({
-        title: "Missing Information",
-        description:
-          "Please fill in all required fields (Title, Description, Location)",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    setCreating(true);
-
-    try {
-      const response = await fetch("/api/jobs", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        fetchJobs(); // Refresh the jobs list
+  const createJob = useCallback(
+    async (formData: JobFormData, userId?: string) => {
+      // Validation
+      if (
+        !formData.title.trim() ||
+        !formData.description.trim() ||
+        !formData.location.trim()
+      ) {
         toast({
-          title: "Job Created Successfully",
-          description: "The job posting has been created and is now live",
+          title: "Missing Information",
+          description:
+            "Please fill in all required fields (Title, Description, Location)",
+          variant: "destructive",
         });
-        return true;
-      } else {
+        return false;
+      }
+
+      setCreating(true);
+
+      try {
+        const response = await fetch("/api/jobs", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...formData,
+            userId,
+          }),
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          fetchJobs(); // Refresh the jobs list
+          toast({
+            title: "Job Created Successfully",
+            description: "The job posting has been created and is now live",
+          });
+          return true;
+        } else {
+          toast({
+            title: "Job Creation Failed",
+            description: data.error || "Failed to create job",
+            variant: "destructive",
+          });
+          return false;
+        }
+      } catch (error) {
+        console.error("Error creating job:", error);
         toast({
           title: "Job Creation Failed",
-          description: data.error || "Failed to create job",
+          description: "An unexpected error occurred while creating the job",
+          variant: "destructive",
+        });
+        return false;
+      } finally {
+        setCreating(false);
+      }
+    },
+    [toast, fetchJobs],
+  );
+
+  const updateJob = useCallback(
+    async (jobId: string, formData: JobFormData) => {
+      // Validation
+      if (
+        !formData.title.trim() ||
+        !formData.description.trim() ||
+        !formData.location.trim()
+      ) {
+        toast({
+          title: "Missing Information",
+          description:
+            "Please fill in all required fields (Title, Description, Location)",
           variant: "destructive",
         });
         return false;
       }
-    } catch (error) {
-      console.error("Error creating job:", error);
-      toast({
-        title: "Job Creation Failed",
-        description: "An unexpected error occurred while creating the job",
-        variant: "destructive",
-      });
-      return false;
-    } finally {
-      setCreating(false);
-    }
-  }, [toast, fetchJobs]);
 
-  const updateJob = useCallback(async (jobId: string, formData: JobFormData) => {
-    // Validation
-    if (
-      !formData.title.trim() ||
-      !formData.description.trim() ||
-      !formData.location.trim()
-    ) {
-      toast({
-        title: "Missing Information",
-        description:
-          "Please fill in all required fields (Title, Description, Location)",
-        variant: "destructive",
-      });
-      return false;
-    }
+      setCreating(true);
 
-    setCreating(true);
-
-    try {
-      const response = await fetch(`/api/jobs/${jobId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        fetchJobs(); // Refresh the jobs list
-        toast({
-          title: "Job Updated Successfully",
-          description: "The job posting has been updated",
+      try {
+        const response = await fetch(`/api/v1/jobs/${jobId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
         });
-        return true;
-      } else {
+
+        const data = await response.json();
+        if (data.success) {
+          fetchJobs(); // Refresh the jobs list
+          toast({
+            title: "Job Updated Successfully",
+            description: "The job posting has been updated",
+          });
+          return true;
+        } else {
+          toast({
+            title: "Job Update Failed",
+            description: data.error || "Failed to update job",
+            variant: "destructive",
+          });
+          return false;
+        }
+      } catch (error) {
+        console.error("Error updating job:", error);
         toast({
           title: "Job Update Failed",
-          description: data.error || "Failed to update job",
+          description: "An unexpected error occurred while updating the job",
           variant: "destructive",
         });
         return false;
+      } finally {
+        setCreating(false);
       }
-    } catch (error) {
-      console.error("Error updating job:", error);
-      toast({
-        title: "Job Update Failed",
-        description: "An unexpected error occurred while updating the job",
-        variant: "destructive",
-      });
-      return false;
-    } finally {
-      setCreating(false);
-    }
-  }, [toast, fetchJobs]);
+    },
+    [toast, fetchJobs],
+  );
 
-  const toggleJobStatus = useCallback(async (jobId: string, currentStatus: boolean) => {
-    setUpdating(jobId);
-    try {
-      const response = await fetch(`/api/jobs/${jobId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          isActive: !currentStatus,
-        }),
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        fetchJobs(); // Refresh the jobs list
-        toast({
-          title: "Job Status Updated",
-          description: `Job ${!currentStatus ? 'activated' : 'deactivated'} successfully`,
+  const toggleJobStatus = useCallback(
+    async (jobId: string, currentStatus: boolean) => {
+      setUpdating(jobId);
+      try {
+        const response = await fetch(`/api/v1/jobs/${jobId}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            isActive: !currentStatus,
+          }),
         });
-        return true;
-      } else {
+
+        const data = await response.json();
+        if (data.success) {
+          fetchJobs(); // Refresh the jobs list
+          toast({
+            title: "Job Status Updated",
+            description: `Job ${!currentStatus ? "activated" : "deactivated"} successfully`,
+          });
+          return true;
+        } else {
+          toast({
+            title: "Update Failed",
+            description: data.error || "Failed to update job status",
+            variant: "destructive",
+          });
+          return false;
+        }
+      } catch (error) {
+        console.error("Error updating job status:", error);
         toast({
           title: "Update Failed",
-          description: data.error || "Failed to update job status",
+          description: "An unexpected error occurred while updating job status",
           variant: "destructive",
         });
         return false;
+      } finally {
+        setUpdating(null);
       }
-    } catch (error) {
-      console.error("Error updating job status:", error);
-      toast({
-        title: "Update Failed",
-        description: "An unexpected error occurred while updating job status",
-        variant: "destructive",
-      });
-      return false;
-    } finally {
-      setUpdating(null);
-    }
-  }, [toast, fetchJobs]);
+    },
+    [toast, fetchJobs],
+  );
 
   useEffect(() => {
     fetchJobs();

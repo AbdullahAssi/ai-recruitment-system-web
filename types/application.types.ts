@@ -13,6 +13,8 @@ export interface Application {
       fileName: string;
       uploadDate: string;
     }>;
+    quizScore?: number;
+    quizPassed?: boolean;
   };
   aiAnalysis?: {
     overallScore: number;

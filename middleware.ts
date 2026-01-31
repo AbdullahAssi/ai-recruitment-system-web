@@ -47,7 +47,7 @@ export async function middleware(request: NextRequest) {
   // Get token from cookie
   const token = request.cookies.get("auth_token")?.value;
 
-  console.log("Middleware check:", { pathname, hasToken: !!token });
+  // console.log("Middleware check:", { pathname, hasToken: !!token });
 
   if (!token) {
     console.log("No token found, redirecting to login");
@@ -61,7 +61,7 @@ export async function middleware(request: NextRequest) {
   // Verify token
   const payload = await verifyTokenEdge(token);
 
-  console.log("Token payload:", payload);
+  // console.log("Token payload:", payload);
 
   if (!payload) {
     console.log("Invalid token, redirecting to login");

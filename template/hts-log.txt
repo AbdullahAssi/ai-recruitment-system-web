@@ -1,0 +1,13 @@
+HTTrack3.49-2+htsswf+htsjava launched on Thu, 22 Jan 2026 16:36:04 at https://demo.tailadmin.com/ +*.png +*.gif +*.jpg +*.jpeg +*.css +*.js -ad.doubleclick.net/* -mime:application/foobar
+(winhttrack -qwC2%Ps2u1%s%uN0%I0p3DaK0H0%kf2A25000%f#f -F "Mozilla/4.5 (compatible; HTTrack 3.0x; Windows 98)" -%F "<!-- Mirrored from %s%s by HTTrack Website Copier/3.x [XR&CO'2014], %s -->" -%l "en, *" https://demo.tailadmin.com/ -O1 "C:\My Web Sites\tailwind dashboard" +*.png +*.gif +*.jpg +*.jpeg +*.css +*.js -ad.doubleclick.net/* -mime:application/foobar )
+
+Information, Warnings and Errors reported for this mirror:
+note:	the hts-log.txt file, and hts-cache folder, may contain sensitive information,
+	such as username/password authentication for websites mirrored in this project
+	do not share these files/folders if you want these information to remain private
+
+16:37:08	Error: 	"Bad Request" (400) at link https://demo.tailadmin.com/cdn-cgi/zaraz/s.js?z= (from https://demo.tailadmin.com/)
+16:38:58	Error: 	"Not Found" (404) at link https://demo.tailadmin.com/cdn-cgi/l/email-protection (from https://demo.tailadmin.com/)
+
+HTTrack Website Copier/3.49-2 mirror complete in 2 minutes 54 seconds : 193 links scanned, 190 files written (21420963 bytes overall) [10634677 bytes received at 61118 bytes/sec], 13446726 bytes transferred using HTTP compression in 125 files, ratio 16%, 131.7 requests per connection
+(2 errors, 0 warnings, 0 messages)

@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search") || "";
     const experienceMin = searchParams.get("experienceMin");
     const experienceMax = searchParams.get("experienceMax");
+    const companyId = searchParams.get("companyId"); // Filter by company for HR users
 
     const skip = (page - 1) * limit;
 
@@ -43,6 +44,17 @@ export async function GET(request: NextRequest) {
       if (experienceMax) {
         whereClause.experience.lte = parseInt(experienceMax);
       }
+    }
+
+    // Filter candidates who applied to jobs from specific company
+    if (companyId) {
+      whereClause.applications = {
+        some: {
+          job: {
+            companyId: companyId,
+          },
+        },
+      };
     }
 
     // Get candidates with their resumes and applications
@@ -116,7 +128,7 @@ export async function GET(request: NextRequest) {
         success: false,
         error: "Failed to fetch candidates",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -130,7 +142,7 @@ export async function POST(request: NextRequest) {
     if (!name || !email) {
       return NextResponse.json(
         { error: "Name and email are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -142,7 +154,7 @@ export async function POST(request: NextRequest) {
     if (existingCandidate) {
       return NextResponse.json(
         { error: "Candidate with this email already exists" },
-        { status: 409 }
+        { status: 409 },
       );
     }
 
@@ -180,7 +192,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: "Failed to create candidate",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

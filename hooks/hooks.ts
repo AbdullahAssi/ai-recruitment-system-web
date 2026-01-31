@@ -29,7 +29,7 @@ export type {
 
 export function useJobApplications(
   jobId: string,
-  paginationState: PaginationState
+  paginationState: PaginationState,
 ) {
   const [data, setData] = useState<JobApplicationsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -44,7 +44,7 @@ export function useJobApplications(
       });
 
       const response = await fetch(
-        `/api/jobs/${jobId}/applications?${searchParams}`
+        `/api/jobs/${jobId}/applications?${searchParams}`,
       );
       const result = await response.json();
 
@@ -95,22 +95,22 @@ export function useJobApplications(
             if (!prevData) return prevData;
 
             const updatedApplications = prevData.applications.map((app) =>
-              app.id === applicationId ? { ...app, status: newStatus } : app
+              app.id === applicationId ? { ...app, status: newStatus } : app,
             );
 
             // Recalculate stats
             const stats = {
               pending: updatedApplications.filter(
-                (app) => app.status === "PENDING"
+                (app) => app.status === "PENDING",
               ).length,
               reviewed: updatedApplications.filter(
-                (app) => app.status === "REVIEWED"
+                (app) => app.status === "REVIEWED",
               ).length,
               shortlisted: updatedApplications.filter(
-                (app) => app.status === "SHORTLISTED"
+                (app) => app.status === "SHORTLISTED",
               ).length,
               rejected: updatedApplications.filter(
-                (app) => app.status === "REJECTED"
+                (app) => app.status === "REJECTED",
               ).length,
               averageScore:
                 updatedApplications.reduce((sum, app) => {
@@ -118,7 +118,7 @@ export function useJobApplications(
                   return sum + score;
                 }, 0) / updatedApplications.length || 0,
               highPerformers: updatedApplications.filter(
-                (app) => (app.aiAnalysis?.overallScore || 0) >= 80
+                (app) => (app.aiAnalysis?.overallScore || 0) >= 80,
               ).length,
             };
 
@@ -149,7 +149,7 @@ export function useJobApplications(
         });
       }
     },
-    [jobId, toast]
+    [jobId, toast],
   );
 
   return {
@@ -209,7 +209,7 @@ export function useAIScores() {
         setLoadingScores(false);
       }
     },
-    [toast]
+    [toast],
   );
 
   const resetAiScores = useCallback(() => {
@@ -257,7 +257,7 @@ export function useEmailTemplates() {
 export function useBulkEmail(
   jobId: string,
   applications: Application[],
-  selectedApplicationIds: string[]
+  selectedApplicationIds: string[],
 ) {
   const [sendingEmail, setSendingEmail] = useState(false);
   const { toast } = useToast();
@@ -265,7 +265,7 @@ export function useBulkEmail(
   const sendBulkEmail = useCallback(
     async (
       templateId?: string,
-      customTemplate?: { subject: string; body: string; name: string }
+      customTemplate?: { subject: string; body: string; name: string },
     ) => {
       if (selectedApplicationIds.length === 0) {
         toast({
@@ -290,7 +290,7 @@ export function useBulkEmail(
 
       try {
         const selectedApps = applications.filter((app) =>
-          selectedApplicationIds.includes(app.id)
+          selectedApplicationIds.includes(app.id),
         );
 
         const candidateIds = selectedApps.map((app) => app.candidate.id);
@@ -332,7 +332,7 @@ export function useBulkEmail(
         setSendingEmail(false);
       }
     },
-    [selectedApplicationIds, applications, jobId, toast]
+    [selectedApplicationIds, applications, jobId, toast],
   );
 
   return {

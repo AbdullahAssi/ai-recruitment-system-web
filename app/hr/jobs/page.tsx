@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "@/components/ui/dialog";
 
 // Import modular components and hooks
@@ -22,6 +24,23 @@ import { useJobs, useJobFilters } from "../../../hooks/hooks";
 import { JobFormData, Job } from "../../../hooks/useJobs";
 
 export default function HRJobsPage() {
+  const { user } = useAuth();
+  const [companyId, setCompanyId] = useState<string | undefined>();
+
+  useEffect(() => {
+    // Fetch HR profile to get company ID
+    const fetchCompanyId = async () => {
+      if (user?.id) {
+        const response = await fetch(`/api/hr/profile/${user.id}`);
+        const data = await response.json();
+        if (data.success && data.profile?.companyId) {
+          setCompanyId(data.profile.companyId);
+        }
+      }
+    };
+    fetchCompanyId();
+  }, [user]);
+
   const {
     jobs,
     loading,
@@ -31,7 +50,7 @@ export default function HRJobsPage() {
     createJob,
     updateJob,
     toggleJobStatus,
-  } = useJobs();
+  } = useJobs(companyId);
 
   const { filters, filteredJobs, updateFilter } = useJobFilters(jobs);
 
@@ -46,12 +65,13 @@ export default function HRJobsPage() {
     description: "",
     location: "",
     requirements: "",
+    responsibilities: "",
   });
 
   // Event handlers
   const handleCreateJob = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = await createJob(formData);
+    const success = await createJob(formData, user?.id);
     if (success) {
       setShowCreateDialog(false);
       setFormData({
@@ -59,6 +79,7 @@ export default function HRJobsPage() {
         description: "",
         location: "",
         requirements: "",
+        responsibilities: "",
       });
     }
   };
@@ -70,6 +91,7 @@ export default function HRJobsPage() {
       description: job.description,
       location: job.location,
       requirements: job.requirements || "",
+      responsibilities: job.responsibilities || "",
     });
     setShowEditDialog(true);
   };
@@ -87,6 +109,7 @@ export default function HRJobsPage() {
         description: "",
         location: "",
         requirements: "",
+        responsibilities: "",
       });
     }
   };
@@ -98,6 +121,7 @@ export default function HRJobsPage() {
       description: "",
       location: "",
       requirements: "",
+      responsibilities: "",
     });
   };
 
@@ -109,6 +133,7 @@ export default function HRJobsPage() {
       description: "",
       location: "",
       requirements: "",
+      responsibilities: "",
     });
   };
 
@@ -169,6 +194,9 @@ export default function HRJobsPage() {
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Create New Job Posting</DialogTitle>
+              <DialogDescription>
+                Fill in the details to create a new job posting.
+              </DialogDescription>
             </DialogHeader>
             <JobForm
               formData={formData}
@@ -187,6 +215,9 @@ export default function HRJobsPage() {
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Edit Job Posting</DialogTitle>
+              <DialogDescription>
+                Edit the details of the job posting.
+              </DialogDescription>
             </DialogHeader>
             <JobForm
               formData={formData}

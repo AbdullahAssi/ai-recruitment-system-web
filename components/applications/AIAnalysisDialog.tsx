@@ -380,53 +380,8 @@ export function AIAnalysisDialog({
               </div>
             )}
 
-            {/* Score Breakdown from existing aiAnalysis */}
-            <div>
-              <h4 className="font-semibold mb-3 flex items-center gap-2">
-                <Target className="h-4 w-4" />
-                Score Breakdown
-              </h4>
-              {application.aiAnalysis && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {application.aiAnalysis.scores?.skills !== undefined && (
-                    <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="text-2xl font-bold text-blue-600">
-                        {application.aiAnalysis.scores.skills}
-                      </div>
-                      <div className="text-xs text-blue-700">Skills</div>
-                    </div>
-                  )}
-                  {application.aiAnalysis.scores?.experience !== undefined && (
-                    <div className="text-center p-3 bg-purple-50 rounded-lg border border-purple-200">
-                      <div className="text-2xl font-bold text-purple-600">
-                        {application.aiAnalysis.scores.experience}
-                      </div>
-                      <div className="text-xs text-purple-700">Experience</div>
-                    </div>
-                  )}
-                  {application.aiAnalysis.scores?.education !== undefined && (
-                    <div className="text-center p-3 bg-indigo-50 rounded-lg border border-indigo-200">
-                      <div className="text-2xl font-bold text-indigo-600">
-                        {application.aiAnalysis.scores.education}
-                      </div>
-                      <div className="text-xs text-indigo-700">Education</div>
-                    </div>
-                  )}
-                  {application.aiAnalysis.scores?.fit !== undefined && (
-                    <div className="text-center p-3 bg-emerald-50 rounded-lg border border-emerald-200">
-                      <div className="text-2xl font-bold text-emerald-600">
-                        {application.aiAnalysis.scores.fit}
-                      </div>
-                      <div className="text-xs text-emerald-700">
-                        Overall Fit
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+        
 
-            <Separator />
 
             {/* Candidate and Job Info Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

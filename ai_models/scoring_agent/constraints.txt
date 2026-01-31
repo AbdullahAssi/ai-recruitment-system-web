@@ -1,6 +1,0 @@
-- All frontend developers must follow our in-house component library based on Tailwind CSS and Headless UI.
-- We use GitHub for version control and conduct mandatory code reviews.
-- All new hires are expected to write unit tests for React components using Jest and Testing Library.
-- Knowledge of accessibility standards (WCAG 2.1) is highly valued.
-- Deployment pipelines are managed through GitHub Actions.
-- Effective communication and daily stand-ups are mandatory for remote roles.

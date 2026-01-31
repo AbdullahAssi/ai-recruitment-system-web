@@ -8,10 +8,32 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const includeInactive = searchParams.get("includeInactive") === "true";
+    const companyId = searchParams.get("companyId"); // For HR users to filter by their company
+
+    // Build where clause
+    const whereClause: any = {};
+    if (!includeInactive) {
+      whereClause.isActive = true;
+    }
+    if (companyId) {
+      whereClause.companyId = companyId;
+    }
 
     const jobs = await prisma.job.findMany({
-      where: includeInactive ? {} : { isActive: true },
+      where: whereClause,
       include: {
+        companyInfo: {
+          select: {
+            id: true,
+            name: true,
+            logo: true,
+            industry: true,
+            location: true,
+            size: true,
+            website: true,
+            isVerified: true,
+          },
+        },
         applications: {
           include: {
             candidate: {
@@ -35,7 +57,7 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching jobs:", error);
     return NextResponse.json(
       { error: "Failed to fetch jobs" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -44,13 +66,24 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, description, location, requirements } = body;
+    const { title, description, location, requirements, companyId, userId } =
+      body;
 
     if (!title || !description) {
       return NextResponse.json(
         { error: "Missing required fields: title, description" },
-        { status: 400 }
+        { status: 400 },
       );
+    }
+
+    // If userId provided, get their company from HR profile
+    let finalCompanyId = companyId;
+    if (userId && !finalCompanyId) {
+      const hrProfile = await prisma.hRProfile.findUnique({
+        where: { userId },
+        select: { companyId: true },
+      });
+      finalCompanyId = hrProfile?.companyId;
     }
 
     // Create job record
@@ -60,6 +93,11 @@ export async function POST(request: NextRequest) {
         description,
         location: location || "",
         requirements: requirements || "",
+        responsibilities: body.responsibilities || "",
+        ...(finalCompanyId && { companyId: finalCompanyId }),
+      },
+      include: {
+        companyInfo: true,
       },
     });
 
@@ -72,7 +110,7 @@ export async function POST(request: NextRequest) {
     console.error("Error creating job:", error);
     return NextResponse.json(
       { error: "Failed to create job" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
