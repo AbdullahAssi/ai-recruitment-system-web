@@ -20,8 +20,8 @@ documentation:
 
 # Configuration
 configuration:
-  - '*.config.*'
-  - '*.json'
+  - '**/*.config.*'
+  - '**/*.json'
   - '.github/**/*'
 
 # Styling
@@ -32,7 +32,7 @@ styling:
 # Testing
 testing:
   - tests/**/*
-  - test*.ts
+  - '**/test*.ts'
   - '**/*.test.*'
   - '**/*.spec.*'
 
