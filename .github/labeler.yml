@@ -1,0 +1,52 @@
+# Frontend/UI Components
+components:
+  - components/**/*
+  - app/**/*.tsx
+  - app/**/*.jsx
+
+# Backend/API
+api:
+  - app/api/**/*
+  
+# Database
+database:
+  - db/**/*
+  - prisma/**/*
+
+# Documentation
+documentation:
+  - docs/**/*
+  - '**/*.md'
+
+# Configuration
+configuration:
+  - '*.config.*'
+  - '*.json'
+  - '.github/**/*'
+
+# Styling
+styling:
+  - '**/*.css'
+  - tailwind.config.ts
+
+# Testing
+testing:
+  - tests/**/*
+  - test*.ts
+  - '**/*.test.*'
+  - '**/*.spec.*'
+
+# TypeScript/Types
+types:
+  - types/**/*
+  - '**/*.d.ts'
+
+# Utilities
+utilities:
+  - lib/**/*
+  - hooks/**/*
+  - contexts/**/*
+
+# Middleware
+middleware:
+  - middleware.ts
