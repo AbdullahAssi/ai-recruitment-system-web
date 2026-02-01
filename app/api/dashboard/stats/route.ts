@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
       previousWeekApplications,
       recentApplicationsList,
       candidateSkills,
+      recentActivityApplications,
     ] = await Promise.all([
       // Total jobs
       prisma.job.count(),
@@ -100,6 +101,30 @@ export async function GET(request: NextRequest) {
           },
         },
       }),
+
+      // Get recent applications for activity feed (last 10)
+      prisma.application.findMany({
+        take: 10,
+        orderBy: {
+          appliedAt: "desc",
+        },
+        include: {
+          candidate: {
+            include: {
+              user: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+          job: {
+            select: {
+              title: true,
+            },
+          },
+        },
+      }),
     ]);
 
     // Process applications trend (group by date in JavaScript)
@@ -127,6 +152,18 @@ export async function GET(request: NextRequest) {
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
 
+    // Process recent activity
+    const recentActivity = recentActivityApplications
+      .filter((app) => app.candidate?.user?.name && app.job?.title) // Filter out incomplete data
+      .map((app) => ({
+        id: app.id,
+        type: "application",
+        candidateName: app.candidate.user.name,
+        jobTitle: app.job.title,
+        status: app.status,
+        appliedAt: app.appliedAt.toISOString(),
+      }));
+
     // Calculate growth percentage
     const applicationsGrowth =
       previousWeekApplications > 0
@@ -153,11 +190,23 @@ export async function GET(request: NextRequest) {
       })),
       applicationsTrend,
       topSkills,
+      recentActivity,
     });
   } catch (error) {
     console.error("Failed to fetch dashboard stats:", error);
+    console.error(
+      "Error details:",
+      error instanceof Error ? error.message : String(error),
+    );
+    console.error(
+      "Error stack:",
+      error instanceof Error ? error.stack : "No stack trace",
+    );
     return NextResponse.json(
-      { error: "Failed to fetch stats", details: String(error) },
+      {
+        error: "Failed to fetch stats",
+        details: error instanceof Error ? error.message : String(error),
+      },
       { status: 500 },
     );
   }

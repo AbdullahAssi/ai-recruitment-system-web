@@ -185,7 +185,7 @@ export function DetailedAnalysisDialog({
             <Separator />
 
             {/* Skills Analysis */}
-            {skillsMatch && Object.keys(skillsMatch).length > 0 && (
+            {/* {skillsMatch && Object.keys(skillsMatch).length > 0 && (
               <div>
                 <h4 className="font-semibold mb-3">Skills Analysis</h4>
 
@@ -305,9 +305,9 @@ export function DetailedAnalysisDialog({
                   </div>
                 )}
               </div>
-            )}
+            )} */}
 
-            <Separator />
+            {/* <Separator /> */}
 
             {/* AI Analysis Insights */}
             {explanation && (

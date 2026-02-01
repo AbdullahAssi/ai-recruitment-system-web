@@ -1,6 +1,5 @@
 "use client";
 
-
 import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -100,7 +99,7 @@ export default function JobApplicationsPage({
   // Custom hooks for data management
   const { data, loading, updateApplicationStatus } = useJobApplications(
     params.id,
-    paginationState
+    paginationState,
   );
 
   const { aiScoresData, loadingScores, fetchAiScores, resetAiScores } =
@@ -146,7 +145,7 @@ export default function JobApplicationsPage({
       const scoreData = scores.find(
         (score) =>
           score.application?.id ===
-          detailedAnalysisState.selectedApplication?.id
+          detailedAnalysisState.selectedApplication?.id,
       );
 
       console.log("Found score data in useEffect:", scoreData);
@@ -190,7 +189,7 @@ export default function JobApplicationsPage({
   const { sendBulkEmail, sendingEmail } = useBulkEmail(
     params.id,
     filteredAndSortedApplications,
-    bulkEmailState.selectedApplications
+    bulkEmailState.selectedApplications,
   );
 
   // Event handlers
@@ -264,7 +263,7 @@ export default function JobApplicationsPage({
         "Applying quick filter for application:",
         application.id,
         "job:",
-        params.id
+        params.id,
       );
 
       // Apply filter and wait for fetch to complete, getting data directly
@@ -277,7 +276,7 @@ export default function JobApplicationsPage({
 
       // Find the score data for this specific application from the fetched data
       const scoreData = fetchedScores.find(
-        (score) => score.application?.id === application.id
+        (score) => score.application?.id === application.id,
       );
 
       console.log("Found score data:", scoreData);
@@ -292,7 +291,7 @@ export default function JobApplicationsPage({
         }));
       } else {
         console.log(
-          "No API score data found, checking for fallback aiAnalysis"
+          "No API score data found, checking for fallback aiAnalysis",
         );
         // No score data found - check if we have fallback data
         if (application.aiAnalysis) {
@@ -366,7 +365,7 @@ export default function JobApplicationsPage({
             body: bulkEmailState.customBody,
             name: "Custom Email",
           }
-        : undefined
+        : undefined,
     );
 
     if (success) {
@@ -416,7 +415,7 @@ export default function JobApplicationsPage({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-100 ">
+    <div className="min-h-screen  ">
       <div className="max-w-7xl mx-auto py-7">
         {/* AI Analysis Dialog */}
         <AIAnalysisDialog
@@ -645,7 +644,7 @@ export default function JobApplicationsPage({
                               const template =
                                 bulkEmailState.emailTemplates.find(
                                   (t) =>
-                                    t.id === bulkEmailState.selectedTemplate
+                                    t.id === bulkEmailState.selectedTemplate,
                                 );
                               return template ? (
                                 <div className="mt-2 text-sm">
@@ -711,13 +710,13 @@ export default function JobApplicationsPage({
               </p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredAndSortedApplications.map((application) => (
                 <ApplicationCard
                   key={application.id}
                   application={application}
                   isSelected={bulkEmailState.selectedApplications.includes(
-                    application.id
+                    application.id,
                   )}
                   onSelect={(checked) =>
                     handleSelectApplication(application.id, checked)
@@ -725,7 +724,6 @@ export default function JobApplicationsPage({
                   onStatusUpdate={(newStatus) =>
                     updateApplicationStatus(application.id, newStatus)
                   }
-                  onViewProfile={() => handleOpenProfileDialog(application)}
                   onViewAIAnalysis={() =>
                     handleOpenDetailedAnalysis(application)
                   }
@@ -779,75 +777,118 @@ export default function JobApplicationsPage({
               detailedAnalysisState.selectedApplication?.aiAnalysis ? (
               <DetailedAnalysisDialog
                 scoreData={
-                  detailedAnalysisState.selectedScore || {
-                    // Fallback: Create scoreData from existing application aiAnalysis // Priority: Use fetched score data
-                    id: detailedAnalysisState.selectedApplication!.id,
-                    score:
-                      detailedAnalysisState.selectedApplication!.aiAnalysis!
-                        .overallScore,
-                    scoredAt:
-                      detailedAnalysisState.selectedApplication!.appliedAt,
-                    explanation: {
-                      summary: "",
-                      recommendation:
-                        detailedAnalysisState.selectedApplication!.aiAnalysis!
-                          .recommendation,
-                      strengths:
-                        detailedAnalysisState.selectedApplication!.aiAnalysis!
-                          .strengths,
-                      weaknesses:
-                        detailedAnalysisState.selectedApplication!.aiAnalysis!
-                          .weaknesses,
-                      keySkillsMatch:
-                        detailedAnalysisState.selectedApplication!.aiAnalysis!
-                          .keyMatches,
-                      missingSkills:
-                        detailedAnalysisState.selectedApplication!.aiAnalysis!
-                          .skillsMatch.missingSkills,
-                      skills:
-                        detailedAnalysisState.selectedApplication!.aiAnalysis!
-                          .scores.skills,
-                      experience:
-                        detailedAnalysisState.selectedApplication!.aiAnalysis!
-                          .scores.experience,
-                      education:
-                        detailedAnalysisState.selectedApplication!.aiAnalysis!
-                          .scores.education,
-                      fit: detailedAnalysisState.selectedApplication!
-                        .aiAnalysis!.scores.fit,
-                    },
-                    skillsMatch:
-                      detailedAnalysisState.selectedApplication!.aiAnalysis!
-                        .skillsMatch,
-                    requirements: {},
-                    candidate: {
-                      name: detailedAnalysisState.selectedApplication!.candidate
-                        .name,
-                      filename:
-                        detailedAnalysisState.selectedApplication!.candidate
-                          .resumes[0]?.fileName || "",
-                      email:
-                        detailedAnalysisState.selectedApplication!.candidate
-                          .email,
-                      phone: "",
-                      skills:
-                        detailedAnalysisState.selectedApplication!.aiAnalysis!
-                          .skillsMatch.matchedSkills || [],
-                      experience: [],
-                    },
-                    job: {
-                      title: data?.job?.title || "Job Title",
-                      description: data?.job?.description || "",
-                      requirements: data?.job?.requirements || "",
-                      location: data?.job?.location || "",
-                      company: "Company", // Static value as not available in job data
-                    },
-                    application: {
-                      id: detailedAnalysisState.selectedApplication!.id,
-                      appliedAt:
-                        detailedAnalysisState.selectedApplication!.appliedAt,
-                    },
-                  }
+                  detailedAnalysisState.selectedScore
+                    ? {
+                        // Use fetched score data but ensure candidate is populated
+                        ...detailedAnalysisState.selectedScore,
+                        candidate: detailedAnalysisState.selectedScore
+                          .candidate || {
+                          name:
+                            detailedAnalysisState.selectedApplication?.candidate
+                              .name || "",
+                          filename:
+                            detailedAnalysisState.selectedApplication?.candidate
+                              .resumes[0]?.fileName || "",
+                          email:
+                            detailedAnalysisState.selectedApplication?.candidate
+                              .email || "",
+                          phone:
+                            detailedAnalysisState.selectedApplication?.candidate
+                              .phone || "",
+                          skills:
+                            detailedAnalysisState.selectedScore.skillsMatch
+                              ?.matchedSkills ||
+                            detailedAnalysisState.selectedApplication
+                              ?.aiAnalysis?.skillsMatch.matchedSkills ||
+                            [],
+                          experience: [],
+                        },
+                        application: detailedAnalysisState.selectedScore
+                          .application || {
+                          id:
+                            detailedAnalysisState.selectedApplication?.id || "",
+                          appliedAt:
+                            detailedAnalysisState.selectedApplication
+                              ?.appliedAt || new Date().toISOString(),
+                        },
+                        job: detailedAnalysisState.selectedScore.job || {
+                          title: data?.job?.title || "Job Title",
+                          description: data?.job?.description || "",
+                          requirements: data?.job?.requirements || "",
+                          location: data?.job?.location || "",
+                          company: "Company",
+                        },
+                      }
+                    : {
+                        // Fallback: Create scoreData from existing application aiAnalysis
+                        id: detailedAnalysisState.selectedApplication!.id,
+                        score:
+                          detailedAnalysisState.selectedApplication!.aiAnalysis!
+                            .overallScore,
+                        scoredAt:
+                          detailedAnalysisState.selectedApplication!.appliedAt,
+                        explanation: {
+                          summary: "",
+                          recommendation:
+                            detailedAnalysisState.selectedApplication!
+                              .aiAnalysis!.recommendation,
+                          strengths:
+                            detailedAnalysisState.selectedApplication!
+                              .aiAnalysis!.strengths,
+                          weaknesses:
+                            detailedAnalysisState.selectedApplication!
+                              .aiAnalysis!.weaknesses,
+                          keySkillsMatch:
+                            detailedAnalysisState.selectedApplication!
+                              .aiAnalysis!.keyMatches,
+                          missingSkills:
+                            detailedAnalysisState.selectedApplication!
+                              .aiAnalysis!.skillsMatch.missingSkills,
+                          skills:
+                            detailedAnalysisState.selectedApplication!
+                              .aiAnalysis!.scores.skills,
+                          experience:
+                            detailedAnalysisState.selectedApplication!
+                              .aiAnalysis!.scores.experience,
+                          education:
+                            detailedAnalysisState.selectedApplication!
+                              .aiAnalysis!.scores.education,
+                          fit: detailedAnalysisState.selectedApplication!
+                            .aiAnalysis!.scores.fit,
+                        },
+                        skillsMatch:
+                          detailedAnalysisState.selectedApplication!.aiAnalysis!
+                            .skillsMatch,
+                        requirements: {},
+                        candidate: {
+                          name: detailedAnalysisState.selectedApplication!
+                            .candidate.name,
+                          filename:
+                            detailedAnalysisState.selectedApplication!.candidate
+                              .resumes[0]?.fileName || "",
+                          email:
+                            detailedAnalysisState.selectedApplication!.candidate
+                              .email,
+                          phone: "",
+                          skills:
+                            detailedAnalysisState.selectedApplication!
+                              .aiAnalysis!.skillsMatch.matchedSkills || [],
+                          experience: [],
+                        },
+                        job: {
+                          title: data?.job?.title || "Job Title",
+                          description: data?.job?.description || "",
+                          requirements: data?.job?.requirements || "",
+                          location: data?.job?.location || "",
+                          company: "Company", // Static value as not available in job data
+                        },
+                        application: {
+                          id: detailedAnalysisState.selectedApplication!.id,
+                          appliedAt:
+                            detailedAnalysisState.selectedApplication!
+                              .appliedAt,
+                        },
+                      }
                 }
                 open={detailedAnalysisState.open}
                 onOpenChange={(open) => {
