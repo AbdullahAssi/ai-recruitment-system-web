@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { Job } from "../../hooks/useJobs";
 import { getScoreColor, getStatusBadgeColor } from "../../lib/jobUtils";
+import { formatStatusText } from "../../lib/applicationUtil";
 
 interface JobCardProps {
   job: Job;
@@ -94,8 +95,8 @@ export function JobCard({
                 {updating === job.id
                   ? "Updating..."
                   : job.isActive
-                  ? "Deactivate"
-                  : "Activate"}
+                    ? "Deactivate"
+                    : "Activate"}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -145,13 +146,13 @@ export function JobCard({
                   <div className="text-right">
                     <div
                       className={`text-sm font-bold px-2 py-1 rounded ${getScoreColor(
-                        application.score
+                        application.score,
                       )}`}
                     >
                       {application.score}%
                     </div>
-                    <p className="text-xs text-gray-600 capitalize">
-                      {application.status.toLowerCase()}
+                    <p className="text-xs text-gray-600">
+                      {formatStatusText(application.status)}
                     </p>
                   </div>
                 </div>

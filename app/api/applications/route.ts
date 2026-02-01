@@ -48,6 +48,13 @@ export async function GET(request: NextRequest) {
             postedDate: true,
           },
         },
+        quizAttempt: {
+          select: {
+            score: true,
+            passed: true,
+            completedAt: true,
+          },
+        },
       },
       orderBy: { appliedAt: "desc" },
     });

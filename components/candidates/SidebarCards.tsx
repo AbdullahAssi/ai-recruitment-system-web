@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import { CandidateProfile, CandidateResume } from "../../hooks/useCandidates";
 import { parseJsonField } from "../../lib/candidateUtils";
 import { getStatusColor, getScoreColor } from "../../lib/candidateUtils";
+import { formatStatusText } from "../../lib/applicationUtil";
 
 interface SidebarCardsProps {
   candidate: CandidateProfile;
@@ -14,7 +15,11 @@ interface SidebarCardsProps {
   onDownloadResume?: (resumeId: string, fileName: string) => void;
 }
 
-export function SidebarCards({ candidate, latestResume, onDownloadResume }: SidebarCardsProps) {
+export function SidebarCards({
+  candidate,
+  latestResume,
+  onDownloadResume,
+}: SidebarCardsProps) {
   const certifications = parseJsonField(latestResume?.certifications_json);
 
   return (
@@ -33,18 +38,29 @@ export function SidebarCards({ candidate, latestResume, onDownloadResume }: Side
               .filter((cert: string) => cert && cert.trim() !== "")
               .map((cert: string, index: number) => {
                 const dashIndex = cert.lastIndexOf(" - ");
-                const name = dashIndex > 0 ? cert.substring(0, dashIndex).trim() : cert.trim();
-                const issuer = dashIndex > 0 ? cert.substring(dashIndex + 3).trim() : "";
+                const name =
+                  dashIndex > 0
+                    ? cert.substring(0, dashIndex).trim()
+                    : cert.trim();
+                const issuer =
+                  dashIndex > 0 ? cert.substring(dashIndex + 3).trim() : "";
 
                 return (
-                  <div key={index} className="border-b border-gray-200 pb-3 last:border-b-0">
+                  <div
+                    key={index}
+                    className="border-b border-gray-200 pb-3 last:border-b-0"
+                  >
                     <h4 className="font-medium text-gray-900">{name}</h4>
-                    {issuer && <p className="text-sm text-purple-600">{issuer}</p>}
+                    {issuer && (
+                      <p className="text-sm text-purple-600">{issuer}</p>
+                    )}
                   </div>
                 );
               })
           ) : (
-            <p className="text-gray-500 italic">No certifications extracted from resume.</p>
+            <p className="text-gray-500 italic">
+              No certifications extracted from resume.
+            </p>
           )}
         </CardContent>
       </Card>
@@ -60,21 +76,30 @@ export function SidebarCards({ candidate, latestResume, onDownloadResume }: Side
         <CardContent className="space-y-3">
           {candidate.applications.length > 0 ? (
             candidate.applications.map((application) => (
-              <div key={application.id} className="border p-3 rounded-lg bg-gray-50">
+              <div
+                key={application.id}
+                className="border p-3 rounded-lg bg-gray-50"
+              >
                 <div className="flex justify-between items-start mb-2">
                   <div>
-                    <h4 className="font-medium text-gray-900">{application.job.title}</h4>
-                    <p className="text-sm text-gray-600">{application.job.company || "Company"}</p>
+                    <h4 className="font-medium text-gray-900">
+                      {application.job.title}
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      {application.job.company || "Company"}
+                    </p>
                   </div>
                   <div className="text-right">
-                    <div className={`px-2 py-1 rounded text-sm font-semibold ${getScoreColor(application.score)}`}>
+                    <div
+                      className={`px-2 py-1 rounded text-sm font-semibold ${getScoreColor(application.score)}`}
+                    >
                       {application.score}%
                     </div>
                   </div>
                 </div>
                 <div className="flex justify-between items-center">
                   <Badge className={getStatusColor(application.status)}>
-                    {application.status}
+                    {formatStatusText(application.status)}
                   </Badge>
                   <span className="text-xs text-gray-600">
                     {format(new Date(application.appliedAt), "MMM dd, yyyy")}
@@ -83,7 +108,9 @@ export function SidebarCards({ candidate, latestResume, onDownloadResume }: Side
               </div>
             ))
           ) : (
-            <p className="text-gray-500 text-center py-4">No applications yet</p>
+            <p className="text-gray-500 text-center py-4">
+              No applications yet
+            </p>
           )}
         </CardContent>
       </Card>
@@ -98,9 +125,14 @@ export function SidebarCards({ candidate, latestResume, onDownloadResume }: Side
         </CardHeader>
         <CardContent className="space-y-3">
           {candidate.resumes.map((resume) => (
-            <div key={resume.id} className="flex justify-between items-center p-3 border rounded-lg bg-gray-50">
+            <div
+              key={resume.id}
+              className="flex justify-between items-center p-3 border rounded-lg bg-gray-50"
+            >
               <div>
-                <h4 className="font-medium text-gray-900 text-sm">{resume.fileName}</h4>
+                <h4 className="font-medium text-gray-900 text-sm">
+                  {resume.fileName}
+                </h4>
                 <p className="text-xs text-gray-600">
                   {format(new Date(resume.uploadDate), "MMM dd, yyyy")}
                 </p>

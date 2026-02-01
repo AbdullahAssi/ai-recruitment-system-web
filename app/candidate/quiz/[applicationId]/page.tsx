@@ -55,7 +55,7 @@ export default function QuizAssessmentPage() {
   const [error, setError] = useState<string>("");
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
   const [showTimeUpDialog, setShowTimeUpDialog] = useState(false);
-  
+
   // Prevent duplicate quiz generation calls
   const isGeneratingRef = useRef(false);
 

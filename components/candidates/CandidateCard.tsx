@@ -20,6 +20,7 @@ import {
   getScoreColor,
   getExperienceLabel,
 } from "../../lib/candidateUtils";
+import { formatStatusText } from "../../lib/applicationUtil";
 
 interface CandidateCardProps {
   candidate: Candidate;
@@ -39,7 +40,7 @@ export function CandidateCard({
     candidate.applications.length > 0
       ? Math.round(
           candidate.applications.reduce((sum, app) => sum + app.score, 0) /
-            candidate.applications.length
+            candidate.applications.length,
         )
       : 0;
 
@@ -71,7 +72,7 @@ export function CandidateCard({
           {averageScore > 0 && (
             <div
               className={`px-2 py-1 rounded text-sm font-semibold ${getScoreColor(
-                averageScore
+                averageScore,
               )}`}
             >
               {averageScore}% avg
@@ -150,11 +151,11 @@ export function CandidateCard({
                       className={getStatusColor(application.status)}
                       variant="outline"
                     >
-                      {application.status.toLowerCase()}
+                      {formatStatusText(application.status)}
                     </Badge>
                     <span
                       className={`text-xs font-semibold ${getScoreColor(
-                        application.score
+                        application.score,
                       )}`}
                     >
                       {application.score}%

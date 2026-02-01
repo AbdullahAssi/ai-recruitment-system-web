@@ -31,6 +31,7 @@ import {
   getScoreColor,
   getScoreBadgeColor,
   getStatusColor,
+  formatStatusText,
 } from "../../lib/applicationUtil";
 
 interface AIAnalysisDialogProps {
@@ -130,7 +131,7 @@ export function AIAnalysisDialog({
                         {aiScoresData.scoredAt
                           ? format(
                               new Date(aiScoresData.scoredAt),
-                              "MMM dd, yyyy 'at' HH:mm"
+                              "MMM dd, yyyy 'at' HH:mm",
                             )
                           : ""}
                       </div>
@@ -140,7 +141,7 @@ export function AIAnalysisDialog({
                       <div className="text-center p-4 bg-white rounded-lg border">
                         <Badge
                           className={`${getScoreBadgeColor(
-                            aiScoresData.score || 0
+                            aiScoresData.score || 0,
                           )} text-lg px-4 py-2 mb-2`}
                         >
                           {aiScoresData.explanation.recommendation
@@ -255,7 +256,7 @@ export function AIAnalysisDialog({
                                 >
                                   {skill}
                                 </Badge>
-                              )
+                              ),
                             )}
                           </div>
                         </div>
@@ -277,7 +278,7 @@ export function AIAnalysisDialog({
                                 >
                                   {skill}
                                 </Badge>
-                              )
+                              ),
                             )}
                           </div>
                         </div>
@@ -308,7 +309,7 @@ export function AIAnalysisDialog({
                                       <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
                                       {strength}
                                     </li>
-                                  )
+                                  ),
                                 )}
                               </ul>
                             </div>
@@ -331,7 +332,7 @@ export function AIAnalysisDialog({
                                       <XCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
                                       {weakness}
                                     </li>
-                                  )
+                                  ),
                                 )}
                               </ul>
                             </div>
@@ -353,7 +354,7 @@ export function AIAnalysisDialog({
                                       <Target className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
                                       {match}
                                     </li>
-                                  )
+                                  ),
                                 )}
                               </ul>
                             </div>
@@ -379,9 +380,6 @@ export function AIAnalysisDialog({
                 <Separator />
               </div>
             )}
-
-        
-
 
             {/* Candidate and Job Info Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -420,7 +418,7 @@ export function AIAnalysisDialog({
                   <Badge
                     className={`${getStatusColor(application.status)} text-xs`}
                   >
-                    {application.status}
+                    {formatStatusText(application.status)}
                   </Badge>
                 </div>
               </div>
@@ -441,7 +439,7 @@ export function AIAnalysisDialog({
                   <div className="text-right">
                     <div
                       className={`text-3xl font-bold ${getScoreColor(
-                        application.score
+                        application.score,
                       )}`}
                     >
                       {application.score}%
@@ -450,13 +448,13 @@ export function AIAnalysisDialog({
                       <Badge
                         className={`${getScoreBadgeColor(
                           application.aiAnalysis.overallScore ||
-                            application.score
+                            application.score,
                         )} mt-1`}
                       >
                         {application.aiAnalysis.recommendation
                           ? application.aiAnalysis.recommendation.replace(
                               "_",
-                              " "
+                              " ",
                             )
                           : "Assessment Complete"}
                       </Badge>

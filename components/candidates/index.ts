@@ -12,3 +12,9 @@ export { SkillsAndSummary } from "./SkillsAndSummary";
 export { WorkExperienceCard } from "./WorkExperienceCard";
 export { ProjectsCard } from "./ProjectsCard";
 export { SidebarCards } from "./SidebarCards";
+
+// Candidate profile page components
+export { CandidateProfileCard } from "./CandidateProfileCard";
+export { ResumeListCard } from "./ResumeListCard";
+export { EditProfileDialog } from "./EditProfileDialog";
+export { ProfileStatsCard } from "./ProfileStatsCard";

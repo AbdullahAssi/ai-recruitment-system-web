@@ -10,9 +10,21 @@ export const getStatusColor = (status: string) => {
       return "bg-green-100 text-green-800";
     case "rejected":
       return "bg-red-100 text-red-800";
+    case "quiz_pending":
+      return "bg-purple-100 text-purple-800";
+    case "quiz_completed":
+      return "bg-indigo-100 text-indigo-800";
     default:
       return "bg-gray-100 text-gray-800";
   }
+};
+
+export const formatStatusText = (status: string) => {
+  // Convert QUIZ_PENDING to "Quiz Pending", QUIZ_COMPLETED to "Quiz Completed", etc.
+  return status
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
 };
 
 export const getScoreColor = (score: number) => {
@@ -31,7 +43,7 @@ export const getScoreBadgeColor = (score: number) => {
 
 export const getApplicationBorderColor = (
   application: Application,
-  isSelected: boolean
+  isSelected: boolean,
 ) => {
   if (isSelected) {
     return "ring-2 ring-purple-500 bg-gradient-to-r from-purple-50 to-blue-50 border-l-purple-500";
@@ -53,7 +65,7 @@ export const getApplicationBorderColor = (
 
 export const filterAndSortApplications = (
   applications: Application[],
-  filters: FilterState
+  filters: FilterState,
 ) => {
   return applications
     .filter((app) => {

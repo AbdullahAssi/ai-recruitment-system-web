@@ -151,12 +151,14 @@ export async function POST(request: NextRequest) {
       });
     } catch (error: any) {
       // If unique constraint error, fetch the existing attempt instead
-      if (error.code === 'P2002') {
-        console.log("Quiz attempt already created by concurrent request, fetching existing");
+      if (error.code === "P2002") {
+        console.log(
+          "Quiz attempt already created by concurrent request, fetching existing",
+        );
         quizAttempt = await prisma.quizAttempt.findUnique({
           where: { applicationId: application.id },
         });
-        
+
         if (!quizAttempt) {
           throw new Error("Failed to create or fetch quiz attempt");
         }

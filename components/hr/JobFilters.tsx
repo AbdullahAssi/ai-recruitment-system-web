@@ -1,10 +1,16 @@
-import React from 'react';
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Search, Filter } from "lucide-react";
-import { FilterState } from '../../hooks/useJobs';
+import { FilterState } from "../../hooks/useJobs";
 
 interface JobFiltersProps {
   filters: FilterState;
@@ -13,7 +19,12 @@ interface JobFiltersProps {
   onFilterChange: (key: keyof FilterState, value: string) => void;
 }
 
-export function JobFilters({ filters, totalJobs, filteredCount, onFilterChange }: JobFiltersProps) {
+export function JobFilters({
+  filters,
+  totalJobs,
+  filteredCount,
+  onFilterChange,
+}: JobFiltersProps) {
   return (
     <Card className="mb-6">
       <CardHeader>
@@ -32,7 +43,7 @@ export function JobFilters({ filters, totalJobs, filteredCount, onFilterChange }
               <Input
                 placeholder="Search by title, description..."
                 value={filters.search}
-                onChange={(e) => onFilterChange('search', e.target.value)}
+                onChange={(e) => onFilterChange("search", e.target.value)}
                 className="pl-10"
               />
             </div>
@@ -41,14 +52,18 @@ export function JobFilters({ filters, totalJobs, filteredCount, onFilterChange }
           {/* Status Filter */}
           <div className="space-y-2">
             <Label>Job Status</Label>
-            <Select 
-              value={filters.status} 
-              onValueChange={(value: 'all' | 'active' | 'inactive') => 
-                onFilterChange('status', value)
+            <Select
+              value={
+                ["all", "active", "inactive"].includes(filters.status)
+                  ? filters.status
+                  : "all"
+              }
+              onValueChange={(value: "all" | "active" | "inactive") =>
+                onFilterChange("status", value)
               }
             >
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Jobs</SelectItem>
@@ -64,17 +79,17 @@ export function JobFilters({ filters, totalJobs, filteredCount, onFilterChange }
             <Input
               placeholder="Filter by location..."
               value={filters.location}
-              onChange={(e) => onFilterChange('location', e.target.value)}
+              onChange={(e) => onFilterChange("location", e.target.value)}
             />
           </div>
 
           {/* Sort By */}
           <div className="space-y-2">
             <Label>Sort By</Label>
-            <Select 
-              value={filters.sortBy} 
-              onValueChange={(value: 'date' | 'title' | 'applications') => 
-                onFilterChange('sortBy', value)
+            <Select
+              value={filters.sortBy}
+              onValueChange={(value: "date" | "title" | "applications") =>
+                onFilterChange("sortBy", value)
               }
             >
               <SelectTrigger>
@@ -91,10 +106,10 @@ export function JobFilters({ filters, totalJobs, filteredCount, onFilterChange }
           {/* Sort Order */}
           <div className="space-y-2">
             <Label>Sort Order</Label>
-            <Select 
-              value={filters.sortOrder} 
-              onValueChange={(value: 'asc' | 'desc') => 
-                onFilterChange('sortOrder', value)
+            <Select
+              value={filters.sortOrder}
+              onValueChange={(value: "asc" | "desc") =>
+                onFilterChange("sortOrder", value)
               }
             >
               <SelectTrigger>

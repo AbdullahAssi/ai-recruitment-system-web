@@ -10,6 +10,10 @@ export const getStatusColor = (status: string) => {
       return "bg-purple-100 text-purple-800 border-purple-200";
     case "rejected":
       return "bg-red-100 text-red-800 border-red-200";
+    case "quiz_pending":
+      return "bg-purple-100 text-purple-800 border-purple-200";
+    case "quiz_completed":
+      return "bg-indigo-100 text-indigo-800 border-indigo-200";
     default:
       return "bg-gray-100 text-gray-800 border-gray-200";
   }
@@ -29,7 +33,7 @@ export const parseJsonField = (jsonString: string | undefined) => {
     if (!parsed || !Array.isArray(parsed)) return [];
     // Filter out null, undefined, or empty strings
     return parsed.filter(
-      (item) => item !== null && item !== undefined && item !== ""
+      (item) => item !== null && item !== undefined && item !== "",
     );
   } catch {
     return [];
@@ -52,8 +56,7 @@ export const parseWorkExperienceField = (jsonString: string | undefined) => {
       if (typeof item === "string" && item.trim() !== "") return true;
 
       // If it's an object, check if it has meaningful content
-      if (typeof item === "object" && Object.keys(item).length > 0)
-        return true;
+      if (typeof item === "object" && Object.keys(item).length > 0) return true;
 
       return false;
     });
