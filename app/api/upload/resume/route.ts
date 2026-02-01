@@ -91,13 +91,13 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Create resume record
+    // Create resume record - FastAPI will handle text extraction and parsing during scoring
     const resume = await prisma.resume.create({
       data: {
         candidateId: candidate.id,
         filePath: filePath,
         fileName: file.name || "unknown",
-        extractedText: "", // Will be processed by AI
+        extractedText: "", // FastAPI will extract when needed
       },
     });
 
@@ -109,33 +109,6 @@ export async function POST(request: NextRequest) {
           primaryResumeId: resume.id,
         },
       });
-    }
-
-    // Trigger AI processing asynchronously (don't wait for completion)
-    try {
-      // Call AI processing API
-      const aiProcessUrl = `${
-        process.env.NEXTAUTH_URL || "http://localhost:3000"
-      }/api/ai/process`;
-
-      fetch(aiProcessUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          resumeId: resume.id,
-          jobId: isJobSpecific ? jobId : undefined,
-        }),
-      }).catch((error) => {
-        console.error("AI processing failed:", error);
-        // Continue with normal flow even if AI processing fails
-      });
-
-      console.log(`🤖 AI processing initiated for resume ${resume.id}`);
-    } catch (aiError) {
-      console.error("Failed to initiate AI processing:", aiError);
-      // Continue with normal flow
     }
 
     return NextResponse.json({

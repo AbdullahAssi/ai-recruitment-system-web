@@ -69,6 +69,8 @@ export function FiltersCard({
                 <SelectItem value="reviewed">Reviewed</SelectItem>
                 <SelectItem value="shortlisted">Shortlisted</SelectItem>
                 <SelectItem value="rejected">Rejected</SelectItem>
+                <SelectItem value="quiz_pending">Quiz Pending</SelectItem>
+                <SelectItem value="quiz_completed">Quiz Completed</SelectItem>
               </SelectContent>
             </Select>
           </div>

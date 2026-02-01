@@ -1,34 +1,34 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
   extensions = [vector]
 }
 
 // User Model for Authentication
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  password      String    // Hashed password
-  role          UserRole  @default(CANDIDATE)
-  name          String
-  phone         String?
-  isActive      Boolean   @default(true)
-  isVerified    Boolean   @default(false)
+  id                String    @id @default(cuid())
+  email             String    @unique
+  password          String // Hashed password
+  role              UserRole  @default(CANDIDATE)
+  name              String
+  phone             String?
+  isActive          Boolean   @default(true)
+  isVerified        Boolean   @default(false)
   verificationToken String?
-  resetToken    String?
-  resetTokenExpiry DateTime?
-  lastLogin     DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
+  resetToken        String?
+  resetTokenExpiry  DateTime?
+  lastLogin         DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
   // Relations
-  candidate     Candidate?
-  hrProfile     HRProfile?
+  candidate Candidate?
+  hrProfile HRProfile?
 
   @@index([email])
   @@map("users")
@@ -36,25 +36,25 @@ model User {
 
 // Company Model
 model Company {
-  id              String    @id @default(cuid())
-  name            String
-  description     String?
-  logo            String?   // URL to company logo
-  website         String?
-  industry        String?
-  size            String?   // e.g., "1-10", "11-50", "51-200", "201-500", "500+"
-  location        String?
-  foundedYear     Int?
-  email           String?
-  phone           String?
-  linkedin        String?
-  twitter         String?
-  isVerified      Boolean   @default(false)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  
-  hrProfiles      HRProfile[]
-  jobs            Job[]
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  logo        String? // URL to company logo
+  website     String?
+  industry    String?
+  size        String? // e.g., "1-10", "11-50", "51-200", "201-500", "500+"
+  location    String?
+  foundedYear Int?
+  email       String?
+  phone       String?
+  linkedin    String?
+  twitter     String?
+  isVerified  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  hrProfiles HRProfile[]
+  jobs       Job[]
 
   @@map("companies")
 }
@@ -63,24 +63,24 @@ model Company {
 model HRProfile {
   id          String   @id @default(cuid())
   userId      String   @unique
-  companyId   String?  // Link to company
+  companyId   String? // Link to company
   department  String?
   position    String?
-  permissions Json?    // Store specific permissions
+  permissions Json? // Store specific permissions
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  company     Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
 
   @@map("hr_profiles")
 }
 
 model Candidate {
-  id              String           @id @default(cuid())
-  userId          String?          @unique  // Link to User for authentication
+  id              String                       @id @default(cuid())
+  userId          String?                      @unique // Link to User for authentication
   name            String
-  email           String           @unique
+  email           String                       @unique
   experience      Int?
   phone           String?
   location        String?
@@ -88,11 +88,11 @@ model Candidate {
   linkedinUrl     String?
   githubUrl       String?
   portfolioUrl    String?
-  primaryResumeId String?          @unique  // ID of the primary/default resume for quick apply
-  embedding       Unsupported("vector(1536)")?  // Vector embedding for semantic matching
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  
+  primaryResumeId String?                      @unique // ID of the primary/default resume for quick apply
+  embedding       Unsupported("vector(1536)")? // Vector embedding for semantic matching
+  createdAt       DateTime                     @default(now())
+  updatedAt       DateTime                     @updatedAt
+
   // Relations
   user            User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
   primaryResume   Resume?          @relation("PrimaryResume", fields: [primaryResumeId], references: [id], onDelete: SetNull)
@@ -108,71 +108,71 @@ model Candidate {
 }
 
 model Resume {
-  id                  String    @id @default(cuid())
-  candidateId         String
-  filePath            String
-  fileName            String
-  extractedText       String?
-  uploadDate          DateTime  @default(now())
-  certifications_json String?
-  email               String?
-  experience_json     String?
-  filename            String?
-  github              String?
-  linkedin            String?
-  name                String?
-  projects_json       String?
-  skills_json         String?
-  phone               String?
-  education_level     String?
-  experience_years    Int?
-  summary             String?
-  embedding           Unsupported("vector(1536)")?  // Vector embedding for semantic matching
-  cvScores            CvScore[]
-  candidate           Candidate @relation("CandidateResumes", fields: [candidateId], references: [id], onDelete: Cascade)
-  primaryForCandidate Candidate? @relation("PrimaryResume")
-  applicationsUsingThis Application[] @relation("ApplicationResume")
+  id                    String                       @id @default(cuid())
+  candidateId           String
+  filePath              String
+  fileName              String
+  extractedText         String?
+  uploadDate            DateTime                     @default(now())
+  certifications_json   String?
+  email                 String?
+  experience_json       String?
+  filename              String?
+  github                String?
+  linkedin              String?
+  name                  String?
+  projects_json         String?
+  skills_json           String?
+  phone                 String?
+  education_level       String?
+  experience_years      Int?
+  summary               String?
+  embedding             Unsupported("vector(1536)")? // Vector embedding for semantic matching
+  cvScores              CvScore[]
+  candidate             Candidate                    @relation("CandidateResumes", fields: [candidateId], references: [id], onDelete: Cascade)
+  primaryForCandidate   Candidate?                   @relation("PrimaryResume")
+  applicationsUsingThis Application[]                @relation("ApplicationResume")
 
   @@map("resumes")
 }
 
 model CvScore {
-  id            String      @id @default(cuid())
+  id            String       @id @default(cuid())
   resumeId      String
   jobId         String?
-  applicationId String?     @unique
+  applicationId String?      @unique
   score         Int?
   explanation   String?
-  skillsMatch   Json?       // Detailed skill matching analysis
-  requirements  Json?       // Requirements analysis
-  scoredAt      DateTime    @default(now())
-  resume        Resume      @relation(fields: [resumeId], references: [id], onDelete: Cascade)
-  job           Job?        @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  skillsMatch   Json? // Detailed skill matching analysis
+  requirements  Json? // Requirements analysis
+  scoredAt      DateTime     @default(now())
+  resume        Resume       @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  job           Job?         @relation(fields: [jobId], references: [id], onDelete: Cascade)
   application   Application? @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   @@map("cv_scores")
 }
 
 model Job {
-  id           String         @id @default(cuid())
-  title        String
-  description  String
-  location     String?
-  companyId    String?        // Link to company
-  company      String?        // Kept for backward compatibility, will be deprecated
-  requirements String?
+  id               String                       @id @default(cuid())
+  title            String
+  description      String
+  location         String?
+  companyId        String? // Link to company
+  company          String? // Kept for backward compatibility, will be deprecated
+  requirements     String?
   responsibilities String?
-  isActive     Boolean        @default(true)
-  postedDate   DateTime       @default(now())
-  embedding    Unsupported("vector(1536)")?  // Vector embedding for semantic matching
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  applications Application[]
-  emailHistory EmailHistory[]
-  jobSkills    JobSkill[]
-  cvScores     CvScore[]      // Scores for this job
-  quizzes      Quiz[]
-  companyInfo  Company?       @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  isActive         Boolean                      @default(true)
+  postedDate       DateTime                     @default(now())
+  embedding        Unsupported("vector(1536)")? // Vector embedding for semantic matching
+  createdAt        DateTime                     @default(now())
+  updatedAt        DateTime                     @updatedAt
+  applications     Application[]
+  emailHistory     EmailHistory[]
+  jobSkills        JobSkill[]
+  cvScores         CvScore[] // Scores for this job
+  quizzes          Quiz[]
+  companyInfo      Company?                     @relation(fields: [companyId], references: [id], onDelete: SetNull)
 
   @@map("jobs")
 }
@@ -189,18 +189,21 @@ model JobSkill {
 }
 
 model Application {
-  id          String            @id @default(cuid())
-  candidateId String
-  jobId       String
-  resumeId    String?           // The specific resume used for this application (primary or job-specific)
-  score       Float?
-  status      ApplicationStatus @default(PENDING)
-  appliedAt   DateTime          @default(now())
-  candidate   Candidate         @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  job         Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  resume      Resume?           @relation("ApplicationResume", fields: [resumeId], references: [id], onDelete: SetNull)
-  cvScore     CvScore?          // AI scoring result for this application
-  feedback    Feedback[]        // Feedback on AI predictions for this application
+  id            String            @id @default(cuid())
+  candidateId   String
+  jobId         String
+  resumeId      String? // The specific resume used for this application (primary or job-specific)
+  score         Float?
+  status        ApplicationStatus @default(PENDING)
+  quizRequired  Boolean           @default(true) // Whether quiz is required for this application
+  quizCompleted Boolean           @default(false) // Whether candidate completed the quiz
+  appliedAt     DateTime          @default(now())
+  candidate     Candidate         @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  job           Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  resume        Resume?           @relation("ApplicationResume", fields: [resumeId], references: [id], onDelete: SetNull)
+  cvScore       CvScore? // AI scoring result for this application
+  feedback      Feedback[] // Feedback on AI predictions for this application
+  quizAttempt   QuizAttempt? // Quiz attempt for this application
 
   @@unique([candidateId, jobId])
   @@index([resumeId])
@@ -264,6 +267,8 @@ model EmailHistory {
 
 enum ApplicationStatus {
   PENDING
+  QUIZ_PENDING
+  QUIZ_COMPLETED
   REVIEWED
   SHORTLISTED
   REJECTED
@@ -302,72 +307,78 @@ enum UserRole {
 
 // Quiz Model for Job-specific Assessments
 model Quiz {
-  id          String        @id @default(cuid())
-  jobId       String
-  title       String
-  description String?
-  duration    Int?          // Duration in minutes
-  passingScore Float        @default(70.0)  // Percentage required to pass
-  isActive    Boolean       @default(true)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  
-  job         Job           @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  questions   Question[]
-  attempts    QuizAttempt[]
+  id           String   @id @default(cuid())
+  jobId        String
+  title        String
+  description  String?
+  duration     Int? // Duration in minutes
+  passingScore Float    @default(70.0) // Percentage required to pass
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  job       Job           @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  questions Question[]
+  attempts  QuizAttempt[]
 
   @@map("quizzes")
 }
 
 // Question Model for Quiz Questions
 model Question {
-  id            String   @id @default(cuid())
+  id            String       @id @default(cuid())
   quizId        String
   questionText  String
   questionType  QuestionType @default(MULTIPLE_CHOICE)
-  options       Json?    // Array of options for multiple choice/checkbox
-  correctAnswer Json     // Correct answer(s)
-  points        Int      @default(1)
-  order         Int      @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
-  quiz          Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  options       Json? // Array of options for multiple choice/checkbox
+  correctAnswer Json // Correct answer(s)
+  points        Int          @default(1)
+  order         Int          @default(0)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
 
   @@map("questions")
 }
 
 // QuizAttempt Model for Tracking Candidate Quiz Submissions
 model QuizAttempt {
-  id          String   @id @default(cuid())
-  quizId      String
-  candidateId String
-  answers     Json     // Candidate's answers
-  score       Float?   // Score achieved
-  passed      Boolean  @default(false)
-  startedAt   DateTime @default(now())
-  completedAt DateTime?
-  
-  quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  id             String    @id @default(cuid())
+  quizId         String
+  candidateId    String
+  applicationId  String?   @unique // Link to application
+  questions      Json // Store generated questions
+  answers        Json // Candidate's answers
+  score          Float? // Score achieved
+  passed         Boolean   @default(false)
+  totalQuestions Int       @default(0)
+  correctAnswers Int       @default(0)
+  startedAt      DateTime  @default(now())
+  completedAt    DateTime?
+  timeSpent      Int? // Time spent in seconds
+
+  quiz        Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  candidate   Candidate    @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  application Application? @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   @@map("quiz_attempts")
 }
 
 // Feedback Model for Capturing User Corrections on AI Predictions
 model Feedback {
-  id              String       @id @default(cuid())
-  applicationId   String
-  candidateId     String
-  feedbackType    FeedbackType
-  aiPrediction    Json         // Original AI prediction/score
-  userCorrection  Json         // User's correction/actual outcome
-  notes           String?
-  isUsedForTraining Boolean    @default(false)  // Flag for using in model retraining
-  createdAt       DateTime     @default(now())
-  
-  application     Application  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  candidate       Candidate    @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  id                String       @id @default(cuid())
+  applicationId     String
+  candidateId       String
+  feedbackType      FeedbackType
+  aiPrediction      Json // Original AI prediction/score
+  userCorrection    Json // User's correction/actual outcome
+  notes             String?
+  isUsedForTraining Boolean      @default(false) // Flag for using in model retraining
+  createdAt         DateTime     @default(now())
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  candidate   Candidate   @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
   @@map("feedback")
 }
@@ -381,8 +392,8 @@ enum QuestionType {
 }
 
 enum FeedbackType {
-  SCORE_CORRECTION      // When AI score doesn't match actual evaluation
+  SCORE_CORRECTION // When AI score doesn't match actual evaluation
   SKILL_MATCH_CORRECTION // When skill matching is incorrect
-  STATUS_CORRECTION     // When predicted outcome differs from actual
-  GENERAL              // General feedback
+  STATUS_CORRECTION // When predicted outcome differs from actual
+  GENERAL // General feedback
 }

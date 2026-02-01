@@ -27,6 +27,7 @@ import {
   getScoreBadgeColor,
   getApplicationBorderColor,
   downloadResume,
+  formatStatusText,
 } from "../../lib/applicationUtil";
 import { useToast } from "@/hooks/use-toast";
 
@@ -205,7 +206,7 @@ export function ApplicationCard({
                   application.status,
                 )} shadow-sm font-medium`}
               >
-                {application.status}
+                {formatStatusText(application.status)}
               </Badge>
             </div>
 
@@ -393,6 +394,8 @@ export function ApplicationCard({
                 <SelectItem value="REVIEWED">Reviewed</SelectItem>
                 <SelectItem value="SHORTLISTED">Shortlisted</SelectItem>
                 <SelectItem value="REJECTED">Rejected</SelectItem>
+                <SelectItem value="QUIZ_PENDING">Quiz Pending</SelectItem>
+                <SelectItem value="QUIZ_COMPLETED">Quiz Completed</SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -158,34 +158,8 @@ export default function JobDetailPage() {
       return;
     }
 
-    try {
-      // Check for quiz first
-      const quizCheckResponse = await fetch(`/api/jobs/${jobId}/quiz`);
-      if (quizCheckResponse.ok) {
-        const quizData = await quizCheckResponse.json();
-        // If quiz exists and hasn't been passed (or strictly if it exists, depending on reqs)
-        if (quizData.quiz && !quizData.hasAttempted) {
-          toast({
-            title: "Quiz Required",
-            description:
-              "You must complete the skill quiz to apply for this position.",
-          });
-          router.push(
-            `/candidates/quizzes/${quizData.quiz.id}/start?jobId=${jobId}`,
-          );
-          return;
-        }
-      }
-
-      // Open application dialog
-      setShowApplicationDialog(true);
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to start application",
-        variant: "destructive",
-      });
-    }
+    // Open application dialog directly - quiz happens after submission
+    setShowApplicationDialog(true);
   };
 
   if (loading) {

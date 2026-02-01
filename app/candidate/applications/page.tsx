@@ -5,13 +5,27 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText, Briefcase, MapPin, Calendar, Loader2 } from "lucide-react";
+import {
+  FileText,
+  Briefcase,
+  MapPin,
+  Calendar,
+  Loader2,
+  ClipboardList,
+} from "lucide-react";
 import Link from "next/link";
 
 interface Application {
   id: string;
   status: string;
   appliedAt: string;
+  score?: number;
+  quizCompleted?: boolean;
+  quizAttempt?: {
+    score: number | null;
+    passed: boolean;
+    completedAt: Date | null;
+  } | null;
   job: {
     id: string;
     title: string;
@@ -59,7 +73,10 @@ export default function CandidateApplicationsPage() {
       case "rejected":
         return "destructive";
       case "interview":
+      case "quiz_pending":
         return "secondary";
+      case "quiz_completed":
+        return "outline";
       default:
         return "outline";
     }
@@ -112,38 +129,92 @@ export default function CandidateApplicationsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {applications.map((application) => (
             <Card
               key={application.id}
-              className="hover:shadow-md transition-shadow"
+              className="hover:shadow-md transition-shadow flex flex-col"
             >
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <Link
-                      href={`/candidate/jobs/${application.job.id}`}
-                      className="hover:underline"
-                    >
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {application.job.title}
-                      </h3>
-                    </Link>
-                    <div className="mt-2 space-y-1 text-sm text-gray-600">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4" />
-                        {application.job.location}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4" />
-                        Applied on {formatDate(application.appliedAt)}
-                      </div>
-                    </div>
-                  </div>
-                  <Badge variant={getStatusBadgeVariant(application.status)}>
+              <CardContent className="p-6 flex-1 flex flex-col">
+                <div className="flex justify-between items-start mb-3 gap-2">
+                  <Link
+                    href={`/candidate/jobs/${application.job.id}`}
+                    className="hover:underline flex-1"
+                  >
+                    <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
+                      {application.job.title}
+                    </h3>
+                  </Link>
+                  <Badge
+                    variant={getStatusBadgeVariant(application.status)}
+                    className="shrink-0"
+                  >
                     {application.status?.replace(/_/g, " ") || "Pending"}
                   </Badge>
                 </div>
+
+                <div className="space-y-2 text-sm text-gray-600 mb-4 flex-1">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 shrink-0" />
+                    <span className="truncate">{application.job.location}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 shrink-0" />
+                    <span>Applied on {formatDate(application.appliedAt)}</span>
+                  </div>
+                  {application.score !== undefined && (
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 shrink-0" />
+                      <span>
+                        Match Score:{" "}
+                        <span
+                          className={`font-semibold ${
+                            application.score >= 80
+                              ? "text-green-600"
+                              : application.score >= 60
+                                ? "text-yellow-600"
+                                : "text-orange-600"
+                          }`}
+                        >
+                          {application.score}%
+                        </span>
+                      </span>
+                    </div>
+                  )}
+                  {application.quizAttempt?.completedAt &&
+                    application.quizAttempt?.score !== null && (
+                      <div className="flex items-center gap-2">
+                        <ClipboardList className="w-4 h-4 shrink-0" />
+                        <span>
+                          Quiz Score:{" "}
+                          <span
+                            className={`font-semibold ${
+                              application.quizAttempt.passed
+                                ? "text-green-600"
+                                : "text-red-600"
+                            }`}
+                          >
+                            {application.quizAttempt.score}%
+                          </span>
+                        </span>
+                      </div>
+                    )}
+                </div>
+
+                {/* Quiz Action Button */}
+                {application.status === "QUIZ_PENDING" && (
+                  <div className="mt-auto pt-3 border-t">
+                    <Link href={`/candidate/quiz/${application.id}`}>
+                      <Button
+                        size="sm"
+                        className="bg-purple-600 hover:bg-purple-700 w-full"
+                      >
+                        <ClipboardList className="w-4 h-4 mr-2" />
+                        Take Quiz Assessment
+                      </Button>
+                    </Link>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}
