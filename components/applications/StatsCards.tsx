@@ -6,8 +6,8 @@ interface StatsCardsProps {
     reviewed: number;
     shortlisted: number;
     rejected: number;
-    averageScore: number;
-    highPerformers: number;
+    averageScore?: number;
+    highPerformers?: number;
   };
 }
 

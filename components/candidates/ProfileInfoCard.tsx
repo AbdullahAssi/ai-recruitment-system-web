@@ -2,16 +2,18 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  User,
-  Mail,
-  Phone,
-  Calendar,
-  Briefcase,
-  ExternalLink,
-  Github,
-  Linkedin,
-  GraduationCap,
-} from "lucide-react";
+  FaUser,
+  FaExternalLinkAlt,
+  FaGithub,
+  FaLinkedin,
+  FaGraduationCap,
+} from "react-icons/fa";
+import {
+  HiOutlineMail,
+  HiOutlinePhone,
+  HiOutlineCalendar,
+  HiOutlineBriefcase,
+} from "react-icons/hi";
 import { format } from "date-fns";
 import { CandidateProfile, CandidateResume } from "../../hooks/useCandidates";
 
@@ -28,9 +30,9 @@ export function ProfileInfoCard({
     <Card className="mb-6 shadow-lg">
       <CardContent className="p-6">
         <div className="flex items-start gap-6">
-          <div className="w-20 h-20 bg-gradient-to-br from-purple-300 to-blue-300 rounded-full flex items-center justify-center">
+          {/* <div className="w-20 h-20 bg-gradient-to-br from-blue-300 to-blue-300 rounded-full flex items-center justify-center">
             <User className="w-10 h-10 text-white" />
-          </div>
+          </div> */}
 
           <div className="flex-1">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -39,25 +41,25 @@ export function ProfileInfoCard({
 
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-600">
               <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4" />
+                <HiOutlineMail className="w-5 h-5" />
                 {latestResume?.email || candidate.email}
               </div>
 
               {latestResume?.phone && (
                 <div className="flex items-center gap-2">
-                  <Phone className="w-4 h-4" />
+                  <HiOutlinePhone className="w-5 h-5" />
                   {latestResume.phone}
                 </div>
               )}
 
               <div className="flex items-center gap-2">
-                <Briefcase className="w-4 h-4" />
+                <HiOutlineBriefcase className="w-5 h-5" />
                 {latestResume?.experience_years || candidate.experience} years
                 experience
               </div>
 
               <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
+                <HiOutlineCalendar className="w-5 h-5" />
                 Joined {format(new Date(candidate.createdAt), "MMM yyyy")}
               </div>
             </div>
@@ -71,9 +73,9 @@ export function ProfileInfoCard({
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm hover:bg-blue-200 transition-colors"
                 >
-                  <Linkedin className="w-4 h-4" />
+                  <FaLinkedin className="w-4 h-4" />
                   LinkedIn
-                  <ExternalLink className="w-3 h-3" />
+                  <FaExternalLinkAlt className="w-3 h-3" />
                 </a>
               )}
 
@@ -84,9 +86,9 @@ export function ProfileInfoCard({
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200 transition-colors"
                 >
-                  <Github className="w-4 h-4" />
+                  <FaGithub className="w-4 h-4" />
                   GitHub
-                  <ExternalLink className="w-3 h-3" />
+                  <FaExternalLinkAlt className="w-3 h-3" />
                 </a>
               )}
             </div>
@@ -96,7 +98,7 @@ export function ProfileInfoCard({
               latestResume.education_level !== "Unknown" && (
                 <div className="mt-3">
                   <Badge variant="secondary" className="px-3 py-1">
-                    <GraduationCap className="w-3 h-3 mr-1" />
+                    <FaGraduationCap className="w-3 h-3 mr-1" />
                     {latestResume.education_level}
                   </Badge>
                 </div>
@@ -106,8 +108,8 @@ export function ProfileInfoCard({
           {/* Quick Stats */}
           <div className="text-right">
             <div className="grid grid-cols-1 gap-2 text-center">
-              <div className="bg-purple-50 p-3 rounded-lg">
-                <div className="text-2xl font-bold text-purple-600">
+              <div className="bg-blue-50 p-3 rounded-lg">
+                <div className="text-2xl font-bold text-blue-600">
                   {candidate.applications.length}
                 </div>
                 <div className="text-xs text-gray-600">Applications</div>

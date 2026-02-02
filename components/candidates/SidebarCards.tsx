@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Award, Clock, FileText, Download } from "lucide-react";
+import { FaAward, FaClock, FaFileAlt, FaDownload } from "react-icons/fa";
 import { format } from "date-fns";
 import { CandidateProfile, CandidateResume } from "../../hooks/useCandidates";
 import { parseJsonField } from "../../lib/candidateUtils";
@@ -28,7 +28,7 @@ export function SidebarCards({
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Award className="w-5 h-5 text-purple-600" />
+            <FaAward className="w-5 h-5 text-purple-600" />
             Certifications ({certifications.length} found)
           </CardTitle>
         </CardHeader>
@@ -69,7 +69,7 @@ export function SidebarCards({
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Clock className="w-5 h-5 text-purple-600" />
+            <FaClock className="w-5 h-5 text-purple-600" />
             Application History
           </CardTitle>
         </CardHeader>
@@ -119,7 +119,7 @@ export function SidebarCards({
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5 text-purple-600" />
+            <FaFileAlt className="w-5 h-5 text-purple-600" />
             Resume Files
           </CardTitle>
         </CardHeader>
@@ -143,7 +143,7 @@ export function SidebarCards({
                   variant="outline"
                   onClick={() => onDownloadResume(resume.id, resume.fileName)}
                 >
-                  <Download className="w-3 h-3" />
+                  <FaDownload className="w-3 h-3" />
                 </Button>
               )}
             </div>

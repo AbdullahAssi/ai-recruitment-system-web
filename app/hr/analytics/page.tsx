@@ -134,7 +134,7 @@ const chartConfig = {
   },
   applications: {
     label: "Applications",
-    color: "#8b5cf6",
+    color: "#0a66c2",
   },
   candidates: {
     label: "Candidates",
@@ -543,7 +543,7 @@ export default function AnalyticsPage() {
                     <ChartTooltip content={<ChartTooltipContent />} />
                     <Bar
                       dataKey="applicationCount"
-                      fill="#8b5cf6"
+                      fill="#0a66c2"
                       radius={[4, 4, 0, 0]}
                       name="Applications"
                     />

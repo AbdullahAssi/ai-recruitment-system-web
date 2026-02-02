@@ -3,10 +3,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  ArrowUpRight,
-  ArrowDownRight,
-} from "lucide-react";
+import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 import {
   FaBriefcase,
   FaUserTie,
@@ -86,7 +83,7 @@ export default function HRPage() {
   const statusColors: Record<string, string> = {
     PENDING: "#F59E0B",
     REVIEWED: "#06B6D4",
-    SHORTLISTED: "#8B5CF6",
+    SHORTLISTED: "#0a66c2",
     INTERVIEW: "#10B981",
     REJECTED: "#EF4444",
     ACCEPTED: "#059669",
@@ -95,81 +92,93 @@ export default function HRPage() {
   // Mixed Chart Options (Applications Trend - Column + Line)
   const mixedChartOptions = {
     chart: {
-      type: 'line' as const,
+      type: "line" as const,
       height: 300,
-      fontFamily: 'inherit',
+      fontFamily: "inherit",
       toolbar: { show: false },
       zoom: { enabled: false },
     },
     stroke: {
       width: [0, 3],
-      curve: 'smooth' as const,
+      curve: "smooth" as const,
     },
     fill: {
       opacity: [0.85, 1],
       gradient: {
         inverseColors: false,
-        shade: 'light',
+        shade: "light",
         type: "vertical",
         opacityFrom: 0.85,
         opacityTo: 0.55,
-        stops: [0, 100]
-      }
+        stops: [0, 100],
+      },
     },
-    colors: ['#8B5CF6', '#06B6D4'],
+    colors: ["#0a66c2", "#06B6D4"],
     plotOptions: {
       bar: {
-        columnWidth: '50%',
+        columnWidth: "50%",
         borderRadius: 4,
-      }
+      },
     },
     dataLabels: {
       enabled: true,
       enabledOnSeries: [1],
       style: {
-        fontSize: '10px',
-        colors: ['#fff']
+        fontSize: "10px",
+        colors: ["#fff"],
       },
       background: {
         enabled: true,
-        foreColor: '#06B6D4',
+        foreColor: "#06B6D4",
         borderRadius: 2,
         padding: 4,
         opacity: 0.9,
-      }
+      },
     },
-    labels: dashboardData?.applicationsTrend?.map((item) => 
-      new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-    ) || [],
+    labels:
+      dashboardData?.applicationsTrend?.map((item) =>
+        new Date(item.date).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        }),
+      ) || [],
     xaxis: {
       labels: {
         style: {
-          colors: '#6B7280',
-          fontSize: '11px'
+          colors: "#6B7280",
+          fontSize: "11px",
         },
         rotate: -45,
       },
     },
-    yaxis: [{
-      title: { text: 'Applications', style: { color: '#6B7280', fontSize: '12px' } },
-      labels: {
-        style: { colors: '#6B7280', fontSize: '12px' },
-        formatter: (val: number) => Math.floor(val).toString(),
+    yaxis: [
+      {
+        title: {
+          text: "Applications",
+          style: { color: "#6B7280", fontSize: "12px" },
+        },
+        labels: {
+          style: { colors: "#6B7280", fontSize: "12px" },
+          formatter: (val: number) => Math.floor(val).toString(),
+        },
       },
-    }],
+    ],
     grid: {
-      borderColor: '#E5E7EB',
+      borderColor: "#E5E7EB",
       strokeDashArray: 4,
     },
     legend: {
-      position: 'top' as const,
-      horizontalAlign: 'right' as const,
-      fontSize: '13px',
-      markers: { width: 10, height: 10, radius: 12 },
-      itemMargin: { horizontal: 10 }
+      position: "top" as const,
+      horizontalAlign: "right" as const,
+      fontSize: "13px",
+      markers: {
+        size: 10,
+        shape: "circle" as const,
+      },
+      itemMargin: { horizontal: 10 },
     },
     tooltip: {
-      theme: 'light',
+      theme: "light",
       shared: true,
       intersect: false,
     },
@@ -177,23 +186,27 @@ export default function HRPage() {
 
   const mixedChartSeries = [
     {
-      name: 'Daily Count',
-      type: 'column' as const,
-      data: dashboardData?.applicationsTrend?.map((item) => Number(item.count)) || [],
+      name: "Daily Count",
+      type: "column" as const,
+      data:
+        dashboardData?.applicationsTrend?.map((item) => Number(item.count)) ||
+        [],
     },
     {
-      name: 'Trend',
-      type: 'line' as const,
-      data: dashboardData?.applicationsTrend?.map((item) => Number(item.count)) || [],
-    }
+      name: "Trend",
+      type: "line" as const,
+      data:
+        dashboardData?.applicationsTrend?.map((item) => Number(item.count)) ||
+        [],
+    },
   ];
 
   // Radial Bar Chart Options (Applications by Status)
   const radialChartOptions = {
     chart: {
-      type: 'radialBar' as const,
+      type: "radialBar" as const,
       height: 350,
-      fontFamily: 'inherit',
+      fontFamily: "inherit",
     },
     plotOptions: {
       radialBar: {
@@ -202,155 +215,176 @@ export default function HRPage() {
         endAngle: 270,
         hollow: {
           margin: 5,
-          size: '30%',
-          background: 'transparent',
+          size: "30%",
+          background: "transparent",
         },
         dataLabels: {
           name: {
             show: true,
-            fontSize: '14px',
+            fontSize: "14px",
             fontWeight: 600,
-            color: '#6B7280',
-            offsetY: -10
+            color: "#6B7280",
+            offsetY: -10,
           },
           value: {
             show: true,
-            fontSize: '20px',
+            fontSize: "20px",
             fontWeight: 700,
-            color: '#111827',
+            color: "#111827",
             offsetY: 5,
             formatter: (val: number) => {
-              const total = dashboardData?.applicationsByStatus?.reduce((sum, item) => sum + item.count, 0) || 0;
+              const total =
+                dashboardData?.applicationsByStatus?.reduce(
+                  (sum, item) => sum + item.count,
+                  0,
+                ) || 0;
               const count = Math.round((val / 100) * total);
               return count.toString();
-            }
+            },
           },
           total: {
             show: true,
-            label: 'Total Apps',
-            fontSize: '14px',
+            label: "Total Apps",
+            fontSize: "14px",
             fontWeight: 600,
-            color: '#6B7280',
+            color: "#6B7280",
             formatter: () => {
-              const total = dashboardData?.applicationsByStatus?.reduce((sum, item) => sum + item.count, 0) || 0;
+              const total =
+                dashboardData?.applicationsByStatus?.reduce(
+                  (sum, item) => sum + item.count,
+                  0,
+                ) || 0;
               return total.toString();
-            }
-          }
+            },
+          },
         },
         track: {
-          background: '#E5E7EB',
-          strokeWidth: '100%',
+          background: "#E5E7EB",
+          strokeWidth: "100%",
           margin: 5,
-        }
-      }
+        },
+      },
     },
-    colors: dashboardData?.applicationsByStatus?.map((item) => 
-      statusColors[item.status] || '#8B5CF6'
-    ) || [],
-    labels: dashboardData?.applicationsByStatus?.map((item) => item.status) || [],
+    colors:
+      dashboardData?.applicationsByStatus?.map(
+        (item) => statusColors[item.status] || "#0a66c2",
+      ) || [],
+    labels:
+      dashboardData?.applicationsByStatus?.map((item) => item.status) || [],
     legend: {
       show: true,
-      position: 'right' as const,
+      position: "right" as const,
       offsetY: 40,
-      fontSize: '13px',
+      fontSize: "13px",
       fontWeight: 500,
       markers: {
-        width: 12,
-        height: 12,
-        radius: 12,
+        size: 12,
+        shape: "circle" as const,
       },
       itemMargin: {
-        vertical: 5
+        vertical: 5,
       },
       formatter: (seriesName: string, opts: any) => {
-        const count = dashboardData?.applicationsByStatus?.[opts.seriesIndex]?.count || 0;
+        const count =
+          dashboardData?.applicationsByStatus?.[opts.seriesIndex]?.count || 0;
         return `${seriesName}: ${count}`;
-      }
+      },
     },
     tooltip: {
       enabled: true,
-      theme: 'light',
+      theme: "light",
       y: {
         formatter: (value: number) => {
-          const total = dashboardData?.applicationsByStatus?.reduce((sum, item) => sum + item.count, 0) || 0;
+          const total =
+            dashboardData?.applicationsByStatus?.reduce(
+              (sum, item) => sum + item.count,
+              0,
+            ) || 0;
           const count = Math.round((value / 100) * total);
           return `${count} applications`;
-        }
-      }
-    }
+        },
+      },
+    },
   };
 
-  const radialChartSeries = dashboardData?.applicationsByStatus?.map((item) => {
-    const total = dashboardData?.applicationsByStatus?.reduce((sum, stat) => sum + stat.count, 0) || 1;
-    return Math.round((item.count / total) * 100);
-  }) || [];
+  const radialChartSeries =
+    dashboardData?.applicationsByStatus?.map((item) => {
+      const total =
+        dashboardData?.applicationsByStatus?.reduce(
+          (sum, stat) => sum + stat.count,
+          0,
+        ) || 1;
+      return Math.round((item.count / total) * 100);
+    }) || [];
 
   // Radar Chart Options (Top Skills)
   const radarChartOptions = {
     chart: {
-      type: 'radar' as const,
+      type: "radar" as const,
       height: 350,
-      fontFamily: 'inherit',
+      fontFamily: "inherit",
       toolbar: { show: false },
       dropShadow: {
         enabled: true,
         blur: 4,
         left: 0,
         top: 0,
-        opacity: 0.1
-      }
+        opacity: 0.1,
+      },
     },
-    colors: ['#8B5CF6'],
+    colors: ["#0a66c2"],
     stroke: {
       width: 2,
-      colors: ['#8B5CF6']
+      colors: ["#0a66c2"],
     },
     fill: {
       opacity: 0.2,
-      colors: ['#8B5CF6']
+      colors: ["#0a66c2"],
     },
     markers: {
       size: 4,
-      colors: ['#8B5CF6'],
-      strokeColors: '#fff',
+      colors: ["#0a66c2"],
+      strokeColors: "#fff",
       strokeWidth: 2,
       hover: {
-        size: 6
-      }
+        size: 6,
+      },
     },
     xaxis: {
       categories: dashboardData?.topSkills?.map((item) => item.skill) || [],
       labels: {
         show: true,
         style: {
-          colors: Array(10).fill('#6B7280'),
-          fontSize: '12px',
-          fontWeight: 600
-        }
-      }
+          colors: Array(10).fill("#6B7280"),
+          fontSize: "12px",
+          fontWeight: 600,
+        },
+      },
     },
     yaxis: {
       show: true,
       tickAmount: 4,
       labels: {
         style: {
-          colors: '#9CA3AF',
-          fontSize: '11px',
-        }
-      }
+          colors: "#9CA3AF",
+          fontSize: "11px",
+        },
+      },
     },
     tooltip: {
-      theme: 'light',
+      theme: "light",
       y: {
         formatter: (value: number) => `${value} candidates`,
-      }
+      },
     },
   };
 
-  const radarChartSeries = [{
-    name: 'Skill Frequency',
-    data: dashboardData?.topSkills?.map((item) => Number(item.count)) || [],
-  }];
+  const radarChartSeries = [
+    {
+      name: "Skill Frequency",
+      data: dashboardData?.topSkills?.map((item) => Number(item.count)) || [],
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -391,13 +425,13 @@ export default function HRPage() {
                 )}
               </p>
               <div className="flex items-center gap-2 mt-2">
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
                   {stats.activeJobs} Active
                 </span>
               </div>
             </div>
-            <div className="flex items-center justify-center w-14 h-14 rounded-full bg-purple-100 dark:bg-purple-900/30 group-hover:scale-110 transition-transform duration-300">
-              <FaBriefcase className="text-2xl text-purple-600 dark:text-purple-400" />
+            <div className="flex items-center justify-center w-14 h-14 rounded-full bg-blue-100 dark:bg-blue-900/30 group-hover:scale-110 transition-transform duration-300">
+              <FaBriefcase className="text-2xl text-blue-600 dark:text-blue-400" />
             </div>
           </div>
         </div>
@@ -489,52 +523,55 @@ export default function HRPage() {
       </div>
 
       {/* Charts Section */}
-      <div className="grid gap-4 md:gap-6 grid-cols-1 lg:grid-cols-2">
-        {/* Applications Trend Chart */}
-        <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 sm:p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30">
-              <FaChartLine className="text-xl text-purple-600 dark:text-purple-400" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Applications Trend
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Last 30 days
-              </p>
-            </div>
+      {/* Applications Trend Chart - Full Width */}
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 sm:p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+            <FaChartLine className="text-xl text-blue-600 dark:text-blue-400" />
           </div>
-          <div className="mt-4">
-            {loading ? (
-              <div className="h-64 flex items-center justify-center">
-                <div className="flex flex-col items-center gap-3">
-                  <div className="w-8 h-8 border-4 border-purple-200 dark:border-purple-900 border-t-purple-600 dark:border-t-purple-400 rounded-full animate-spin"></div>
-                  <p className="text-sm text-gray-400 dark:text-gray-500">
-                    Loading chart...
-                  </p>
-                </div>
-              </div>
-            ) : dashboardData?.applicationsTrend &&
-              dashboardData.applicationsTrend.length > 0 ? (
-              <div className="h-[300px]">
-                <Chart
-                  options={mixedChartOptions}
-                  series={mixedChartSeries}
-                  type="line"
-                  height="100%"
-                />
-              </div>
-            ) : (
-              <div className="h-64 flex flex-col items-center justify-center text-gray-400 dark:text-gray-500">
-                <FaChartLine className="text-4xl mb-3 opacity-50" />
-                <p className="text-sm">No data available</p>
-                <p className="text-xs mt-1">Data will appear once you receive applications</p>
-              </div>
-            )}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Applications Trend
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Last 30 days
+            </p>
           </div>
         </div>
+        <div className="mt-4">
+          {loading ? (
+            <div className="h-64 flex items-center justify-center">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-8 h-8 border-4 border-blue-200 dark:border-blue-900 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin"></div>
+                <p className="text-sm text-gray-400 dark:text-gray-500">
+                  Loading chart...
+                </p>
+              </div>
+            </div>
+          ) : dashboardData?.applicationsTrend &&
+            dashboardData.applicationsTrend.length > 0 ? (
+            <div className="h-[300px]">
+              <Chart
+                options={mixedChartOptions}
+                series={mixedChartSeries}
+                type="line"
+                height="100%"
+              />
+            </div>
+          ) : (
+            <div className="h-64 flex flex-col items-center justify-center text-gray-400 dark:text-gray-500">
+              <FaChartLine className="text-4xl mb-3 opacity-50" />
+              <p className="text-sm">No data available</p>
+              <p className="text-xs mt-1">
+                Data will appear once you receive applications
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
 
+      {/* Applications by Status and Top Skills - 6/6 Grid */}
+      <div className="grid gap-4 md:gap-6 grid-cols-1 lg:grid-cols-2">
         {/* Applications by Status */}
         <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 sm:p-6">
           <div className="flex items-center gap-3 mb-6">
@@ -574,225 +611,274 @@ export default function HRPage() {
               <div className="h-64 flex flex-col items-center justify-center text-gray-400 dark:text-gray-500">
                 <FaTrophy className="text-4xl mb-3 opacity-50" />
                 <p className="text-sm">No data available</p>
-                <p className="text-xs mt-1">Data will appear once you receive applications</p>
+                <p className="text-xs mt-1">
+                  Data will appear once you receive applications
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Top Skills Chart */}
+        <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 sm:p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-cyan-100 dark:bg-cyan-900/30">
+              <FaUsers className="text-xl text-cyan-600 dark:text-cyan-400" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Top Skills in Candidate Pool
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Most common skills among candidates
+              </p>
+            </div>
+          </div>
+          <div className="mt-4">
+            {loading ? (
+              <div className="h-64 flex items-center justify-center">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-8 h-8 border-4 border-cyan-200 dark:border-cyan-900 border-t-cyan-600 dark:border-t-cyan-400 rounded-full animate-spin"></div>
+                  <p className="text-sm text-gray-400 dark:text-gray-500">
+                    Loading chart...
+                  </p>
+                </div>
+              </div>
+            ) : dashboardData?.topSkills &&
+              dashboardData.topSkills.length > 0 ? (
+              <div className="h-[350px]">
+                <Chart
+                  options={radarChartOptions}
+                  series={radarChartSeries}
+                  type="radar"
+                  height="100%"
+                />
+              </div>
+            ) : (
+              <div className="h-64 flex flex-col items-center justify-center text-gray-400 dark:text-gray-500">
+                <FaUsers className="text-4xl mb-3 opacity-50" />
+                <p className="text-sm">No data available</p>
+                <p className="text-xs mt-1">
+                  Skills data will appear once candidates upload resumes
+                </p>
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Top Skills Chart */}
-      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 sm:p-6">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-cyan-100 dark:bg-cyan-900/30">
-            <FaUsers className="text-xl text-cyan-600 dark:text-cyan-400" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Top Skills in Candidate Pool
-            </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Most common skills among candidates
-            </p>
-          </div>
-        </div>
-        <div className="mt-4">
-          {loading ? (
-            <div className="h-64 flex items-center justify-center">
-              <div className="flex flex-col items-center gap-3">
-                <div className="w-8 h-8 border-4 border-cyan-200 dark:border-cyan-900 border-t-cyan-600 dark:border-t-cyan-400 rounded-full animate-spin"></div>
-                <p className="text-sm text-gray-400 dark:text-gray-500">
-                  Loading chart...
+      {/* Recent Activity and Quick Actions - 6/6 Grid */}
+      <div className="grid gap-4 md:gap-6 grid-cols-1 lg:grid-cols-2">
+        {/* Recent Activity Widget */}
+        <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 sm:p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                <FaClock className="text-xl text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Recent Activity
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Latest applications and updates
                 </p>
               </div>
             </div>
-          ) : dashboardData?.topSkills && dashboardData.topSkills.length > 0 ? (
-            <div className="h-[350px]">
-              <Chart
-                options={radarChartOptions}
-                series={radarChartSeries}
-                type="radar"
-                height="100%"
-              />
-            </div>
-          ) : (
-            <div className="h-64 flex flex-col items-center justify-center text-gray-400 dark:text-gray-500">
-              <FaUsers className="text-4xl mb-3 opacity-50" />
-              <p className="text-sm">No data available</p>
-              <p className="text-xs mt-1">Skills data will appear once candidates upload resumes</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Recent Activity Widget */}
-      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 sm:p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30">
-              <FaClock className="text-xl text-purple-600 dark:text-purple-400" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Recent Activity
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Latest applications and updates
-              </p>
-            </div>
+            <Link href="/hr/candidates">
+              <button className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium flex items-center gap-1">
+                View All
+                <ArrowUpRight className="w-4 h-4" />
+              </button>
+            </Link>
           </div>
-          <Link href="/hr/candidates">
-            <button className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium flex items-center gap-1">
-              View All
-              <ArrowUpRight className="w-4 h-4" />
-            </button>
-          </Link>
-        </div>
 
-        <div className="space-y-3">
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="flex flex-col items-center gap-3">
-                <div className="w-8 h-8 border-4 border-purple-200 dark:border-purple-900 border-t-purple-600 dark:border-t-purple-400 rounded-full animate-spin"></div>
-                <p className="text-sm text-gray-400 dark:text-gray-500">
-                  Loading activity...
-                </p>
-              </div>
-            </div>
-          ) : dashboardData?.recentActivity && dashboardData.recentActivity.length > 0 ? (
-            dashboardData.recentActivity.map((activity, index) => (
-              <div
-                key={activity.id}
-                className="flex items-start gap-4 p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 flex-shrink-0">
-                  <FaFileAlt className="text-purple-600 dark:text-purple-400" />
+          <div className="space-y-3 max-h-[420px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 dark:hover:scrollbar-thumb-gray-600">
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-8 h-8 border-4 border-blue-200 dark:border-blue-900 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin"></div>
+                  <p className="text-sm text-gray-400 dark:text-gray-500">
+                    Loading activity...
+                  </p>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">
-                        {activity.candidateName}
-                      </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        Applied for <span className="font-medium text-gray-900 dark:text-white">{activity.jobTitle}</span>
-                      </p>
-                    </div>
-                    <Badge
-                      className={`text-xs font-medium flex-shrink-0 ${
-                        activity.status === "PENDING"
-                          ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400"
-                          : activity.status === "REVIEWED"
-                          ? "bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-400"
-                          : activity.status === "SHORTLISTED"
-                          ? "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400"
-                          : activity.status === "REJECTED"
-                          ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
-                          : "bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-400"
-                      }`}
-                    >
-                      {activity.status}
-                    </Badge>
+              </div>
+            ) : dashboardData?.recentActivity &&
+              dashboardData.recentActivity.length > 0 ? (
+              dashboardData.recentActivity.map((activity, index) => (
+                <div
+                  key={activity.id}
+                  className="flex items-start gap-4 p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                >
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 flex-shrink-0">
+                    <FaFileAlt className="text-blue-600 dark:text-blue-400" />
                   </div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 flex items-center gap-1">
-                    <FaClock className="w-3 h-3" />
-                    {new Date(activity.appliedAt).toLocaleString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      hour: "numeric",
-                      minute: "2-digit",
-                    })}
-                  </p>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          {activity.candidateName}
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          Applied for{" "}
+                          <span className="font-medium text-gray-900 dark:text-white">
+                            {activity.jobTitle}
+                          </span>
+                        </p>
+                      </div>
+                      <Badge
+                        className={`text-xs font-medium flex-shrink-0 ${
+                          activity.status === "PENDING"
+                            ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400"
+                            : activity.status === "REVIEWED"
+                              ? "bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-400"
+                              : activity.status === "SHORTLISTED"
+                                ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
+                                : activity.status === "REJECTED"
+                                  ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
+                                  : "bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-400"
+                        }`}
+                      >
+                        {activity.status}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 flex items-center gap-1">
+                      <FaClock className="w-3 h-3" />
+                      {new Date(activity.appliedAt).toLocaleString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                  </div>
                 </div>
+              ))
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-gray-400 dark:text-gray-500">
+                <FaClock className="text-4xl mb-3 opacity-50" />
+                <p className="text-sm">No recent activity</p>
+                <p className="text-xs mt-1">
+                  Activity will appear once you receive applications
+                </p>
               </div>
-            ))
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-gray-400 dark:text-gray-500">
-              <FaClock className="text-4xl mb-3 opacity-50" />
-              <p className="text-sm">No recent activity</p>
-              <p className="text-xs mt-1">Activity will appear once you receive applications</p>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Quick Actions */}
-      <div className="mt-6">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-5 flex items-center gap-2">
-          <span>Quick Actions</span>
-        </h2>
-        <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          <Link href="/hr/jobs">
-            <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 hover:shadow-lg hover:border-purple-200 dark:hover:border-purple-800 transition-all duration-300 cursor-pointer group">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-purple-100 dark:bg-purple-900/30 group-hover:bg-purple-200 dark:group-hover:bg-purple-900/50 transition-colors">
-                  <FaBriefcase className="text-xl text-purple-600 dark:text-purple-400" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-base font-semibold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-                    Job Management
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    Create & manage jobs
-                  </p>
-                </div>
+        {/* Quick Actions */}
+        <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 sm:p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
+                <FaTrophy className="text-xl text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Quick Actions
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Frequently used features
+                </p>
               </div>
             </div>
-          </Link>
-
-          <Link href="/hr/candidates">
-            <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 hover:shadow-lg hover:border-cyan-200 dark:hover:border-cyan-800 transition-all duration-300 cursor-pointer group">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-cyan-100 dark:bg-cyan-900/30 group-hover:bg-cyan-200 dark:group-hover:bg-cyan-900/50 transition-colors">
-                  <FaUsers className="text-xl text-cyan-600 dark:text-cyan-400" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-base font-semibold text-gray-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
-                    Candidates
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    View profiles
-                  </p>
-                </div>
-              </div>
-            </div>
-          </Link>
-
-          <Link href="/hr/email/templates">
-            <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 hover:shadow-lg hover:border-orange-200 dark:hover:border-orange-800 transition-all duration-300 cursor-pointer group">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-orange-100 dark:bg-orange-900/30 group-hover:bg-orange-200 dark:group-hover:bg-orange-900/50 transition-colors">
-                  <FaEnvelope className="text-xl text-orange-600 dark:text-orange-400" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-base font-semibold text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-                    Email Templates
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    Manage emails
-                  </p>
+          </div>
+          <div className="grid gap-3 grid-cols-1">
+            <Link href="/hr/jobs">
+              <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 p-4 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-300 cursor-pointer group">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 group-hover:border-blue-200 dark:group-hover:border-blue-800 transition-colors">
+                    <FaBriefcase className="text-lg text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                      Job Management
+                    </h4>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      Create & manage jobs
+                    </p>
+                  </div>
+                  <ArrowUpRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
                 </div>
               </div>
-            </div>
-          </Link>
+            </Link>
 
-          <Link href="/hr/analytics">
-            <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 hover:shadow-lg hover:border-emerald-200 dark:hover:border-emerald-800 transition-all duration-300 cursor-pointer group">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 group-hover:bg-emerald-200 dark:group-hover:bg-emerald-900/50 transition-colors">
-                  <FaChartLine className="text-xl text-emerald-600 dark:text-emerald-400" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-base font-semibold text-gray-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                    Analytics
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    View insights
-                  </p>
+            <Link href="/hr/candidates">
+              <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 p-4 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 hover:border-cyan-200 dark:hover:border-cyan-800 transition-all duration-300 cursor-pointer group">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 group-hover:border-cyan-200 dark:group-hover:border-cyan-800 transition-colors">
+                    <FaUsers className="text-lg text-cyan-600 dark:text-cyan-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+                      Candidates
+                    </h4>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      View profiles
+                    </p>
+                  </div>
+                  <ArrowUpRight className="w-4 h-4 text-gray-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors" />
                 </div>
               </div>
-            </div>
-          </Link>
+            </Link>
+
+            <Link href="/hr/email/templates">
+              <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 p-4 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:border-orange-200 dark:hover:border-orange-800 transition-all duration-300 cursor-pointer group">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 group-hover:border-orange-200 dark:group-hover:border-orange-800 transition-colors">
+                    <FaEnvelope className="text-lg text-orange-600 dark:text-orange-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                      Email Templates
+                    </h4>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      Manage emails
+                    </p>
+                  </div>
+                  <ArrowUpRight className="w-4 h-4 text-gray-400 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors" />
+                </div>
+              </div>
+            </Link>
+
+            <Link href="/hr/email/history">
+              <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 p-4 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-300 cursor-pointer group">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 group-hover:border-blue-200 dark:group-hover:border-blue-800 transition-colors">
+                    <FaClock className="text-lg text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                      Email History
+                    </h4>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      View sent emails
+                    </p>
+                  </div>
+                  <ArrowUpRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
+                </div>
+              </div>
+            </Link>
+
+            <Link href="/hr/analytics">
+              <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 p-4 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:border-emerald-200 dark:hover:border-emerald-800 transition-all duration-300 cursor-pointer group">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 group-hover:border-emerald-200 dark:group-hover:border-emerald-800 transition-colors">
+                    <FaChartLine className="text-lg text-emerald-600 dark:text-emerald-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                      Analytics
+                    </h4>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      View insights
+                    </p>
+                  </div>
+                  <ArrowUpRight className="w-4 h-4 text-gray-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors" />
+                </div>
+              </div>
+            </Link>
+          </div>
         </div>
       </div>
     </div>

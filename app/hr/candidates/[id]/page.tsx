@@ -4,7 +4,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, User } from "lucide-react";
+import { FaArrowLeft, FaDownload, FaUser } from "react-icons/fa";
 import { useToast } from "@/hooks/use-toast";
 
 // Import modular components and hooks
@@ -92,9 +92,9 @@ export default function CandidateProfilePage() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-100 flex items-center justify-center">
+      <div className="min-h-screen  flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading candidate profile...</p>
         </div>
       </div>
@@ -104,9 +104,9 @@ export default function CandidateProfilePage() {
   // Error or candidate not found
   if (!candidate) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-100 flex items-center justify-center">
+      <div className="min-h-screenflex items-center justify-center">
         <div className="text-center">
-          <User className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+          <FaUser className="w-16 h-16 mx-auto text-gray-400 mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
             Candidate Not Found
           </h3>
@@ -114,7 +114,7 @@ export default function CandidateProfilePage() {
             The requested candidate profile could not be found.
           </p>
           <Button onClick={() => router.back()}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <FaArrowLeft className="w-4 h-4 mr-2" />
             Go Back
           </Button>
         </div>
@@ -128,8 +128,8 @@ export default function CandidateProfilePage() {
     candidate.resumes[0];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-100">
-      <div className="max-w-6xl mx-auto p-6">
+    <div className="min-h-screen b">
+      <div className="max-w-7xl mx-auto p-6">
         {/* Profile Header */}
         <ProfileHeader
           onBack={() => router.back()}

@@ -47,7 +47,7 @@ export function CandidateCard({
   return (
     <Card
       className={`shadow-lg hover:shadow-xl transition-all ${
-        isSelected ? "ring-2 ring-purple-500 bg-purple-50" : ""
+        isSelected ? "ring-2 ring-blue-500 bg-blue-50" : ""
       }`}
     >
       <CardHeader className="pb-2">
@@ -56,11 +56,11 @@ export function CandidateCard({
             <Checkbox
               checked={isSelected}
               onCheckedChange={onSelect}
-              className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
+              className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
             />
-            <div className="w-12 h-12 bg-gradient-to-br from-purple-300 to-blue-300 rounded-full flex items-center justify-center">
+            {/* <div className="w-12 h-12 bg-gradient-to-br from-blue-300 to-blue-300 rounded-full flex items-center justify-center">
               <User className="w-6 h-6 text-white" />
-            </div>
+            </div> */}
             <div>
               <h3 className="font-semibold text-gray-900">{candidate.name}</h3>
               <p className="text-sm text-gray-600 flex items-center gap-1">

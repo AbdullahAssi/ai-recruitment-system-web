@@ -36,6 +36,7 @@ export async function GET() {
         hrProfile: {
           select: {
             id: true,
+            companyId: true,
             department: true,
             position: true,
           },
@@ -55,7 +56,7 @@ export async function GET() {
     console.error("Get current user error:", error);
     return NextResponse.json(
       { error: "Failed to get user details" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -11,6 +11,8 @@ import {
   LogOut,
   Menu,
   X,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -31,6 +33,7 @@ export default function CandidateLayout({
   const { user, logout } = useAuth();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -44,25 +47,43 @@ export default function CandidateLayout({
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 bg-white shadow-lg transform transition-all duration-300 ease-in-out lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        } ${sidebarCollapsed ? "lg:w-20" : "lg:w-64"} w-64`}
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
-            <Link href="/candidate" className="flex items-center">
-              <User className="w-8 h-8 text-purple-600 mr-2" />
-              <span className="text-xl font-bold text-gray-900">
-                Candidate Portal
-              </span>
+            <Link href="/candidate" className="flex items-center min-w-0">
+              <User className="w-8 h-8 text-blue-600 flex-shrink-0" />
+              {!sidebarCollapsed && (
+                <span className="text-xl font-bold text-gray-900 ml-2 truncate">
+                  Candidate Portal
+                </span>
+              )}
             </Link>
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="lg:hidden text-gray-500 hover:text-gray-700"
-            >
-              <X className="w-6 h-6" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                className="hidden lg:flex items-center justify-center w-8 h-8 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                aria-label={
+                  sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"
+                }
+              >
+                {sidebarCollapsed ? (
+                  <ChevronRight className="w-5 h-5" />
+                ) : (
+                  <ChevronLeft className="w-5 h-5" />
+                )}
+              </button>
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="lg:hidden text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
           </div>
 
           {/* Navigation */}
@@ -70,53 +91,95 @@ export default function CandidateLayout({
             {navigation.map((item) => {
               const isActive = pathname === item.href;
               return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                    isActive
-                      ? "bg-purple-50 text-purple-700"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <item.icon className="w-5 h-5 mr-3" />
-                  {item.name}
-                </Link>
+                <div key={item.name} className="relative">
+                  <Link
+                    href={item.href}
+                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 group ${
+                      isActive
+                        ? "bg-blue-50 text-blue-700"
+                        : "text-gray-700 hover:bg-gray-100"
+                    } ${sidebarCollapsed ? "justify-center" : ""}`}
+                    onClick={() => setSidebarOpen(false)}
+                  >
+                    <item.icon
+                      className={`w-5 h-5 flex-shrink-0 ${!sidebarCollapsed && "mr-3"}`}
+                    />
+                    {!sidebarCollapsed && <span>{item.name}</span>}
+                  </Link>
+
+                  {/* Tooltip for collapsed state */}
+                  {sidebarCollapsed && (
+                    <div className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-[9999]">
+                      <div className="bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap shadow-lg">
+                        {item.name}
+                        <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-gray-900"></div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               );
             })}
           </nav>
 
           {/* User info and logout */}
           <div className="p-4 border-t border-gray-200">
-            <div className="flex items-center mb-3">
-              <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                <span className="text-purple-600 font-semibold text-sm">
-                  {user?.name?.charAt(0).toUpperCase()}
-                </span>
+            {!sidebarCollapsed ? (
+              <>
+                <div className="flex items-center mb-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                    <span className="text-blue-600 font-semibold text-sm">
+                      {user?.name?.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="ml-3 flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {user?.name}
+                    </p>
+                    <p className="text-xs text-gray-500 truncate">
+                      {user?.email}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  onClick={logout}
+                  variant="outline"
+                  className="w-full"
+                  size="sm"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <div className="flex flex-col items-center gap-3">
+                <div
+                  className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center"
+                  title={user?.name}
+                >
+                  <span className="text-blue-600 font-semibold text-sm">
+                    {user?.name?.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <Button
+                  onClick={logout}
+                  variant="outline"
+                  size="icon"
+                  title="Logout"
+                >
+                  <LogOut className="w-4 h-4" />
+                </Button>
               </div>
-              <div className="ml-3 flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
-                  {user?.name}
-                </p>
-                <p className="text-xs text-gray-500 truncate">{user?.email}</p>
-              </div>
-            </div>
-            <Button
-              onClick={logout}
-              variant="outline"
-              className="w-full"
-              size="sm"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </Button>
+            )}
           </div>
         </div>
       </div>
 
       {/* Main content */}
-      <div className="lg:pl-64">
+      <div
+        className={`transition-all duration-300 ${
+          sidebarCollapsed ? "lg:pl-20" : "lg:pl-64"
+        }`}
+      >
         {/* Top bar */}
         <div className="sticky top-0 z-10 bg-white border-b border-gray-200 lg:hidden">
           <div className="flex items-center justify-between h-16 px-4">

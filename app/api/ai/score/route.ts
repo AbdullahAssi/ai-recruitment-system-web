@@ -5,7 +5,7 @@ import path from "path";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const { resumeId, jobId, applicationId } = await request.json();
 

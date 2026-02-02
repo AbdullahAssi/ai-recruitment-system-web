@@ -1,19 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser();
+    const session = await auth(request);
 
-    if (!user) {
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (user.role !== "HR" && user.role !== "ADMIN") {
+    if (session.user.role !== "HR" && session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    // Get company filter for HR users
+    let companyFilter: any = {};
+    if (session.user.role === "HR" && session.user.hrProfile?.companyId) {
+      companyFilter = { companyId: session.user.hrProfile.companyId };
     }
 
     // Fetch basic stats in parallel
@@ -30,58 +36,76 @@ export async function GET(request: NextRequest) {
       candidateSkills,
       recentActivityApplications,
     ] = await Promise.all([
-      // Total jobs
-      prisma.job.count(),
-
-      // Active jobs (using isActive boolean)
+      // Total jobs (filtered by company)
       prisma.job.count({
-        where: { isActive: true },
+        where: companyFilter,
       }),
 
-      // Total candidates
+      // Active jobs (using isActive boolean, filtered by company)
+      prisma.job.count({
+        where: {
+          isActive: true,
+          ...companyFilter,
+        },
+      }),
+
+      // Total candidates (count all, as they can apply to any company)
       prisma.candidate.count(),
 
-      // Total applications
-      prisma.application.count(),
-
-      // Pending applications
+      // Total applications (filtered by company's jobs)
       prisma.application.count({
-        where: { status: "PENDING" },
+        where: {
+          job: companyFilter,
+        },
       }),
 
-      // Recent applications (last 7 days)
+      // Pending applications (filtered by company's jobs)
+      prisma.application.count({
+        where: {
+          status: "PENDING",
+          job: companyFilter,
+        },
+      }),
+
+      // Recent applications (last 7 days, filtered by company's jobs)
       prisma.application.count({
         where: {
           appliedAt: {
             gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
           },
+          job: companyFilter,
         },
       }),
 
-      // Applications by status
+      // Applications by status (filtered by company's jobs)
       prisma.application.groupBy({
         by: ["status"],
+        where: {
+          job: companyFilter,
+        },
         _count: {
           status: true,
         },
       }),
 
-      // Previous week applications (for growth calculation)
+      // Previous week applications (for growth calculation, filtered by company's jobs)
       prisma.application.count({
         where: {
           appliedAt: {
             gte: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
             lt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
           },
+          job: companyFilter,
         },
       }),
 
-      // Recent applications for trend (last 30 days)
+      // Recent applications for trend (last 30 days, filtered by company's jobs)
       prisma.application.findMany({
         where: {
           appliedAt: {
             gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
           },
+          job: companyFilter,
         },
         select: {
           appliedAt: true,
@@ -91,8 +115,17 @@ export async function GET(request: NextRequest) {
         },
       }),
 
-      // Get candidate skills through the CandidateSkill relation
+      // Get candidate skills through applications to company jobs
       prisma.candidateSkill.findMany({
+        where: {
+          candidate: {
+            applications: {
+              some: {
+                job: companyFilter,
+              },
+            },
+          },
+        },
         select: {
           skill: {
             select: {
@@ -102,9 +135,12 @@ export async function GET(request: NextRequest) {
         },
       }),
 
-      // Get recent applications for activity feed (last 10)
+      // Get recent applications for activity feed (last 10, filtered by company's jobs)
       prisma.application.findMany({
         take: 10,
+        where: {
+          job: companyFilter,
+        },
         orderBy: {
           appliedAt: "desc",
         },
@@ -158,7 +194,7 @@ export async function GET(request: NextRequest) {
       .map((app) => ({
         id: app.id,
         type: "application",
-        candidateName: app.candidate.user.name,
+        candidateName: app.candidate.user!.name,
         jobTitle: app.job.title,
         status: app.status,
         appliedAt: app.appliedAt.toISOString(),

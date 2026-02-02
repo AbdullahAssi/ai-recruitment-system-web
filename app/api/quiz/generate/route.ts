@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
           quizId: quiz.id,
           candidateId: application.candidateId,
           applicationId: application.id,
-          questions: quizResponse.questions,
+          questions: quizResponse.questions as any,
           answers: {},
           totalQuestions: quizResponse.total_questions,
           correctAnswers: 0,

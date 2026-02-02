@@ -96,7 +96,7 @@ export default function CandidatePage() {
           </p>
         </div>
         <Link href="/candidate/jobs">
-          <Button className="bg-purple-600 hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-800">
+          <Button className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800">
             <Briefcase className="w-4 h-4 mr-2" />
             Browse Jobs
           </Button>
@@ -175,8 +175,8 @@ export default function CandidatePage() {
                 Open positions
               </p>
             </div>
-            <div className="flex items-center justify-center w-14 h-14 rounded-full bg-purple-100 dark:bg-purple-900/30 group-hover:scale-110 transition-transform duration-300">
-              <TrendingUp className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+            <div className="flex items-center justify-center w-14 h-14 rounded-full bg-blue-100 dark:bg-blue-900/30 group-hover:scale-110 transition-transform duration-300">
+              <TrendingUp className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             </div>
           </div>
         </div>
@@ -236,11 +236,11 @@ export default function CandidatePage() {
         </h2>
         <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           <Link href="/candidate/jobs">
-            <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 hover:shadow-lg hover:border-purple-200 dark:hover:border-purple-800 transition-all duration-300 cursor-pointer group text-center">
-              <div className="flex items-center justify-center w-14 h-14 rounded-full bg-purple-100 dark:bg-purple-900/30 mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                <Briefcase className="w-7 h-7 text-purple-600 dark:text-purple-400" />
+            <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 hover:shadow-lg hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-300 cursor-pointer group text-center">
+              <div className="flex items-center justify-center w-14 h-14 rounded-full bg-blue-100 dark:bg-blue-900/30 mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                <Briefcase className="w-7 h-7 text-blue-600 dark:text-blue-400" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors mb-2">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors mb-2">
                 Browse Jobs
               </h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">

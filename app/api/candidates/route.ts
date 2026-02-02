@@ -115,10 +115,8 @@ export async function GET(request: NextRequest) {
       pagination: {
         page,
         limit,
-        totalCandidates,
+        total: totalCandidates,
         totalPages,
-        hasNextPage,
-        hasPrevPage,
       },
     });
   } catch (error) {

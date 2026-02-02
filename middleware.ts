@@ -15,7 +15,18 @@ async function verifyTokenEdge(token: string): Promise<TokenPayload | null> {
   try {
     const secret = new TextEncoder().encode(JWT_SECRET);
     const { payload } = await jwtVerify(token, secret);
-    return payload as TokenPayload;
+    
+    // Validate that payload has required fields
+    if (
+      typeof payload.userId === 'string' &&
+      typeof payload.email === 'string' &&
+      typeof payload.role === 'string' &&
+      typeof payload.name === 'string'
+    ) {
+      return payload as unknown as TokenPayload;
+    }
+    
+    return null;
   } catch (error) {
     console.error("Token verification failed:", error);
     return null;

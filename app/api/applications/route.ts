@@ -12,6 +12,15 @@ export async function GET(request: NextRequest) {
     const jobId = searchParams.get("jobId");
     const companyId = searchParams.get("companyId"); // Filter by company for HR users
 
+    // Pagination params
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "12");
+    const skip = (page - 1) * limit;
+
+    // Filter params
+    const status = searchParams.get("status");
+    const search = searchParams.get("search");
+
     let whereClause: any = {};
 
     if (candidateId) {
@@ -28,6 +37,27 @@ export async function GET(request: NextRequest) {
         companyId: companyId,
       };
     }
+
+    // Status filter
+    if (status && status !== "all") {
+      whereClause.status = status;
+    }
+
+    // Search filter (job title)
+    if (search) {
+      whereClause.job = {
+        ...whereClause.job,
+        title: {
+          contains: search,
+          mode: "insensitive",
+        },
+      };
+    }
+
+    // Get total count for pagination
+    const totalCount = await prisma.application.count({
+      where: whereClause,
+    });
 
     const applications = await prisma.application.findMany({
       where: whereClause,
@@ -57,11 +87,19 @@ export async function GET(request: NextRequest) {
         },
       },
       orderBy: { appliedAt: "desc" },
+      skip,
+      take: limit,
     });
 
     return NextResponse.json({
       success: true,
       applications,
+      pagination: {
+        page,
+        limit,
+        totalCount,
+        totalPages: Math.ceil(totalCount / limit),
+      },
     });
   } catch (error) {
     console.error("Error fetching applications:", error);

@@ -10,6 +10,18 @@ export async function GET(
 ) {
   try {
     const jobId = params.id;
+    const { searchParams } = new URL(request.url);
+
+    // Get pagination parameters from query string
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const searchTerm = searchParams.get("search") || "";
+    const statusFilter = searchParams.get("status") || "all";
+    const sortBy = searchParams.get("sortBy") || "newest";
+
+    // Validate pagination parameters
+    const validatedPage = Math.max(1, page);
+    const validatedLimit = Math.min(Math.max(1, limit), 100); // Max 100 items per page
 
     // Get job details
     const job = await prisma.job.findUnique({
@@ -35,10 +47,60 @@ export async function GET(
       );
     }
 
-    // Get all applications for this job with candidate details
+    // Build where clause for filtering
+    const whereClause: any = { jobId };
+
+    // Apply status filter
+    if (statusFilter && statusFilter !== "all") {
+      whereClause.status = statusFilter.toUpperCase();
+    }
+
+    // Apply search filter (search in candidate name and email)
+    if (searchTerm) {
+      whereClause.candidate = {
+        OR: [
+          { name: { contains: searchTerm, mode: "insensitive" } },
+          { email: { contains: searchTerm, mode: "insensitive" } },
+        ],
+      };
+    }
+
+    // Build order by clause
+    let orderBy: any = { appliedAt: "desc" }; // Default: newest first
+
+    switch (sortBy) {
+      case "oldest":
+        orderBy = { appliedAt: "asc" };
+        break;
+      case "score-high":
+        orderBy = { score: "desc" };
+        break;
+      case "score-low":
+        orderBy = { score: "asc" };
+        break;
+      case "name":
+        orderBy = { candidate: { name: "asc" } };
+        break;
+      default:
+        orderBy = { appliedAt: "desc" };
+    }
+
+    // Get total count for pagination
+    const totalCount = await prisma.application.count({
+      where: whereClause,
+    });
+
+    const totalPages = Math.ceil(totalCount / validatedLimit);
+
+    // Calculate offset
+    const skip = (validatedPage - 1) * validatedLimit;
+
+    // Get paginated applications for this job with candidate details
     const applications = await prisma.application.findMany({
-      where: { jobId },
-      orderBy: { appliedAt: "desc" },
+      where: whereClause,
+      orderBy,
+      skip,
+      take: validatedLimit,
       include: {
         candidate: {
           select: {
@@ -69,13 +131,21 @@ export async function GET(
       },
     });
 
+    // Get overall statistics (not filtered)
+    const allApplications = await prisma.application.findMany({
+      where: { jobId },
+      select: { status: true },
+    });
+
     // Calculate statistics
     const stats = {
-      pending: applications.filter((app) => app.status === "PENDING").length,
-      reviewed: applications.filter((app) => app.status === "REVIEWED").length,
-      shortlisted: applications.filter((app) => app.status === "SHORTLISTED")
+      pending: allApplications.filter((app) => app.status === "PENDING").length,
+      reviewed: allApplications.filter((app) => app.status === "REVIEWED")
         .length,
-      rejected: applications.filter((app) => app.status === "REJECTED").length,
+      shortlisted: allApplications.filter((app) => app.status === "SHORTLISTED")
+        .length,
+      rejected: allApplications.filter((app) => app.status === "REJECTED")
+        .length,
     };
 
     const data = {
@@ -102,8 +172,15 @@ export async function GET(
           quizPassed: app.candidate.quizAttempts[0]?.passed || null,
         },
       })),
-      totalApplications: applications.length,
+      totalApplications: allApplications.length, // Total applications for this job
+      filteredCount: totalCount, // Applications matching current filters
       stats,
+      pagination: {
+        page: validatedPage,
+        limit: validatedLimit,
+        total: totalCount,
+        totalPages,
+      },
     };
 
     return NextResponse.json({

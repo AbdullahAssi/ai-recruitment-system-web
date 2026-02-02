@@ -1,6 +1,6 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building } from "lucide-react";
+import { FaProjectDiagram } from "react-icons/fa";
 import { CandidateResume } from "../../hooks/useCandidates";
 import { parseJsonField } from "../../lib/candidateUtils";
 
@@ -15,7 +15,7 @@ export function ProjectsCard({ latestResume }: ProjectsCardProps) {
     <Card className="shadow-lg">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Building className="w-5 h-5 text-purple-600" />
+          <FaProjectDiagram className="w-5 h-5 text-blue-600" />
           Projects ({projects.length} found)
         </CardTitle>
       </CardHeader>
@@ -67,7 +67,7 @@ export function ProjectsCard({ latestResume }: ProjectsCardProps) {
                     {project.technologies.map((tech: string, i: number) => (
                       <span
                         key={i}
-                        className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full"
+                        className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full"
                       >
                         {tech}
                       </span>

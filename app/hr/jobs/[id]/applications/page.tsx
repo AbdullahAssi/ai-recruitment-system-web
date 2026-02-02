@@ -26,6 +26,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { ServerPagination } from "@/components/reusables";
 
 // Import our modular components and utilities
 import {
@@ -100,6 +101,7 @@ export default function JobApplicationsPage({
   const { data, loading, updateApplicationStatus } = useJobApplications(
     params.id,
     paginationState,
+    filters,
   );
 
   const { aiScoresData, loadingScores, fetchAiScores, resetAiScores } =
@@ -180,21 +182,20 @@ export default function JobApplicationsPage({
     detailedAnalysisState.selectedScore,
   ]);
 
-  // Memoized filtered and sorted applications for performance
-  const filteredAndSortedApplications = useMemo(() => {
-    if (!data?.applications) return [];
-    return filterAndSortApplications(data.applications, filters);
-  }, [data?.applications, filters]);
+  // Server-side filtering - use applications directly from data
+  const applications = data?.applications || [];
 
   const { sendBulkEmail, sendingEmail } = useBulkEmail(
     params.id,
-    filteredAndSortedApplications,
+    applications,
     bulkEmailState.selectedApplications,
   );
 
   // Event handlers
   const handleFilterChange = (key: keyof FilterState, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
+    // Reset to page 1 when filters change
+    setPaginationState((prev) => ({ ...prev, currentPage: 1 }));
   };
 
   const handleClearFilters = () => {
@@ -203,11 +204,13 @@ export default function JobApplicationsPage({
       statusFilter: "all",
       sortBy: "newest",
     });
+    // Reset to page 1 when clearing filters
+    setPaginationState((prev) => ({ ...prev, currentPage: 1 }));
   };
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      const allIds = filteredAndSortedApplications.map((app) => app.id);
+      const allIds = applications.map((app) => app.id);
       setBulkEmailState((prev) => ({
         ...prev,
         selectedApplications: allIds,
@@ -383,9 +386,9 @@ export default function JobApplicationsPage({
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br  from-gray-50 to-blue-100  flex items-center justify-center">
+      <div className="min-h-screen   flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading applications...</p>
         </div>
       </div>
@@ -476,7 +479,7 @@ export default function JobApplicationsPage({
                 <div className="flex items-center gap-4">
                   <div>
                     <h3 className="text-lg font-semibold text-blue-900">
-                      Applications ({filteredAndSortedApplications.length} of{" "}
+                      Applications ({data.filteredCount || 0} of{" "}
                       {data.totalApplications})
                     </h3>
                     <p className="text-sm text-blue-700">
@@ -508,15 +511,14 @@ export default function JobApplicationsPage({
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
               <h3 className="text-lg font-semibold">
-                Applications ({filteredAndSortedApplications.length})
+                Applications ({applications.length})
               </h3>
               <div className="flex items-center gap-2">
                 <Checkbox
                   id="select-all"
                   checked={
                     bulkEmailState.selectedApplications.length ===
-                      filteredAndSortedApplications.length &&
-                    filteredAndSortedApplications.length > 0
+                      applications.length && applications.length > 0
                   }
                   onCheckedChange={handleSelectAll}
                   aria-label="Select all applications"
@@ -697,7 +699,7 @@ export default function JobApplicationsPage({
           </div>
 
           {/* Application Cards */}
-          {filteredAndSortedApplications.length === 0 ? (
+          {applications.length === 0 ? (
             <div className="text-center py-12">
               <Users className="w-16 h-16 mx-auto text-gray-400 mb-4" />
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -710,29 +712,55 @@ export default function JobApplicationsPage({
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredAndSortedApplications.map((application) => (
-                <ApplicationCard
-                  key={application.id}
-                  application={application}
-                  isSelected={bulkEmailState.selectedApplications.includes(
-                    application.id,
-                  )}
-                  onSelect={(checked) =>
-                    handleSelectApplication(application.id, checked)
-                  }
-                  onStatusUpdate={(newStatus) =>
-                    updateApplicationStatus(application.id, newStatus)
-                  }
-                  onViewAIAnalysis={() =>
-                    handleOpenDetailedAnalysis(application)
-                  }
-                />
-              ))}
-            </div>
-          )}
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {applications.map((application) => (
+                  <ApplicationCard
+                    key={application.id}
+                    application={application}
+                    isSelected={bulkEmailState.selectedApplications.includes(
+                      application.id,
+                    )}
+                    onSelect={(checked) =>
+                      handleSelectApplication(application.id, checked)
+                    }
+                    onStatusUpdate={(newStatus) =>
+                      updateApplicationStatus(application.id, newStatus)
+                    }
+                    onViewAIAnalysis={() =>
+                      handleOpenDetailedAnalysis(application)
+                    }
+                  />
+                ))}
+              </div>
 
-          {/* Pagination would go here if needed */}
+              {/* Server-Side Pagination */}
+              {data.pagination && (
+                <Card className="mt-4">
+                  <CardContent className="p-4">
+                    <ServerPagination
+                      pagination={data.pagination}
+                      onPageChange={(page) =>
+                        setPaginationState((prev) => ({
+                          ...prev,
+                          currentPage: page,
+                        }))
+                      }
+                      onLimitChange={(limit) =>
+                        setPaginationState((prev) => ({
+                          ...prev,
+                          itemsPerPage: limit,
+                          currentPage: 1,
+                        }))
+                      }
+                      loading={loading}
+                      showFirstLast={true}
+                    />
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          )}
         </div>
 
         {/* Detailed Analysis Dialog */}
@@ -792,9 +820,7 @@ export default function JobApplicationsPage({
                           email:
                             detailedAnalysisState.selectedApplication?.candidate
                               .email || "",
-                          phone:
-                            detailedAnalysisState.selectedApplication?.candidate
-                              .phone || "",
+                          phone: "",
                           skills:
                             detailedAnalysisState.selectedScore.skillsMatch
                               ?.matchedSkills ||

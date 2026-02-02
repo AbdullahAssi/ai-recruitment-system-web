@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -20,8 +21,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Send, ChevronLeft, ChevronRight } from "lucide-react";
+import { Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { ServerPagination } from "../../../components/reusables";
 
 // Import modular components and hooks
 import {
@@ -35,115 +37,28 @@ import {
   useCandidates,
   useCandidateFilters,
   useEmailTemplates,
+  CandidateFilters,
 } from "../../../hooks/hooks";
-
-import type { CandidateFilters } from "../../../hooks/hooks";
 
 // Import centralized download utility
 import { createDownloadHandler } from "../../../lib/resumeDownload";
-
-// Pagination component
-const PaginationControls = ({
-  currentPage,
-  totalPages,
-  onPageChange,
-  onPrevious,
-  onNext,
-  startIndex,
-  endIndex,
-  totalItems,
-}: {
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
-  onPrevious: () => void;
-  onNext: () => void;
-  startIndex: number;
-  endIndex: number;
-  totalItems: number;
-}) => {
-  const getVisiblePages = () => {
-    const delta = 2; // Number of pages to show on each side of current page
-    const range = [];
-    const rangeWithDots = [];
-
-    for (
-      let i = Math.max(2, currentPage - delta);
-      i <= Math.min(totalPages - 1, currentPage + delta);
-      i++
-    ) {
-      range.push(i);
-    }
-
-    if (currentPage - delta > 2) {
-      rangeWithDots.push(1, "...");
-    } else {
-      rangeWithDots.push(1);
-    }
-
-    rangeWithDots.push(...range);
-
-    if (currentPage + delta < totalPages - 1) {
-      rangeWithDots.push("...", totalPages);
-    } else if (totalPages > 1) {
-      rangeWithDots.push(totalPages);
-    }
-
-    return rangeWithDots;
-  };
-
-  if (totalPages <= 1) return null;
-
-  return (
-    <div className="flex items-center justify-between mt-8 px-4">
-      <div className="text-sm text-gray-600">
-        Showing {startIndex} to {endIndex} of {totalItems} candidates
-      </div>
-
-      <div className="flex items-center gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onPrevious}
-          disabled={currentPage === 1}
-        >
-          <ChevronLeft className="w-4 h-4" />
-          Previous
-        </Button>
-
-        <div className="flex gap-1">
-          {getVisiblePages().map((page, index) => (
-            <Button
-              key={index}
-              variant={page === currentPage ? "default" : "outline"}
-              size="sm"
-              onClick={() => typeof page === "number" && onPageChange(page)}
-              disabled={page === "..."}
-              className="w-10"
-            >
-              {page}
-            </Button>
-          ))}
-        </div>
-
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onNext}
-          disabled={currentPage === totalPages}
-        >
-          Next
-          <ChevronRight className="w-4 h-4" />
-        </Button>
-      </div>
-    </div>
-  );
-};
 
 export default function CandidatesPage() {
   const { toast } = useToast();
   const { user } = useAuth();
   const [companyId, setCompanyId] = useState<string | undefined>();
+
+  // Pagination state
+  const [paginationState, setPaginationState] = useState({
+    currentPage: 1,
+    itemsPerPage: 12,
+  });
+
+  // Filters state
+  const [filters, setFilters] = useState<CandidateFilters>({
+    searchTerm: "",
+    experienceFilter: "",
+  });
 
   // Fetch HR profile to get company ID
   useEffect(() => {
@@ -160,14 +75,12 @@ export default function CandidatesPage() {
   }, [user]);
 
   // Core data hooks
-  const { candidates, loading, fetchCandidates } = useCandidates(companyId);
-  const { filters, filteredCandidates, updateFilter, clearFilters } =
-    useCandidateFilters(candidates);
+  const { data, candidates, loading, fetchCandidates } = useCandidates(
+    companyId,
+    paginationState,
+    filters,
+  );
   const { emailTemplates } = useEmailTemplates();
-
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(9); // 12 candidates per page (4x3 grid)
 
   // Bulk email state
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
@@ -180,51 +93,25 @@ export default function CandidatesPage() {
   // Centralized download handler
   const downloadResume = useMemo(() => createDownloadHandler(toast), [toast]);
 
-  // Memoized pagination calculations
-  const paginationData = useMemo(() => {
-    const totalItems = filteredCandidates.length;
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const currentCandidates = filteredCandidates.slice(startIndex, endIndex);
-
-    return {
-      totalItems,
-      totalPages,
-      currentCandidates,
-      startIndex: startIndex + 1,
-      endIndex: Math.min(endIndex, totalItems),
-    };
-  }, [filteredCandidates, currentPage, itemsPerPage]);
-
-  // Reset page when filters change
-  const handleFilterChange = useCallback(
-    (filterType: keyof CandidateFilters, value: string) => {
-      updateFilter(filterType, value);
-      setCurrentPage(1); // Reset to first page when filter changes
-    },
-    [updateFilter],
-  );
-
-  // Reset page when clearing filters
-  const handleClearFilters = useCallback(() => {
-    clearFilters();
-    setCurrentPage(1);
-  }, [clearFilters]);
+  const clearFilters = () => {
+    setFilters({
+      searchTerm: "",
+      experienceFilter: "",
+    });
+    setPaginationState((prev) => ({ ...prev, currentPage: 1 }));
+  };
 
   // Memoized event handlers
   const handleSelectAll = useCallback(
     (checked: boolean) => {
       if (checked) {
-        const allIds = paginationData.currentCandidates.map(
-          (candidate) => candidate.id,
-        );
+        const allIds = candidates.map((candidate) => candidate.id);
         setSelectedCandidates(allIds);
       } else {
         setSelectedCandidates([]);
       }
     },
-    [paginationData.currentCandidates],
+    [candidates],
   );
 
   const handleSelectCandidate = useCallback(
@@ -319,25 +206,12 @@ export default function CandidatesPage() {
     }
   }, [selectedCandidates, selectedTemplate, customSubject, customBody, toast]);
 
-  // Pagination handlers
-  const handlePreviousPage = useCallback(() => {
-    setCurrentPage((prev) => Math.max(prev - 1, 1));
-  }, []);
-
-  const handleNextPage = useCallback(() => {
-    setCurrentPage((prev) => Math.min(prev + 1, paginationData.totalPages));
-  }, [paginationData.totalPages]);
-
-  const handlePageClick = useCallback((page: number) => {
-    setCurrentPage(page);
-  }, []);
-
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-100 flex items-center justify-center">
+      <div className="min-h-screen  flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading candidates...</p>
         </div>
       </div>
@@ -347,7 +221,7 @@ export default function CandidatesPage() {
   const hasActiveFilters = !!(filters.searchTerm || filters.experienceFilter);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-100 p-4">
+    <div className="min-h-screen  p-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <CandidatesHeader
@@ -359,30 +233,34 @@ export default function CandidatesPage() {
         {/* Filters */}
         <CandidateFiltersCard
           filters={filters}
-          totalCandidates={candidates.length}
-          filteredCount={filteredCandidates.length}
-          onSearchChange={(value) => handleFilterChange("searchTerm", value)}
-          onExperienceFilterChange={(value) =>
-            handleFilterChange("experienceFilter", value)
-          }
-          onClearFilters={handleClearFilters}
+          totalCandidates={data?.pagination?.total || 0}
+          filteredCount={candidates.length}
+          onSearchChange={(value) => {
+            setFilters((prev) => ({ ...prev, searchTerm: value }));
+            setPaginationState((prev) => ({ ...prev, currentPage: 1 }));
+          }}
+          onExperienceFilterChange={(value) => {
+            setFilters((prev) => ({ ...prev, experienceFilter: value }));
+            setPaginationState((prev) => ({ ...prev, currentPage: 1 }));
+          }}
+          onClearFilters={clearFilters}
         />
 
         {/* Bulk Actions Toolbar */}
         <BulkActionsToolbar
-          totalCandidates={paginationData.currentCandidates.length}
+          totalCandidates={candidates.length}
           selectedCount={selectedCandidates.length}
           onSelectAll={handleSelectAll}
           onOpenBulkEmail={() => setEmailDialogOpen(true)}
         />
 
         {/* Candidates Grid */}
-        {paginationData.currentCandidates.length === 0 ? (
+        {candidates.length === 0 ? (
           <EmptyCandidatesState hasFilter={hasActiveFilters} />
         ) : (
           <>
             <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-6">
-              {paginationData.currentCandidates.map((candidate) => (
+              {candidates.map((candidate) => (
                 <CandidateCard
                   key={candidate.id}
                   candidate={candidate}
@@ -395,17 +273,28 @@ export default function CandidatesPage() {
               ))}
             </div>
 
-            {/* Pagination Controls */}
-            <PaginationControls
-              currentPage={currentPage}
-              totalPages={paginationData.totalPages}
-              onPageChange={handlePageClick}
-              onPrevious={handlePreviousPage}
-              onNext={handleNextPage}
-              startIndex={paginationData.startIndex}
-              endIndex={paginationData.endIndex}
-              totalItems={paginationData.totalItems}
-            />
+            {/* Server-Side Pagination */}
+            {data?.pagination && data.pagination.totalPages > 1 && (
+              <Card className="mt-6">
+                <CardContent className="p-4">
+                  <ServerPagination
+                    pagination={data.pagination}
+                    onPageChange={(page) =>
+                      setPaginationState((prev) => ({ ...prev, currentPage: page }))
+                    }
+                    onLimitChange={(limit) =>
+                      setPaginationState((prev) => ({
+                        ...prev,
+                        itemsPerPage: limit,
+                        currentPage: 1,
+                      }))
+                    }
+                    loading={loading}
+                    showFirstLast={true}
+                  />
+                </CardContent>
+              </Card>
+            )}
           </>
         )}
 
@@ -507,7 +396,7 @@ export default function CandidatesPage() {
                         (selectedTemplate === "custom" &&
                           (!customSubject || !customBody))
                       }
-                      className="bg-purple-600 hover:bg-purple-700"
+                      className="bg-blue-600 hover:bg-blue-700"
                     >
                       {sendingEmail ? (
                         <>

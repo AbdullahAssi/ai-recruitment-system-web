@@ -251,7 +251,7 @@ export default function QuizAssessmentPage() {
   // Completed state - Show results
   if (state === "completed" && results) {
     return (
-      <div className="container mx-auto py-8 max-w-4xl">
+      <div className="container mx-auto py-8 max-w-7xl">
         <QuizResults
           results={results}
           questions={questions}

@@ -10,17 +10,77 @@ export async function GET(request: NextRequest) {
     const includeInactive = searchParams.get("includeInactive") === "true";
     const companyId = searchParams.get("companyId"); // For HR users to filter by their company
 
+    // Pagination parameters
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const search = searchParams.get("search") || "";
+    const location = searchParams.get("location") || "";
+    const status = searchParams.get("status") || "all"; // all, active, inactive
+    const sortBy = searchParams.get("sortBy") || "date"; // date, title, applications
+    const sortOrder = searchParams.get("sortOrder") || "desc"; // asc, desc
+
+    // Validate pagination parameters
+    const validatedPage = Math.max(1, page);
+    const validatedLimit = Math.min(Math.max(1, limit), 100);
+
     // Build where clause
     const whereClause: any = {};
-    if (!includeInactive) {
+
+    // Status filter
+    if (status === "active") {
+      whereClause.isActive = true;
+    } else if (status === "inactive") {
+      whereClause.isActive = false;
+    } else if (!includeInactive) {
       whereClause.isActive = true;
     }
+
+    // Company filter
     if (companyId) {
       whereClause.companyId = companyId;
     }
 
+    // Search filter
+    if (search) {
+      whereClause.OR = [
+        { title: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+        { location: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    // Location filter
+    if (location) {
+      whereClause.location = { contains: location, mode: "insensitive" };
+    }
+
+    // Build order by clause
+    let orderBy: any = { postedDate: "desc" };
+    switch (sortBy) {
+      case "title":
+        orderBy = { title: sortOrder };
+        break;
+      case "applications":
+        orderBy = { applications: { _count: sortOrder } };
+        break;
+      case "date":
+      default:
+        orderBy = { postedDate: sortOrder };
+        break;
+    }
+
+    // Get total count for pagination
+    const totalCount = await prisma.job.count({
+      where: whereClause,
+    });
+
+    const totalPages = Math.ceil(totalCount / validatedLimit);
+    const skip = (validatedPage - 1) * validatedLimit;
+
     const jobs = await prisma.job.findMany({
       where: whereClause,
+      skip,
+      take: validatedLimit,
       include: {
         companyInfo: {
           select: {
@@ -46,12 +106,18 @@ export async function GET(request: NextRequest) {
           },
         },
       },
-      orderBy: { postedDate: "desc" },
+      orderBy,
     });
 
     return NextResponse.json({
       success: true,
       jobs,
+      pagination: {
+        page: validatedPage,
+        limit: validatedLimit,
+        total: totalCount,
+        totalPages,
+      },
     });
   } catch (error) {
     console.error("Error fetching jobs:", error);

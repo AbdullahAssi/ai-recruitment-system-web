@@ -38,8 +38,27 @@ export interface JobFormData {
   responsibilities: string;
 }
 
-export function useJobs(companyId?: string) {
-  const [jobs, setJobs] = useState<Job[]>([]);
+export interface PaginationState {
+  currentPage: number;
+  itemsPerPage: number;
+}
+
+export interface JobsData {
+  jobs: Job[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export function useJobs(
+  companyId?: string,
+  paginationState?: PaginationState,
+  filters?: FilterState,
+) {
+  const [data, setData] = useState<JobsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [updating, setUpdating] = useState<string | null>(null);
@@ -49,17 +68,43 @@ export function useJobs(companyId?: string) {
     try {
       setLoading(true);
       const params = new URLSearchParams({ includeInactive: "true" });
+
       if (companyId) {
         params.append("companyId", companyId);
       }
+
+      // Add pagination params
+      if (paginationState) {
+        params.append("page", paginationState.currentPage.toString());
+        params.append("limit", paginationState.itemsPerPage.toString());
+      }
+
+      // Add filter params
+      if (filters) {
+        if (filters.search) params.append("search", filters.search);
+        if (filters.location) params.append("location", filters.location);
+        if (filters.status) params.append("status", filters.status);
+        if (filters.sortBy) params.append("sortBy", filters.sortBy);
+        if (filters.sortOrder) params.append("sortOrder", filters.sortOrder);
+      }
+
       const response = await fetch(`/api/jobs?${params.toString()}`);
-      const data = await response.json();
-      if (data.success) {
-        setJobs(data.jobs);
+      const result = await response.json();
+
+      if (result.success) {
+        setData({
+          jobs: result.jobs,
+          pagination: result.pagination || {
+            page: 1,
+            limit: result.jobs.length,
+            total: result.jobs.length,
+            totalPages: 1,
+          },
+        });
       } else {
         toast({
           title: "Failed to Load Jobs",
-          description: data.error || "Could not fetch job listings",
+          description: result.error || "Could not fetch job listings",
           variant: "destructive",
         });
       }
@@ -73,7 +118,17 @@ export function useJobs(companyId?: string) {
     } finally {
       setLoading(false);
     }
-  }, [toast, companyId]);
+  }, [
+    toast,
+    companyId,
+    paginationState?.currentPage,
+    paginationState?.itemsPerPage,
+    filters,
+  ]);
+
+  useEffect(() => {
+    fetchJobs();
+  }, [fetchJobs]);
 
   const createJob = useCallback(
     async (formData: JobFormData, userId?: string) => {
@@ -246,7 +301,8 @@ export function useJobs(companyId?: string) {
   }, [fetchJobs]);
 
   return {
-    jobs,
+    data,
+    jobs: data?.jobs || [],
     loading,
     creating,
     updating,
