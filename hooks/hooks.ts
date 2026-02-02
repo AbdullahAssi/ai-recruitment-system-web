@@ -30,6 +30,11 @@ export type {
 export function useJobApplications(
   jobId: string,
   paginationState: PaginationState,
+  filters?: {
+    searchTerm?: string;
+    statusFilter?: string;
+    sortBy?: string;
+  },
 ) {
   const [data, setData] = useState<JobApplicationsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -42,6 +47,17 @@ export function useJobApplications(
         page: paginationState.currentPage.toString(),
         limit: paginationState.itemsPerPage.toString(),
       });
+
+      // Add filters to query params
+      if (filters?.searchTerm) {
+        searchParams.append("search", filters.searchTerm);
+      }
+      if (filters?.statusFilter && filters.statusFilter !== "all") {
+        searchParams.append("status", filters.statusFilter);
+      }
+      if (filters?.sortBy) {
+        searchParams.append("sortBy", filters.sortBy);
+      }
 
       const response = await fetch(
         `/api/jobs/${jobId}/applications?${searchParams}`,
@@ -67,7 +83,15 @@ export function useJobApplications(
     } finally {
       setLoading(false);
     }
-  }, [jobId, paginationState.currentPage, paginationState.itemsPerPage, toast]);
+  }, [
+    jobId,
+    paginationState.currentPage,
+    paginationState.itemsPerPage,
+    filters?.searchTerm,
+    filters?.statusFilter,
+    filters?.sortBy,
+    toast,
+  ]);
 
   useEffect(() => {
     fetchJobApplications();

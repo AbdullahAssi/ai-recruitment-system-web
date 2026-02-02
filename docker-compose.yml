@@ -1,0 +1,52 @@
+# Docker Compose for Next.js Frontend
+# Place this file in your ai-recruitment-system-web repository root
+
+version: "3.8"
+
+services:
+  # Next.js Frontend
+  nextjs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fyp-nextjs
+    environment:
+      # Database (connect to external or host PostgreSQL)
+      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres@host.docker.internal:5432/cv_jd_matcher}
+
+      # Backend API
+      - NEXT_PUBLIC_FASTAPI_URL=${NEXT_PUBLIC_FASTAPI_URL:-http://localhost:8000/api/v1}
+
+      # Application
+      - NODE_ENV=${NODE_ENV:-production}
+
+      # OpenAI (if needed by frontend)
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+
+      # Upload settings
+      - MAX_FILE_SIZE=${MAX_FILE_SIZE:-5242880}
+      - UPLOAD_DIR=${UPLOAD_DIR:-uploads}
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount for file uploads (persistent)
+      - ./uploads:/app/uploads
+    networks:
+      - nextjs-network
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  nextjs-network:
+    driver: bridge

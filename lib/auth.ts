@@ -1,6 +1,8 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
+import { NextRequest } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 const JWT_SECRET =
   process.env.JWT_SECRET || "your-secret-key-change-in-production";
@@ -11,6 +13,17 @@ export interface TokenPayload {
   email: string;
   role: "CANDIDATE" | "HR" | "ADMIN";
   name: string;
+}
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+  role: "CANDIDATE" | "HR" | "ADMIN";
+  hrProfile?: {
+    id: string;
+    companyId?: string;
+  };
 }
 
 /**
@@ -25,7 +38,7 @@ export async function hashPassword(password: string): Promise<string> {
  */
 export async function comparePassword(
   password: string,
-  hashedPassword: string
+  hashedPassword: string,
 ): Promise<boolean> {
   return bcrypt.compare(password, hashedPassword);
 }
@@ -79,7 +92,7 @@ export async function getCurrentUser(): Promise<TokenPayload | null> {
  */
 export function hasRole(
   user: TokenPayload | null,
-  allowedRoles: ("CANDIDATE" | "HR" | "ADMIN")[]
+  allowedRoles: ("CANDIDATE" | "HR" | "ADMIN")[],
 ): boolean {
   if (!user) return false;
   return allowedRoles.includes(user.role);
@@ -97,6 +110,64 @@ export async function setAuthCookie(token: string) {
     maxAge: 60 * 60 * 24 * 7, // 7 days
     path: "/",
   });
+}
+
+/**
+ * Get authenticated user with full details from request
+ * Used in API routes for RBAC
+ */
+export async function auth(
+  request: NextRequest,
+): Promise<{ user: AuthUser } | null> {
+  try {
+    const token = request.cookies.get("auth_token")?.value;
+
+    if (!token) {
+      return null;
+    }
+
+    const decoded = verifyToken(token);
+    if (!decoded) {
+      return null;
+    }
+
+    // Fetch full user with company info
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        hrProfile: {
+          select: {
+            id: true,
+            companyId: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        hrProfile: user.hrProfile ? {
+          id: user.hrProfile.id,
+          companyId: user.hrProfile.companyId || undefined,
+        } : undefined,
+      },
+    };
+  } catch (error) {
+    console.error("Auth error:", error);
+    return null;
+  }
 }
 
 /**

@@ -51,12 +51,12 @@ export function CandidateProfileCard({
 
   return (
     <Card className="shadow-lg overflow-hidden">
-      <div className="bg-gradient-to-r from-purple-600 to-blue-600 h-32" />
+      <div className="bg-gradient-to-r from-blue-600 to-blue-600 h-32" />
       <CardContent className="relative pt-0 pb-6">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between -mt-16 md:-mt-12">
           <div className="flex flex-col md:flex-row items-center md:items-end gap-4">
             <Avatar className="w-24 h-24 border-4 border-white shadow-xl">
-              <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-500 text-white text-2xl font-bold">
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-500 text-white text-2xl font-bold">
                 {getInitials(name)}
               </AvatarFallback>
             </Avatar>
@@ -83,7 +83,7 @@ export function CandidateProfileCard({
           </div>
           <Button
             onClick={onEditClick}
-            className="bg-purple-600 hover:bg-purple-700 mt-4 md:mt-0"
+            className="bg-blue-600 hover:bg-blue-700 mt-4 md:mt-0"
             aria-label="Edit profile"
           >
             <FaEdit className="w-4 h-4 mr-2" />
@@ -104,13 +104,13 @@ export function CandidateProfileCard({
           <div className="grid md:grid-cols-2 gap-4">
             {phone && (
               <div className="flex items-center gap-2 text-gray-600">
-                <FaPhone className="w-4 h-4 text-purple-600" />
+                <FaPhone className="w-4 h-4 text-blue-600" />
                 <span>{phone}</span>
               </div>
             )}
             {location && (
               <div className="flex items-center gap-2 text-gray-600">
-                <FaMapMarkerAlt className="w-4 h-4 text-purple-600" />
+                <FaMapMarkerAlt className="w-4 h-4 text-blue-600" />
                 <span>{location}</span>
               </div>
             )}
@@ -151,7 +151,7 @@ export function CandidateProfileCard({
                     href={portfolioUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-3 py-2 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors"
+                    className="flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
                     aria-label="Visit portfolio website"
                   >
                     <FaGlobe className="w-4 h-4" />

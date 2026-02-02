@@ -1,14 +1,9 @@
+"use client";
+
 import { format } from "date-fns";
-import {
-  Mail,
-  Briefcase,
-  Calendar,
-  FileText,
-  Download,
-  Eye,
-  Brain,
-  User,
-} from "lucide-react";
+import { FiMail, FiBriefcase, FiCalendar, FiDownload, FiTrendingUp } from "react-icons/fi";
+import { BsTrophy, BsCheckCircle, BsXCircle } from "react-icons/bs";
+import { HiSparkles } from "react-icons/hi";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,7 +31,6 @@ interface ApplicationCardProps {
   isSelected: boolean;
   onSelect: (checked: boolean) => void;
   onStatusUpdate: (newStatus: string) => void;
-  onViewProfile: () => void;
   onViewAIAnalysis?: () => void;
 }
 
@@ -45,7 +39,6 @@ export function ApplicationCard({
   isSelected,
   onSelect,
   onStatusUpdate,
-  onViewProfile,
   onViewAIAnalysis,
 }: ApplicationCardProps) {
   const { toast } = useToast();
@@ -70,335 +63,195 @@ export function ApplicationCard({
     }
   };
 
+  const getRecommendationColor = (score: number) => {
+    if (score >= 80) return "text-emerald-600 bg-emerald-50 border-emerald-200";
+    if (score >= 60) return "text-amber-600 bg-amber-50 border-amber-200";
+    if (score >= 40) return "text-orange-600 bg-orange-50 border-orange-200";
+    return "text-red-600 bg-red-50 border-red-200";
+  };
+
   return (
     <Card
-      className={`shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 ${getApplicationBorderColor(
-        application,
-        isSelected,
-      )}`}
+      className={`group relative overflow-hidden transition-all duration-200 hover:shadow-md ${isSelected ? "ring-2 ring-purple-400" : ""}`}
     >
-      <CardContent className="p-6">
-        <div className="flex justify-between items-start mb-6">
-          <div className="flex items-start gap-4 flex-1">
-            <div className="flex flex-col items-center gap-3">
-              <Checkbox
-                checked={isSelected}
-                onCheckedChange={onSelect}
-                aria-label={`Select application from ${application.candidate.name}`}
-              />
-              <div className="relative">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-blue-100 rounded-full flex items-center justify-center shadow-lg">
-                  <User className="w-8 h-8 text-purple-600" />
-                </div>
-                {application.aiAnalysis && (
-                  <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                    <Brain className="w-3 h-3 text-white" />
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <h4 className="font-bold text-xl text-gray-900">
-                  {application.candidate.name}
-                </h4>
-                {application.aiAnalysis && (
-                  <Badge
-                    variant="outline"
-                    className="bg-blue-50 text-blue-700 border-blue-300 text-xs"
-                  >
-                    AI Analyzed
-                  </Badge>
-                )}
-              </div>
-              <div className="space-y-1 mb-3">
-                <p className="text-gray-600 flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-blue-500" />
-                  {application.candidate.email}
-                </p>
-                <p className="text-gray-600 flex items-center gap-2">
-                  <Briefcase className="w-4 h-4 text-green-500" />
-                  {application.candidate.experience} years experience
-                </p>
-                {/* Quiz Score Display */}
-                {typeof application.candidate.quizScore === "number" && (
-                  <p className="text-gray-600 flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-purple-500" />
-                    Quiz Score:
-                    <span
-                      className={`font-semibold ${
-                        application.candidate.quizPassed
-                          ? "text-green-600"
-                          : "text-red-600"
-                      }`}
-                    >
-                      {application.candidate.quizScore}%
-                    </span>
-                  </p>
-                )}
-              </div>
-
-              {/* Enhanced AI Analysis Summary */}
+      <CardContent className="p-4">
+        {/* Header with Checkbox and Name */}
+        <div className="flex items-start gap-3 mb-3">
+          <Checkbox
+            checked={isSelected}
+            onCheckedChange={onSelect}
+            className="mt-1"
+            aria-label={`Select ${application.candidate.name}`}
+          />
+          
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-2">
+              <h3 className="text-base font-semibold text-gray-900 truncate">
+                {application.candidate.name}
+              </h3>
               {application.aiAnalysis && (
-                <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 via-purple-50 to-indigo-50 rounded-xl border-2 border-blue-200 shadow-sm">
-                  <h5 className="font-medium text-blue-900 mb-3 flex items-center gap-2">
-                    <Brain className="w-4 h-4" />
-                    AI Analysis Summary
-                  </h5>
-
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
-                    <div className="text-center p-2 bg-white rounded border">
-                      <div className="text-lg font-bold text-blue-600">
-                        {application.aiAnalysis.scores.skills}
-                      </div>
-                      <div className="text-xs text-gray-600">Skills</div>
-                    </div>
-                    <div className="text-center p-2 bg-white rounded border">
-                      <div className="text-lg font-bold text-purple-600">
-                        {application.aiAnalysis.scores.experience}
-                      </div>
-                      <div className="text-xs text-gray-600">Experience</div>
-                    </div>
-                    <div className="text-center p-2 bg-white rounded border">
-                      <div className="text-lg font-bold text-indigo-600">
-                        {application.aiAnalysis.scores.education}
-                      </div>
-                      <div className="text-xs text-gray-600">Education</div>
-                    </div>
-                    <div className="text-center p-2 bg-white rounded border">
-                      <div className="text-lg font-bold text-emerald-600">
-                        {application.aiAnalysis.scores.fit}
-                      </div>
-                      <div className="text-xs text-gray-600">Fit</div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">
-                      Skills Match:{" "}
-                      {application.aiAnalysis.skillsMatch.required}% required
-                    </span>
-                    <Badge
-                      className={`${getScoreBadgeColor(
-                        application.aiAnalysis.overallScore,
-                      )} text-xs`}
-                      variant="outline"
-                    >
-                      {application.aiAnalysis.recommendation.replace("_", " ")}
-                    </Badge>
-                  </div>
-                </div>
+                <Badge variant="outline" className="h-5 px-1.5 text-[10px] bg-emerald-50 text-emerald-700 border-emerald-300">
+                  <HiSparkles className="w-3 h-3 mr-1" />
+                  AI
+                </Badge>
               )}
             </div>
-          </div>
 
-          <div className="text-right flex flex-col items-end gap-3">
-            <div className="flex flex-col items-end gap-2">
-              <div
-                className={`text-2xl font-bold px-4 py-3 rounded-xl shadow-lg ${getScoreColor(
-                  application.score,
-                )}`}
-              >
-                {application.score}%
+            <div className="space-y-1.5 text-sm text-gray-600">
+              <div className="flex items-center gap-2">
+                <FiMail className="w-4 h-4 text-gray-400" />
+                <span className="truncate">{application.candidate.email}</span>
               </div>
-              <Badge
-                className={`${getStatusColor(
-                  application.status,
-                )} shadow-sm font-medium`}
-              >
-                {formatStatusText(application.status)}
-              </Badge>
+              <div className="flex items-center gap-1.5">
+                <FiCalendar className="w-4 h-4 text-gray-400" />
+                <span>{format(new Date(application.appliedAt), "MMM dd, HH:mm")}</span>
+              </div>
             </div>
-
-            {application.aiAnalysis && (
-              <div className="text-center">
-                <div className="text-xs text-gray-500 mb-1">
-                  AI Recommendation
-                </div>
-                <div
-                  className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg ${
-                    application.aiAnalysis.overallScore >= 80
-                      ? "bg-green-500"
-                      : application.aiAnalysis.overallScore >= 60
-                        ? "bg-yellow-500"
-                        : application.aiAnalysis.overallScore >= 40
-                          ? "bg-orange-500"
-                          : "bg-red-500"
-                  }`}
-                >
-                  {Math.round(application.aiAnalysis.overallScore)}
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 mb-6">
-          <div className="bg-gray-50 p-4 rounded-lg border">
-            <h5 className="font-medium text-gray-900 mb-2">
-              Application Details
-            </h5>
-            <div className="space-y-1 text-sm">
-              <p className="flex items-center gap-2 text-gray-600">
-                <Calendar className="w-4 h-4 text-blue-500" />
-                <span>
-                  <strong>Applied:</strong>{" "}
-                  {format(
-                    new Date(application.appliedAt),
-                    "MMM dd, yyyy 'at' HH:mm",
-                  )}
-                </span>
-              </p>
-              <p className="flex items-center gap-2 text-gray-600">
-                <FileText className="w-4 h-4 text-green-500" />
-                <span>
-                  <strong>Application ID:</strong>{" "}
-                  {application.id.substring(0, 8)}...
-                </span>
-              </p>
+        {/* Scores Section */}
+        <div className="grid grid-cols-4 gap-2 mb-3">
+          {/* Match Score */}
+          <div className={`rounded-lg p-2.5 border text-center ${getScoreColor(application.score)}`}>
+            <HiSparkles className="w-4 h-4 mx-auto mb-1" />
+            <div className="text-lg font-bold">
+              {application.score}%
             </div>
+            <div className="text-[10px] font-medium">Match</div>
           </div>
 
-          <div className="bg-gray-50 p-4 rounded-lg border">
-            <h5 className="font-medium text-gray-900 mb-2">
-              Resume Information
-            </h5>
-            <div className="space-y-1 text-sm">
-              <p className="flex items-center gap-2 text-gray-600">
-                <Download className="w-4 h-4 text-purple-500" />
-                <span>
-                  <strong>Resumes:</strong>{" "}
-                  {application.candidate.resumes.length} uploaded
-                </span>
-              </p>
-              {application.candidate.resumes.length > 0 && (
-                <p className="flex items-center gap-2 text-gray-600">
-                  <FileText className="w-4 h-4 text-orange-500" />
-                  <span>
-                    <strong>Latest:</strong>{" "}
-                    {application.candidate.resumes[0].fileName.length > 20
-                      ? `${application.candidate.resumes[0].fileName.substring(
-                          0,
-                          20,
-                        )}...`
-                      : application.candidate.resumes[0].fileName}
-                  </span>
-                </p>
-              )}
-            </div>
-          </div>
-
-          {application.aiAnalysis && (
-            <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-4 rounded-lg border border-blue-200">
-              <h5 className="font-medium text-blue-900 mb-2 flex items-center gap-2">
-                <Brain className="w-4 h-4" />
-                Quick AI Insights
-              </h5>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Overall Match:</span>
-                  <span
-                    className={`font-bold ${
-                      application.aiAnalysis.overallScore >= 80
-                        ? "text-green-600"
-                        : application.aiAnalysis.overallScore >= 60
-                          ? "text-yellow-600"
-                          : application.aiAnalysis.overallScore >= 40
-                            ? "text-orange-600"
-                            : "text-red-600"
-                    }`}
-                  >
-                    {application.aiAnalysis.overallScore}%
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Skills Match:</span>
-                  <span className="font-medium text-green-600">
-                    {application.aiAnalysis.skillsMatch.required}%
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Recommendation:</span>
-                  <Badge
-                    className={`${getScoreBadgeColor(
-                      application.aiAnalysis.overallScore,
-                    )} text-xs`}
-                    variant="outline"
-                  >
-                    {application.aiAnalysis.recommendation.replace("_", " ")}
-                  </Badge>
-                </div>
+          {/* Quiz Score */}
+          {typeof application.candidate.quizScore === "number" && (
+            <div className="bg-purple-50 rounded-lg p-2.5 border border-purple-200 text-center">
+              <BsTrophy className="w-4 h-4 text-purple-600 mx-auto mb-1" />
+              <div className={`text-lg font-bold ${
+                application.candidate.quizPassed ? "text-emerald-700" : "text-red-700"
+              }`}>
+                {application.candidate.quizScore}%
               </div>
+              <div className="text-[10px] text-purple-700 font-medium">Quiz</div>
+            </div>
+          )}
+
+          {/* Experience Box */}
+          <div className="bg-amber-50 rounded-lg p-2.5 border border-amber-200 text-center">
+            <FiBriefcase className="w-4 h-4 text-amber-600 mx-auto mb-1" />
+            <div className="text-lg font-bold text-amber-700">
+              {application.candidate.experience}y
+            </div>
+            <div className="text-[10px] text-amber-700 font-medium">Experience</div>
+          </div>
+
+          {/* AI Overall Score or Status */}
+          {application.aiAnalysis ? (
+            <div className="bg-gradient-to-br from-violet-50 to-purple-50 rounded-lg p-2.5 border border-purple-200 text-center">
+              <HiSparkles className="w-4 h-4 text-purple-600 mx-auto mb-1" />
+              <div className="text-lg font-bold text-purple-700">
+                {application.aiAnalysis.overallScore}%
+              </div>
+              <div className="text-[10px] text-purple-700 font-medium">AI Score</div>
+            </div>
+          ) : (
+            <div className={`rounded-lg p-2.5 border text-center ${getStatusColor(application.status)}`}>
+              <BsCheckCircle className="w-4 h-4 mx-auto mb-1" />
+              <div className="text-xs font-bold">
+                {formatStatusText(application.status)}
+              </div>
+              <div className="text-[10px] font-medium">Status</div>
             </div>
           )}
         </div>
 
-        <div className="flex justify-between items-center pt-6 border-t-2 border-gray-100">
-          <div className="flex gap-3">
-            {application.candidate.resumes.length > 0 && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleDownloadResume}
-                className="border-green-300 text-green-700 hover:bg-green-50 shadow-sm"
-                aria-label={`Download resume for ${application.candidate.name}`}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Download Resume
-              </Button>
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onViewProfile}
-              className="border-blue-300 text-blue-700 hover:bg-blue-50 shadow-sm"
-              aria-label={`View detailed profile for ${application.candidate.name}`}
-            >
-              <Eye className="h-4 w-4 mr-2" />
-              View Details
-            </Button>
+        {/* AI Analysis Breakdown (if available) */}
+        {application.aiAnalysis && (
+          <div className="grid grid-cols-3 gap-2 mb-3">
+            <div className="bg-blue-50 rounded p-2 border border-blue-200 text-center">
+              <FiTrendingUp className="w-3.5 h-3.5 text-blue-600 mx-auto mb-0.5" />
+              <div className="text-sm font-bold text-blue-700">
+                {application.aiAnalysis.scores.skills}
+              </div>
+              <div className="text-[9px] text-blue-700">Skills</div>
+            </div>
+            <div className="bg-indigo-50 rounded p-2 border border-indigo-200 text-center">
+              <FiBriefcase className="w-3.5 h-3.5 text-indigo-600 mx-auto mb-0.5" />
+              <div className="text-sm font-bold text-indigo-700">
+                {application.aiAnalysis.scores.experience}
+              </div>
+              <div className="text-[9px] text-indigo-700">Exp</div>
+            </div>
+            <div className="bg-emerald-50 rounded p-2 border border-emerald-200 text-center">
+              <BsCheckCircle className="w-3.5 h-3.5 text-emerald-600 mx-auto mb-0.5" />
+              <div className="text-sm font-bold text-emerald-700">
+                {application.aiAnalysis.scores.fit}
+              </div>
+              <div className="text-[9px] text-emerald-700">Fit</div>
+            </div>
           </div>
+        )}
 
-          <div className="flex gap-3">
-            {onViewAIAnalysis && (
-              <Button
+        {/* AI Recommendation */}
+        {application.aiAnalysis && (
+          <div className={`rounded-lg p-2 mb-3 border ${getRecommendationColor(application.aiAnalysis.overallScore)}`}>
+            <div className="flex items-center justify-center">
+              <Badge
+                className={`${getScoreBadgeColor(application.aiAnalysis.overallScore)} text-xs px-3 py-1`}
                 variant="outline"
-                size="sm"
-                onClick={onViewAIAnalysis}
-                className="border-purple-300 text-purple-700 hover:bg-purple-50 shadow-sm"
-                aria-label={`View AI analysis for ${application.candidate.name}`}
               >
-                <Brain className="h-4 w-4 mr-2" />
-                {application.aiAnalysis ? "AI Analysis" : "Get AI Analysis"}
-              </Button>
-            )}
+                {application.aiAnalysis.recommendation.replace("_", " ")}
+              </Badge>
+            </div>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="grid grid-cols-2 gap-2">
+          {application.candidate.resumes.length > 0 && (
             <Button
               size="sm"
               variant="outline"
-              className="border-purple-300 text-purple-700 hover:bg-purple-50 shadow-sm"
-              aria-label={`Contact ${application.candidate.name}`}
+              onClick={handleDownloadResume}
+              className="h-9"
             >
-              <Mail className="w-4 h-4 mr-2" />
-              Contact
+              <FiDownload className="w-4 h-4 mr-2" />
+              Resume
             </Button>
-            <Select
-              value={application.status}
-              onValueChange={onStatusUpdate}
-              aria-label={`Update status for ${application.candidate.name}`}
+          )}
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-9"
+          >
+            <FiMail className="w-4 h-4 mr-2" />
+            Contact
+          </Button>
+          {onViewAIAnalysis && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onViewAIAnalysis}
+              className="h-9 col-span-2"
             >
-              <SelectTrigger className="w-36 border-2 shadow-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="PENDING">Pending</SelectItem>
-                <SelectItem value="REVIEWED">Reviewed</SelectItem>
-                <SelectItem value="SHORTLISTED">Shortlisted</SelectItem>
-                <SelectItem value="REJECTED">Rejected</SelectItem>
-                <SelectItem value="QUIZ_PENDING">Quiz Pending</SelectItem>
-                <SelectItem value="QUIZ_COMPLETED">Quiz Completed</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+              <HiSparkles className="w-4 h-4 mr-2" />
+              {application.aiAnalysis ? "View AI Details" : "Generate AI Analysis"}
+            </Button>
+          )}
+          <Select
+            value={application.status}
+            onValueChange={onStatusUpdate}
+          >
+            <SelectTrigger className="h-9 col-span-2">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="PENDING">Pending</SelectItem>
+              <SelectItem value="REVIEWED">Reviewed</SelectItem>
+              <SelectItem value="SHORTLISTED">Shortlisted</SelectItem>
+              <SelectItem value="REJECTED">Rejected</SelectItem>
+              <SelectItem value="QUIZ_PENDING">Quiz Pending</SelectItem>
+              <SelectItem value="QUIZ_COMPLETED">Quiz Completed</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </CardContent>
     </Card>

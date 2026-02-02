@@ -46,6 +46,7 @@ export default function EmailTemplatesPage() {
     setFormData,
     resetForm,
     // API actions
+    fetchTemplates,
     testEmailConnection,
   } = useEmailTemplates();
 
@@ -73,9 +74,11 @@ export default function EmailTemplatesPage() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto px-4 py-8">
       <EmailTemplatesHeader
+        totalTemplates={templates.length}
+        loading={loading}
+        onRefresh={fetchTemplates}
         onCreateNew={() => setShowCreateDialog(true)}
         onCreateDefaults={handleCreateDefaults}
-        templatesCount={templates.length}
       />
 
       {/* Templates Grid */}

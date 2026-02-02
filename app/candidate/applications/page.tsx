@@ -5,6 +5,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   FileText,
   Briefcase,
@@ -12,8 +20,11 @@ import {
   Calendar,
   Loader2,
   ClipboardList,
+  Search,
+  Filter,
 } from "lucide-react";
 import Link from "next/link";
+import { ServerPagination } from "@/components/reusables/ServerPagination";
 
 interface Application {
   id: string;
@@ -38,6 +49,22 @@ export default function CandidateApplicationsPage() {
   const { user } = useAuth();
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(12);
+  const [totalCount, setTotalCount] = useState(0);
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("all");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1); // Reset to page 1 when search changes
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [search]);
 
   useEffect(() => {
     const fetchApplications = async () => {
@@ -47,13 +74,26 @@ export default function CandidateApplicationsPage() {
       }
 
       try {
-        const response = await fetch(
-          `/api/applications?candidateId=${user.candidate.id}`,
-        );
+        const params = new URLSearchParams({
+          candidateId: user.candidate.id,
+          page: page.toString(),
+          limit: limit.toString(),
+        });
+
+        if (debouncedSearch) {
+          params.append("search", debouncedSearch);
+        }
+
+        if (status !== "all") {
+          params.append("status", status);
+        }
+
+        const response = await fetch(`/api/applications?${params.toString()}`);
         const data = await response.json();
 
         if (data.success) {
           setApplications(data.applications);
+          setTotalCount(data.pagination.totalCount);
         }
       } catch (error) {
         console.error("Failed to fetch applications:", error);
@@ -63,7 +103,7 @@ export default function CandidateApplicationsPage() {
     };
 
     fetchApplications();
-  }, [user]);
+  }, [user, page, limit, debouncedSearch, status]);
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status?.toLowerCase()) {
@@ -93,7 +133,7 @@ export default function CandidateApplicationsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
       </div>
     );
   }
@@ -108,12 +148,58 @@ export default function CandidateApplicationsPage() {
           </p>
         </div>
         <Link href="/candidate/jobs">
-          <Button className="bg-purple-600 hover:bg-purple-700">
+          <Button className="bg-blue-600 hover:bg-blue-700">
             <Briefcase className="w-4 h-4 mr-2" />
             Browse Jobs
           </Button>
         </Link>
       </div>
+
+      {/* Filters */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+            {/* Search */}
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  type="text"
+                  placeholder="Search by job title..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+
+            {/* Status Filter */}
+            <div className="w-full sm:w-48">
+              <Select
+                value={status}
+                onValueChange={(value) => {
+                  setStatus(value);
+                  setPage(1);
+                }}
+              >
+                <SelectTrigger>
+                  <Filter className="w-4 h-4 mr-2" />
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="PENDING">Pending</SelectItem>
+                  <SelectItem value="QUIZ_PENDING">Quiz Pending</SelectItem>
+                  <SelectItem value="QUIZ_COMPLETED">Quiz Completed</SelectItem>
+                  <SelectItem value="REVIEWED">Reviewed</SelectItem>
+                  <SelectItem value="SHORTLISTED">Shortlisted</SelectItem>
+                  <SelectItem value="REJECTED">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {applications.length === 0 ? (
         <Card>
@@ -207,7 +293,7 @@ export default function CandidateApplicationsPage() {
                     <Link href={`/candidate/quiz/${application.id}`}>
                       <Button
                         size="sm"
-                        className="bg-purple-600 hover:bg-purple-700 w-full"
+                        className="bg-blue-600 hover:bg-blue-700 w-full"
                       >
                         <ClipboardList className="w-4 h-4 mr-2" />
                         Take Quiz Assessment
@@ -219,6 +305,23 @@ export default function CandidateApplicationsPage() {
             </Card>
           ))}
         </div>
+      )}
+
+      {/* Pagination */}
+      {!loading && totalCount > 0 && (
+        <ServerPagination
+          pagination={{
+            page: page,
+            limit: limit,
+            total: totalCount,
+            totalPages: Math.ceil(totalCount / limit),
+          }}
+          onPageChange={setPage}
+          onLimitChange={(newLimit) => {
+            setLimit(newLimit);
+            setPage(1);
+          }}
+        />
       )}
     </div>
   );

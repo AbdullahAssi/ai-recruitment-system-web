@@ -181,7 +181,7 @@ export default function CandidateProfilePage() {
   if (!candidateData) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
       </div>
     );
   }
@@ -233,7 +233,7 @@ export default function CandidateProfilePage() {
         <div className="space-y-4">
           <Button
             onClick={() => setUploadDialogOpen(true)}
-            className="w-full bg-purple-600 hover:bg-purple-700"
+            className="w-full bg-blue-600 hover:bg-blue-700"
             aria-label="Upload new resume"
           >
             <FaUpload className="w-4 h-4 mr-2" />

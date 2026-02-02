@@ -1,7 +1,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Target, Code } from "lucide-react";
+import { HiOutlineDocumentText, HiOutlineCode } from "react-icons/hi";
 import { CandidateResume } from "../../hooks/useCandidates";
 import { parseJsonField } from "../../lib/candidateUtils";
 
@@ -20,7 +20,7 @@ export function SkillsAndSummary({ latestResume }: SkillsAndSummaryProps) {
           <Card className="shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Target className="w-5 h-5 text-purple-600" />
+                <HiOutlineDocumentText className="w-5 h-5 text-blue-600" />
                 Professional Summary
               </CardTitle>
             </CardHeader>
@@ -36,7 +36,7 @@ export function SkillsAndSummary({ latestResume }: SkillsAndSummaryProps) {
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Code className="w-5 h-5 text-purple-600" />
+            <HiOutlineCode className="w-5 h-5 text-blue-600" />
             Technical Skills ({skills.length} found)
           </CardTitle>
         </CardHeader>
@@ -49,7 +49,7 @@ export function SkillsAndSummary({ latestResume }: SkillsAndSummaryProps) {
                   <Badge
                     key={index}
                     variant="secondary"
-                    className="px-3 py-1 bg-purple-100 text-purple-800 hover:bg-purple-200 transition-colors"
+                    className="px-3 py-1 bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors"
                   >
                     {skill}
                   </Badge>

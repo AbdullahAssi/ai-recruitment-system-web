@@ -54,8 +54,27 @@ export interface CandidateFilters {
   experienceFilter: string;
 }
 
-export function useCandidates(companyId?: string) {
-  const [candidates, setCandidates] = useState<Candidate[]>([]);
+export interface PaginationState {
+  currentPage: number;
+  itemsPerPage: number;
+}
+
+export interface CandidatesData {
+  candidates: Candidate[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export function useCandidates(
+  companyId?: string,
+  paginationState?: PaginationState,
+  filters?: CandidateFilters,
+) {
+  const [data, setData] = useState<CandidatesData | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -63,23 +82,47 @@ export function useCandidates(companyId?: string) {
     try {
       setLoading(true);
       const params = new URLSearchParams();
+
       if (companyId) {
         params.append("companyId", companyId);
       }
+
+      // Add pagination params
+      if (paginationState) {
+        params.append("page", paginationState.currentPage.toString());
+        params.append("limit", paginationState.itemsPerPage.toString());
+      }
+
+      // Add filter params
+      if (filters?.searchTerm) {
+        params.append("search", filters.searchTerm);
+      }
+
+      if (filters?.experienceFilter) {
+        const [min, max] = filters.experienceFilter.split("-").map(Number);
+        if (min !== undefined) params.append("experienceMin", min.toString());
+        if (max !== undefined && !isNaN(max))
+          params.append("experienceMax", max.toString());
+      }
+
       const url = `/api/candidates${params.toString() ? `?${params.toString()}` : ""}`;
       const response = await fetch(url);
-      const data = await response.json();
+      const result = await response.json();
 
-      if (data.success) {
-        setCandidates(data.candidates);
-        toast({
-          title: "Candidates Loaded",
-          description: `Found ${data.candidates.length} candidates`,
+      if (result.success) {
+        setData({
+          candidates: result.candidates,
+          pagination: result.pagination || {
+            page: 1,
+            limit: result.candidates.length,
+            total: result.candidates.length,
+            totalPages: 1,
+          },
         });
       } else {
         toast({
           title: "Failed to Load Candidates",
-          description: data.error || "Could not fetch candidate data",
+          description: result.error || "Could not fetch candidate data",
           variant: "destructive",
         });
       }
@@ -97,10 +140,16 @@ export function useCandidates(companyId?: string) {
 
   useEffect(() => {
     fetchCandidates();
-  }, [companyId]);
+  }, [
+    companyId,
+    paginationState?.currentPage,
+    paginationState?.itemsPerPage,
+    filters,
+  ]);
 
   return {
-    candidates,
+    data,
+    candidates: data?.candidates || [],
     loading,
     fetchCandidates,
   };
@@ -160,7 +209,6 @@ export function useCandidateFilters(candidates: Candidate[]) {
     searchTerm: "",
     experienceFilter: "",
   });
-  const [filteredCandidates, setFilteredCandidates] = useState<Candidate[]>([]);
 
   const updateFilter = (key: keyof CandidateFilters, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -173,40 +221,10 @@ export function useCandidateFilters(candidates: Candidate[]) {
     });
   };
 
-  useEffect(() => {
-    let filtered = [...candidates];
-
-    // Search by name or email
-    if (filters.searchTerm) {
-      filtered = filtered.filter(
-        (candidate) =>
-          candidate.name
-            .toLowerCase()
-            .includes(filters.searchTerm.toLowerCase()) ||
-          candidate.email
-            .toLowerCase()
-            .includes(filters.searchTerm.toLowerCase()),
-      );
-    }
-
-    // Filter by experience
-    if (filters.experienceFilter) {
-      const [min, max] = filters.experienceFilter.split("-").map(Number);
-      filtered = filtered.filter((candidate) => {
-        if (max) {
-          return candidate.experience >= min && candidate.experience <= max;
-        } else {
-          return candidate.experience >= min;
-        }
-      });
-    }
-
-    setFilteredCandidates(filtered);
-  }, [candidates, filters.searchTerm, filters.experienceFilter]);
-
+  // Server-side filtering - return candidates as-is
   return {
     filters,
-    filteredCandidates,
+    filteredCandidates: candidates,
     updateFilter,
     clearFilters,
   };

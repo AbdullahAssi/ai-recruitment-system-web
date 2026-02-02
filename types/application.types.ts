@@ -62,14 +62,15 @@ export interface JobApplicationsData {
   job: JobData;
   applications: Application[];
   totalApplications: number;
+  filteredCount: number;
   pagination: PaginationData;
   stats: {
     pending: number;
     reviewed: number;
     shortlisted: number;
     rejected: number;
-    averageScore: number;
-    highPerformers: number;
+    averageScore?: number;
+    highPerformers?: number;
   };
 }
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 
 // Force dynamic rendering for this API route
 export const dynamic = "force-dynamic";
@@ -7,6 +8,12 @@ export const dynamic = "force-dynamic";
 // GET all email templates
 export async function GET(request: NextRequest) {
   try {
+    // Get authenticated user with company info
+    const session = await auth(request);
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const type = searchParams.get("type");
     const isActive = searchParams.get("isActive");
@@ -21,12 +28,32 @@ export async function GET(request: NextRequest) {
       whereClause.isActive = isActive === "true";
     }
 
-    const templates = await prisma.emailTemplate.findMany({
+    let templates = await prisma.emailTemplate.findMany({
       where: whereClause,
       orderBy: {
         createdAt: "desc",
       },
     });
+
+    // Filter templates by company for HR users
+    if (session.user.role === "HR" && session.user.hrProfile?.companyId) {
+      // Get company name for this HR user
+      const company = await prisma.company.findUnique({
+        where: { id: session.user.hrProfile.companyId },
+        select: { name: true },
+      });
+
+      if (company) {
+        // Filter templates that include the company name or are generic (no company suffix)
+        templates = templates.filter((template) => {
+          // Check if template name includes company name
+          const includesCompanyName = template.name.includes(company.name);
+          // Check if template is generic (doesn't have " - " pattern indicating company-specific)
+          const isGeneric = !template.name.includes(" - ");
+          return includesCompanyName || isGeneric;
+        });
+      }
+    }
 
     return NextResponse.json({
       success: true,
@@ -36,7 +63,7 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching email templates:", error);
     return NextResponse.json(
       { error: "Failed to fetch email templates" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -50,7 +77,7 @@ export async function POST(request: NextRequest) {
     if (!name || !subject || !emailBody || !type) {
       return NextResponse.json(
         { error: "Missing required fields: name, subject, body, type" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -62,7 +89,7 @@ export async function POST(request: NextRequest) {
     if (existingTemplate) {
       return NextResponse.json(
         { error: "Template with this name already exists" },
-        { status: 409 }
+        { status: 409 },
       );
     }
 
@@ -84,7 +111,7 @@ export async function POST(request: NextRequest) {
     console.error("Error creating email template:", error);
     return NextResponse.json(
       { error: "Failed to create email template" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

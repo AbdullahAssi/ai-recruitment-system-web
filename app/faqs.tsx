@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { ChevronDown, Plus } from 'lucide-react';
 
 const FAQSection = () => {
-  const [openItem, setOpenItem] = useState(null);
+  const [openItem, setOpenItem] = useState<number | null>(null);
 
   const faqData = [
     {
@@ -28,7 +28,7 @@ const FAQSection = () => {
     }
   ];
 
-  const toggleItem = (id) => {
+  const toggleItem = (id: number) => {
     setOpenItem(openItem === id ? null : id);
   };
 

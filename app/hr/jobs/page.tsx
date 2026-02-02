@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -19,13 +20,33 @@ import {
   JobsHeader,
   EmptyJobsState,
 } from "../../../components/hr";
-import { LoadingState } from "../../../components/reusables";
-import { useJobs, useJobFilters } from "../../../hooks/hooks";
-import { JobFormData, Job } from "../../../hooks/useJobs";
+import { LoadingState, ServerPagination } from "../../../components/reusables";
+import { useJobs } from "../../../hooks/hooks";
+import {
+  JobFormData,
+  Job,
+  FilterState,
+  PaginationState,
+} from "../../../hooks/useJobs";
 
 export default function HRJobsPage() {
   const { user } = useAuth();
   const [companyId, setCompanyId] = useState<string | undefined>();
+
+  // Pagination state
+  const [paginationState, setPaginationState] = useState<PaginationState>({
+    currentPage: 1,
+    itemsPerPage: 10,
+  });
+
+  // Filters state
+  const [filters, setFilters] = useState<FilterState>({
+    search: "",
+    status: "all",
+    location: "",
+    sortBy: "date",
+    sortOrder: "desc",
+  });
 
   useEffect(() => {
     // Fetch HR profile to get company ID
@@ -42,6 +63,7 @@ export default function HRJobsPage() {
   }, [user]);
 
   const {
+    data,
     jobs,
     loading,
     creating,
@@ -50,9 +72,7 @@ export default function HRJobsPage() {
     createJob,
     updateJob,
     toggleJobStatus,
-  } = useJobs(companyId);
-
-  const { filters, filteredJobs, updateFilter } = useJobFilters(jobs);
+  } = useJobs(companyId, paginationState, filters);
 
   // Dialog states
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -69,6 +89,11 @@ export default function HRJobsPage() {
   });
 
   // Event handlers
+  const handleFilterChange = (key: keyof FilterState, value: string) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+    setPaginationState((prev) => ({ ...prev, currentPage: 1 }));
+  };
+
   const handleCreateJob = async (e: React.FormEvent) => {
     e.preventDefault();
     const success = await createJob(formData, user?.id);
@@ -161,29 +186,59 @@ export default function HRJobsPage() {
         {/* Filters */}
         <JobFilters
           filters={filters}
-          totalJobs={jobs.length}
-          filteredCount={filteredJobs.length}
-          onFilterChange={updateFilter}
+          totalJobs={data?.pagination?.total || 0}
+          filteredCount={jobs.length}
+          onFilterChange={(key, value) =>
+            handleFilterChange(key as keyof FilterState, value)
+          }
         />
 
         {/* Jobs Grid */}
-        {filteredJobs.length === 0 && !loading ? (
+        {jobs.length === 0 && !loading ? (
           <EmptyJobsState
-            hasJobs={jobs.length > 0}
+            hasJobs={(data?.pagination?.total || 0) > 0}
             onCreateNew={() => setShowCreateDialog(true)}
           />
         ) : (
-          <div className="grid lg:grid-cols-2 gap-6">
-            {filteredJobs.map((job) => (
-              <JobCard
-                key={job.id}
-                job={job}
-                updating={updating}
-                onEdit={handleEditJob}
-                onToggleStatus={toggleJobStatus}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid lg:grid-cols-2 gap-6">
+              {jobs.map((job) => (
+                <JobCard
+                  key={job.id}
+                  job={job}
+                  updating={updating}
+                  onEdit={handleEditJob}
+                  onToggleStatus={toggleJobStatus}
+                />
+              ))}
+            </div>
+
+            {/* Server-Side Pagination */}
+            {data?.pagination && data.pagination.totalPages > 1 && (
+              <Card className="mt-6">
+                <CardContent className="p-4">
+                  <ServerPagination
+                    pagination={data.pagination}
+                    onPageChange={(page) =>
+                      setPaginationState((prev) => ({
+                        ...prev,
+                        currentPage: page,
+                      }))
+                    }
+                    onLimitChange={(limit) =>
+                      setPaginationState((prev) => ({
+                        ...prev,
+                        itemsPerPage: limit,
+                        currentPage: 1,
+                      }))
+                    }
+                    loading={loading}
+                    showFirstLast={true}
+                  />
+                </CardContent>
+              </Card>
+            )}
+          </>
         )}
 
         {/* Create Job Dialog */}

@@ -18,7 +18,7 @@ export async function GET(
             resumes: {
               include: {
                 cvScores: {
-                  orderBy: { scored_at: "desc" },
+                  orderBy: { scoredAt: "desc" },
                   take: 1,
                 },
               },
@@ -65,7 +65,7 @@ export async function GET(
           ? {
               score: latestScore.score,
               explanation: latestScore.explanation,
-              scoredAt: latestScore.scored_at,
+              scoredAt: latestScore.scoredAt,
             }
           : null,
       },

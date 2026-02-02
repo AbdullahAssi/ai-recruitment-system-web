@@ -86,17 +86,17 @@ export default function CandidatePage() {
   return (
     <div className="space-y-6">
       {/* Welcome Section */}
-      <div className="flex justify-between items-start">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             Welcome back, {user?.name}!
           </h1>
-          <p className="text-gray-600 mt-2">
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
             Track your applications and discover new opportunities.
           </p>
         </div>
         <Link href="/candidate/jobs">
-          <Button className="bg-purple-600 hover:bg-purple-700">
+          <Button className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800">
             <Briefcase className="w-4 h-4 mr-2" />
             Browse Jobs
           </Button>
@@ -104,80 +104,112 @@ export default function CandidatePage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">
-              My Applications
-            </CardTitle>
-            <FileText className="w-4 h-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalApplications}</div>
-            <p className="text-xs text-muted-foreground">Total submitted</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">Under Review</CardTitle>
-            <Clock className="w-4 h-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {stats.pendingApplications}
+      <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 hover:shadow-lg transition-all duration-300 group">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                My Applications
+              </p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                {stats.totalApplications}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                Total submitted
+              </p>
             </div>
-            <p className="text-xs text-muted-foreground">Being reviewed</p>
-          </CardContent>
-        </Card>
+            <div className="flex items-center justify-center w-14 h-14 rounded-full bg-blue-100 dark:bg-blue-900/30 group-hover:scale-110 transition-transform duration-300">
+              <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            </div>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">Interviews</CardTitle>
-            <CheckCircle className="w-4 h-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.interviewScheduled}</div>
-            <p className="text-xs text-muted-foreground">Scheduled</p>
-          </CardContent>
-        </Card>
+        <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 hover:shadow-lg transition-all duration-300 group">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                Under Review
+              </p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                {stats.pendingApplications}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                Being reviewed
+              </p>
+            </div>
+            <div className="flex items-center justify-center w-14 h-14 rounded-full bg-amber-100 dark:bg-amber-900/30 group-hover:scale-110 transition-transform duration-300">
+              <Clock className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+            </div>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">
-              Available Jobs
-            </CardTitle>
-            <TrendingUp className="w-4 h-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.jobsAvailable}</div>
-            <p className="text-xs text-muted-foreground">Open positions</p>
-          </CardContent>
-        </Card>
+        <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 hover:shadow-lg transition-all duration-300 group">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                Interviews
+              </p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                {stats.interviewScheduled}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                Scheduled
+              </p>
+            </div>
+            <div className="flex items-center justify-center w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-900/30 group-hover:scale-110 transition-transform duration-300">
+              <CheckCircle className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 hover:shadow-lg transition-all duration-300 group">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                Available Jobs
+              </p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                {stats.jobsAvailable}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                Open positions
+              </p>
+            </div>
+            <div className="flex items-center justify-center w-14 h-14 rounded-full bg-blue-100 dark:bg-blue-900/30 group-hover:scale-110 transition-transform duration-300">
+              <TrendingUp className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Pending Quizzes Alert */}
       {pendingQuizzes.length > 0 && (
-        <Card className="border-orange-200 bg-orange-50">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-orange-600" />
-              <CardTitle className="text-orange-900">
-                Pending Quiz Assessments ({pendingQuizzes.length})
-              </CardTitle>
+        <div className="rounded-xl border border-orange-200 dark:border-orange-800 bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 p-5 sm:p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-orange-500 dark:bg-orange-600">
+              <AlertCircle className="w-5 h-5 text-white" />
             </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
+            <div>
+              <h3 className="text-lg font-semibold text-orange-900 dark:text-orange-200">
+                Pending Quiz Assessments
+              </h3>
+              <p className="text-sm text-orange-700 dark:text-orange-300">
+                {pendingQuizzes.length} quiz
+                {pendingQuizzes.length > 1 ? "s" : ""} waiting to be completed
+              </p>
+            </div>
+          </div>
+          <div className="space-y-3">
             {pendingQuizzes.map((app) => (
               <div
                 key={app.id}
-                className="flex items-center justify-between p-4 bg-white rounded-lg border border-orange-200"
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-white dark:bg-gray-900 rounded-lg border border-orange-200 dark:border-orange-800 hover:shadow-md transition-shadow"
               >
-                <div>
-                  <h4 className="font-semibold text-gray-900">
+                <div className="flex-1">
+                  <h4 className="font-semibold text-gray-900 dark:text-white">
                     {app.job.title}
                   </h4>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                     {app.job.location} • Applied{" "}
                     {new Date(app.appliedAt).toLocaleDateString()}
                   </p>
@@ -185,7 +217,7 @@ export default function CandidatePage() {
                 <Link href={`/candidate/quiz/${app.id}`}>
                   <Button
                     size="sm"
-                    className="bg-orange-600 hover:bg-orange-700"
+                    className="bg-orange-600 hover:bg-orange-700 dark:bg-orange-700 dark:hover:bg-orange-800 w-full sm:w-auto"
                   >
                     <ClipboardList className="w-4 h-4 mr-2" />
                     Take Quiz
@@ -193,63 +225,85 @@ export default function CandidatePage() {
                 </Link>
               </div>
             ))}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Quick Actions */}
-      <div className="grid md:grid-cols-3 gap-6">
-        <Link href="/candidate/jobs">
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
-            <CardHeader className="text-center p-6">
-              <Briefcase className="w-10 h-10 mx-auto mb-3 text-purple-600 group-hover:text-purple-700 transition-colors" />
-              <CardTitle className="text-lg">Browse Jobs</CardTitle>
-              <p className="text-sm text-gray-600 mt-2">
+      <div>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-5 flex items-center gap-2">
+          <span>Quick Actions</span>
+        </h2>
+        <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          <Link href="/candidate/jobs">
+            <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 hover:shadow-lg hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-300 cursor-pointer group text-center">
+              <div className="flex items-center justify-center w-14 h-14 rounded-full bg-blue-100 dark:bg-blue-900/30 mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                <Briefcase className="w-7 h-7 text-blue-600 dark:text-blue-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors mb-2">
+                Browse Jobs
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Find your next opportunity
               </p>
-            </CardHeader>
-          </Card>
-        </Link>
+            </div>
+          </Link>
 
-        <Link href="/candidate/applications">
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
-            <CardHeader className="text-center p-6">
-              <FileText className="w-10 h-10 mx-auto mb-3 text-blue-600 group-hover:text-blue-700 transition-colors" />
-              <CardTitle className="text-lg">My Applications</CardTitle>
-              <p className="text-sm text-gray-600 mt-2">
+          <Link href="/candidate/applications">
+            <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 hover:shadow-lg hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-300 cursor-pointer group text-center">
+              <div className="flex items-center justify-center w-14 h-14 rounded-full bg-blue-100 dark:bg-blue-900/30 mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                <FileText className="w-7 h-7 text-blue-600 dark:text-blue-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors mb-2">
+                My Applications
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Track application status
               </p>
-            </CardHeader>
-          </Card>
-        </Link>
+            </div>
+          </Link>
 
-        <Link href="/candidate/profile">
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
-            <CardHeader className="text-center p-6">
-              <Upload className="w-10 h-10 mx-auto mb-3 text-green-600 group-hover:text-green-700 transition-colors" />
-              <CardTitle className="text-lg">Update Profile</CardTitle>
-              <p className="text-sm text-gray-600 mt-2">
+          <Link href="/candidate/profile">
+            <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 hover:shadow-lg hover:border-emerald-200 dark:hover:border-emerald-800 transition-all duration-300 cursor-pointer group text-center">
+              <div className="flex items-center justify-center w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-900/30 mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                <Upload className="w-7 h-7 text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors mb-2">
+                Update Profile
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Keep your profile current
               </p>
-            </CardHeader>
-          </Card>
-        </Link>
+            </div>
+          </Link>
+        </div>
       </div>
 
-      {/* Recent Activity or Recommendations */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-gray-500">
-            <p>No recent activity to display</p>
-            <p className="text-sm mt-2">
-              Start applying to jobs to see your activity here
+      {/* Recent Activity */}
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 sm:p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+            <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Recent Activity
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Your latest application updates
             </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        <div className="text-center py-12 text-gray-400 dark:text-gray-500">
+          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 mx-auto mb-4">
+            <FileText className="w-8 h-8 opacity-50" />
+          </div>
+          <p className="font-medium">No recent activity to display</p>
+          <p className="text-sm mt-2">
+            Start applying to jobs to see your activity here
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error creating default email templates:", error);
     return NextResponse.json(
-      { error: "Failed to create default email templates", details: error.message },
+      { error: "Failed to create default email templates", details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

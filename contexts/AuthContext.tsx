@@ -22,6 +22,7 @@ export interface User {
   };
   hrProfile?: {
     id: string;
+    companyId?: string;
     department?: string;
     position?: string;
   };

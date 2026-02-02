@@ -1,6 +1,5 @@
 "use client";
 
-
 import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -27,6 +26,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { ServerPagination } from "@/components/reusables";
 
 // Import our modular components and utilities
 import {
@@ -100,7 +100,8 @@ export default function JobApplicationsPage({
   // Custom hooks for data management
   const { data, loading, updateApplicationStatus } = useJobApplications(
     params.id,
-    paginationState
+    paginationState,
+    filters,
   );
 
   const { aiScoresData, loadingScores, fetchAiScores, resetAiScores } =
@@ -146,7 +147,7 @@ export default function JobApplicationsPage({
       const scoreData = scores.find(
         (score) =>
           score.application?.id ===
-          detailedAnalysisState.selectedApplication?.id
+          detailedAnalysisState.selectedApplication?.id,
       );
 
       console.log("Found score data in useEffect:", scoreData);
@@ -181,21 +182,20 @@ export default function JobApplicationsPage({
     detailedAnalysisState.selectedScore,
   ]);
 
-  // Memoized filtered and sorted applications for performance
-  const filteredAndSortedApplications = useMemo(() => {
-    if (!data?.applications) return [];
-    return filterAndSortApplications(data.applications, filters);
-  }, [data?.applications, filters]);
+  // Server-side filtering - use applications directly from data
+  const applications = data?.applications || [];
 
   const { sendBulkEmail, sendingEmail } = useBulkEmail(
     params.id,
-    filteredAndSortedApplications,
-    bulkEmailState.selectedApplications
+    applications,
+    bulkEmailState.selectedApplications,
   );
 
   // Event handlers
   const handleFilterChange = (key: keyof FilterState, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
+    // Reset to page 1 when filters change
+    setPaginationState((prev) => ({ ...prev, currentPage: 1 }));
   };
 
   const handleClearFilters = () => {
@@ -204,11 +204,13 @@ export default function JobApplicationsPage({
       statusFilter: "all",
       sortBy: "newest",
     });
+    // Reset to page 1 when clearing filters
+    setPaginationState((prev) => ({ ...prev, currentPage: 1 }));
   };
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      const allIds = filteredAndSortedApplications.map((app) => app.id);
+      const allIds = applications.map((app) => app.id);
       setBulkEmailState((prev) => ({
         ...prev,
         selectedApplications: allIds,
@@ -264,7 +266,7 @@ export default function JobApplicationsPage({
         "Applying quick filter for application:",
         application.id,
         "job:",
-        params.id
+        params.id,
       );
 
       // Apply filter and wait for fetch to complete, getting data directly
@@ -277,7 +279,7 @@ export default function JobApplicationsPage({
 
       // Find the score data for this specific application from the fetched data
       const scoreData = fetchedScores.find(
-        (score) => score.application?.id === application.id
+        (score) => score.application?.id === application.id,
       );
 
       console.log("Found score data:", scoreData);
@@ -292,7 +294,7 @@ export default function JobApplicationsPage({
         }));
       } else {
         console.log(
-          "No API score data found, checking for fallback aiAnalysis"
+          "No API score data found, checking for fallback aiAnalysis",
         );
         // No score data found - check if we have fallback data
         if (application.aiAnalysis) {
@@ -366,7 +368,7 @@ export default function JobApplicationsPage({
             body: bulkEmailState.customBody,
             name: "Custom Email",
           }
-        : undefined
+        : undefined,
     );
 
     if (success) {
@@ -384,9 +386,9 @@ export default function JobApplicationsPage({
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br  from-gray-50 to-blue-100  flex items-center justify-center">
+      <div className="min-h-screen   flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading applications...</p>
         </div>
       </div>
@@ -416,7 +418,7 @@ export default function JobApplicationsPage({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-100 ">
+    <div className="min-h-screen  ">
       <div className="max-w-7xl mx-auto py-7">
         {/* AI Analysis Dialog */}
         <AIAnalysisDialog
@@ -477,7 +479,7 @@ export default function JobApplicationsPage({
                 <div className="flex items-center gap-4">
                   <div>
                     <h3 className="text-lg font-semibold text-blue-900">
-                      Applications ({filteredAndSortedApplications.length} of{" "}
+                      Applications ({data.filteredCount || 0} of{" "}
                       {data.totalApplications})
                     </h3>
                     <p className="text-sm text-blue-700">
@@ -509,15 +511,14 @@ export default function JobApplicationsPage({
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
               <h3 className="text-lg font-semibold">
-                Applications ({filteredAndSortedApplications.length})
+                Applications ({applications.length})
               </h3>
               <div className="flex items-center gap-2">
                 <Checkbox
                   id="select-all"
                   checked={
                     bulkEmailState.selectedApplications.length ===
-                      filteredAndSortedApplications.length &&
-                    filteredAndSortedApplications.length > 0
+                      applications.length && applications.length > 0
                   }
                   onCheckedChange={handleSelectAll}
                   aria-label="Select all applications"
@@ -645,7 +646,7 @@ export default function JobApplicationsPage({
                               const template =
                                 bulkEmailState.emailTemplates.find(
                                   (t) =>
-                                    t.id === bulkEmailState.selectedTemplate
+                                    t.id === bulkEmailState.selectedTemplate,
                                 );
                               return template ? (
                                 <div className="mt-2 text-sm">
@@ -698,7 +699,7 @@ export default function JobApplicationsPage({
           </div>
 
           {/* Application Cards */}
-          {filteredAndSortedApplications.length === 0 ? (
+          {applications.length === 0 ? (
             <div className="text-center py-12">
               <Users className="w-16 h-16 mx-auto text-gray-400 mb-4" />
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -711,30 +712,55 @@ export default function JobApplicationsPage({
               </p>
             </div>
           ) : (
-            <div className="space-y-4">
-              {filteredAndSortedApplications.map((application) => (
-                <ApplicationCard
-                  key={application.id}
-                  application={application}
-                  isSelected={bulkEmailState.selectedApplications.includes(
-                    application.id
-                  )}
-                  onSelect={(checked) =>
-                    handleSelectApplication(application.id, checked)
-                  }
-                  onStatusUpdate={(newStatus) =>
-                    updateApplicationStatus(application.id, newStatus)
-                  }
-                  onViewProfile={() => handleOpenProfileDialog(application)}
-                  onViewAIAnalysis={() =>
-                    handleOpenDetailedAnalysis(application)
-                  }
-                />
-              ))}
-            </div>
-          )}
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {applications.map((application) => (
+                  <ApplicationCard
+                    key={application.id}
+                    application={application}
+                    isSelected={bulkEmailState.selectedApplications.includes(
+                      application.id,
+                    )}
+                    onSelect={(checked) =>
+                      handleSelectApplication(application.id, checked)
+                    }
+                    onStatusUpdate={(newStatus) =>
+                      updateApplicationStatus(application.id, newStatus)
+                    }
+                    onViewAIAnalysis={() =>
+                      handleOpenDetailedAnalysis(application)
+                    }
+                  />
+                ))}
+              </div>
 
-          {/* Pagination would go here if needed */}
+              {/* Server-Side Pagination */}
+              {data.pagination && (
+                <Card className="mt-4">
+                  <CardContent className="p-4">
+                    <ServerPagination
+                      pagination={data.pagination}
+                      onPageChange={(page) =>
+                        setPaginationState((prev) => ({
+                          ...prev,
+                          currentPage: page,
+                        }))
+                      }
+                      onLimitChange={(limit) =>
+                        setPaginationState((prev) => ({
+                          ...prev,
+                          itemsPerPage: limit,
+                          currentPage: 1,
+                        }))
+                      }
+                      loading={loading}
+                      showFirstLast={true}
+                    />
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          )}
         </div>
 
         {/* Detailed Analysis Dialog */}
@@ -779,75 +805,116 @@ export default function JobApplicationsPage({
               detailedAnalysisState.selectedApplication?.aiAnalysis ? (
               <DetailedAnalysisDialog
                 scoreData={
-                  detailedAnalysisState.selectedScore || {
-                    // Fallback: Create scoreData from existing application aiAnalysis // Priority: Use fetched score data
-                    id: detailedAnalysisState.selectedApplication!.id,
-                    score:
-                      detailedAnalysisState.selectedApplication!.aiAnalysis!
-                        .overallScore,
-                    scoredAt:
-                      detailedAnalysisState.selectedApplication!.appliedAt,
-                    explanation: {
-                      summary: "",
-                      recommendation:
-                        detailedAnalysisState.selectedApplication!.aiAnalysis!
-                          .recommendation,
-                      strengths:
-                        detailedAnalysisState.selectedApplication!.aiAnalysis!
-                          .strengths,
-                      weaknesses:
-                        detailedAnalysisState.selectedApplication!.aiAnalysis!
-                          .weaknesses,
-                      keySkillsMatch:
-                        detailedAnalysisState.selectedApplication!.aiAnalysis!
-                          .keyMatches,
-                      missingSkills:
-                        detailedAnalysisState.selectedApplication!.aiAnalysis!
-                          .skillsMatch.missingSkills,
-                      skills:
-                        detailedAnalysisState.selectedApplication!.aiAnalysis!
-                          .scores.skills,
-                      experience:
-                        detailedAnalysisState.selectedApplication!.aiAnalysis!
-                          .scores.experience,
-                      education:
-                        detailedAnalysisState.selectedApplication!.aiAnalysis!
-                          .scores.education,
-                      fit: detailedAnalysisState.selectedApplication!
-                        .aiAnalysis!.scores.fit,
-                    },
-                    skillsMatch:
-                      detailedAnalysisState.selectedApplication!.aiAnalysis!
-                        .skillsMatch,
-                    requirements: {},
-                    candidate: {
-                      name: detailedAnalysisState.selectedApplication!.candidate
-                        .name,
-                      filename:
-                        detailedAnalysisState.selectedApplication!.candidate
-                          .resumes[0]?.fileName || "",
-                      email:
-                        detailedAnalysisState.selectedApplication!.candidate
-                          .email,
-                      phone: "",
-                      skills:
-                        detailedAnalysisState.selectedApplication!.aiAnalysis!
-                          .skillsMatch.matchedSkills || [],
-                      experience: [],
-                    },
-                    job: {
-                      title: data?.job?.title || "Job Title",
-                      description: data?.job?.description || "",
-                      requirements: data?.job?.requirements || "",
-                      location: data?.job?.location || "",
-                      company: "Company", // Static value as not available in job data
-                    },
-                    application: {
-                      id: detailedAnalysisState.selectedApplication!.id,
-                      appliedAt:
-                        detailedAnalysisState.selectedApplication!.appliedAt,
-                    },
-                  }
+                  detailedAnalysisState.selectedScore
+                    ? {
+                        // Use fetched score data but ensure candidate is populated
+                        ...detailedAnalysisState.selectedScore,
+                        candidate: detailedAnalysisState.selectedScore
+                          .candidate || {
+                          name:
+                            detailedAnalysisState.selectedApplication?.candidate
+                              .name || "",
+                          filename:
+                            detailedAnalysisState.selectedApplication?.candidate
+                              .resumes[0]?.fileName || "",
+                          email:
+                            detailedAnalysisState.selectedApplication?.candidate
+                              .email || "",
+                          phone: "",
+                          skills:
+                            detailedAnalysisState.selectedScore.skillsMatch
+                              ?.matchedSkills ||
+                            detailedAnalysisState.selectedApplication
+                              ?.aiAnalysis?.skillsMatch.matchedSkills ||
+                            [],
+                          experience: [],
+                        },
+                        application: detailedAnalysisState.selectedScore
+                          .application || {
+                          id:
+                            detailedAnalysisState.selectedApplication?.id || "",
+                          appliedAt:
+                            detailedAnalysisState.selectedApplication
+                              ?.appliedAt || new Date().toISOString(),
+                        },
+                        job: detailedAnalysisState.selectedScore.job || {
+                          title: data?.job?.title || "Job Title",
+                          description: data?.job?.description || "",
+                          requirements: data?.job?.requirements || "",
+                          location: data?.job?.location || "",
+                          company: "Company",
+                        },
+                      }
+                    : {
+                        // Fallback: Create scoreData from existing application aiAnalysis
+                        id: detailedAnalysisState.selectedApplication!.id,
+                        score:
+                          detailedAnalysisState.selectedApplication!.aiAnalysis!
+                            .overallScore,
+                        scoredAt:
+                          detailedAnalysisState.selectedApplication!.appliedAt,
+                        explanation: {
+                          summary: "",
+                          recommendation:
+                            detailedAnalysisState.selectedApplication!
+                              .aiAnalysis!.recommendation,
+                          strengths:
+                            detailedAnalysisState.selectedApplication!
+                              .aiAnalysis!.strengths,
+                          weaknesses:
+                            detailedAnalysisState.selectedApplication!
+                              .aiAnalysis!.weaknesses,
+                          keySkillsMatch:
+                            detailedAnalysisState.selectedApplication!
+                              .aiAnalysis!.keyMatches,
+                          missingSkills:
+                            detailedAnalysisState.selectedApplication!
+                              .aiAnalysis!.skillsMatch.missingSkills,
+                          skills:
+                            detailedAnalysisState.selectedApplication!
+                              .aiAnalysis!.scores.skills,
+                          experience:
+                            detailedAnalysisState.selectedApplication!
+                              .aiAnalysis!.scores.experience,
+                          education:
+                            detailedAnalysisState.selectedApplication!
+                              .aiAnalysis!.scores.education,
+                          fit: detailedAnalysisState.selectedApplication!
+                            .aiAnalysis!.scores.fit,
+                        },
+                        skillsMatch:
+                          detailedAnalysisState.selectedApplication!.aiAnalysis!
+                            .skillsMatch,
+                        requirements: {},
+                        candidate: {
+                          name: detailedAnalysisState.selectedApplication!
+                            .candidate.name,
+                          filename:
+                            detailedAnalysisState.selectedApplication!.candidate
+                              .resumes[0]?.fileName || "",
+                          email:
+                            detailedAnalysisState.selectedApplication!.candidate
+                              .email,
+                          phone: "",
+                          skills:
+                            detailedAnalysisState.selectedApplication!
+                              .aiAnalysis!.skillsMatch.matchedSkills || [],
+                          experience: [],
+                        },
+                        job: {
+                          title: data?.job?.title || "Job Title",
+                          description: data?.job?.description || "",
+                          requirements: data?.job?.requirements || "",
+                          location: data?.job?.location || "",
+                          company: "Company", // Static value as not available in job data
+                        },
+                        application: {
+                          id: detailedAnalysisState.selectedApplication!.id,
+                          appliedAt:
+                            detailedAnalysisState.selectedApplication!
+                              .appliedAt,
+                        },
+                      }
                 }
                 open={detailedAnalysisState.open}
                 onOpenChange={(open) => {

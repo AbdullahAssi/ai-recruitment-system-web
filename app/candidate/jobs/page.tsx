@@ -6,15 +6,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { ServerPagination } from "@/components/reusables";
 import {
   MapPin,
   Briefcase,
   Building2,
   Search,
   CheckCircle,
+  EyeIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { CompanyInfoCard } from "@/components/common/CompanyInfoCard";
+import { BsEyeFill } from "react-icons/bs";
 
 interface Company {
   id: string;
@@ -39,26 +42,48 @@ interface Job {
   hasApplied?: boolean;
 }
 
+interface JobsData {
+  jobs: Job[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
 export default function CandidateJobsPage() {
   const { user } = useAuth();
-  const [jobs, setJobs] = useState<Job[]>([]);
+  const [data, setData] = useState<JobsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [paginationState, setPaginationState] = useState({
+    currentPage: 1,
+    itemsPerPage: 9,
+  });
 
   useEffect(() => {
-    if (user?.candidate?.id) {
-      fetchJobs();
-    }
-  }, [user]);
+    fetchJobs();
+  }, [paginationState.currentPage, paginationState.itemsPerPage, searchTerm]);
 
   const fetchJobs = async () => {
     try {
-      const response = await fetch("/api/jobs");
-      const data = await response.json();
-      if (data.success) {
-        const activeJobs = data.jobs.filter((job: Job) => job.isActive);
+      setLoading(true);
+      const params = new URLSearchParams({
+        page: paginationState.currentPage.toString(),
+        limit: paginationState.itemsPerPage.toString(),
+        status: "active", // Only fetch active jobs for candidates
+      });
 
-        // Fetch user's applications to check if they've applied
+      if (searchTerm) {
+        params.append("search", searchTerm);
+      }
+
+      const response = await fetch(`/api/jobs?${params.toString()}`);
+      const result = await response.json();
+      
+      if (result.success) {
+        // Check if user has applied to these jobs
         if (user?.candidate?.id) {
           const applicationsResponse = await fetch(
             `/api/applications?candidateId=${user.candidate.id}`,
@@ -71,17 +96,26 @@ export default function CandidateJobsPage() {
             );
 
             // Mark jobs as applied
-            const jobsWithAppliedStatus = activeJobs.map((job: Job) => ({
+            const jobsWithAppliedStatus = result.jobs.map((job: Job) => ({
               ...job,
               hasApplied: appliedJobIds.has(job.id),
             }));
 
-            setJobs(jobsWithAppliedStatus);
+            setData({
+              jobs: jobsWithAppliedStatus,
+              pagination: result.pagination,
+            });
           } else {
-            setJobs(activeJobs);
+            setData({
+              jobs: result.jobs,
+              pagination: result.pagination,
+            });
           }
         } else {
-          setJobs(activeJobs);
+          setData({
+            jobs: result.jobs,
+            pagination: result.pagination,
+          });
         }
       }
     } catch (error) {
@@ -91,13 +125,12 @@ export default function CandidateJobsPage() {
     }
   };
 
-  const filteredJobs = jobs.filter(
-    (job) =>
-      job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.companyInfo?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.location?.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setPaginationState((prev) => ({ ...prev, currentPage: 1 }));
+  };
+
+  const jobs = data?.jobs || [];
 
   return (
     <div className="space-y-6">
@@ -115,17 +148,20 @@ export default function CandidateJobsPage() {
           type="text"
           placeholder="Search jobs by title, company, or location..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => handleSearchChange(e.target.value)}
           className="pl-10"
         />
       </div>
 
       {/* Jobs List */}
       {loading ? (
-        <div className="text-center py-12">
-          <p className="text-gray-500">Loading jobs...</p>
+       <div className="min-h-[50vh]   flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading Jobs...</p>
         </div>
-      ) : filteredJobs.length === 0 ? (
+      </div>
+      ) : jobs.length === 0 ? (
         <Card>
           <CardContent className="text-center py-12">
             <Briefcase className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -133,12 +169,13 @@ export default function CandidateJobsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredJobs.map((job) => (
-            <Card
-              key={job.id}
-              className="hover:shadow-lg transition-shadow flex flex-col"
-            >
+        <>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {jobs.map((job) => (
+              <Card
+                key={job.id}
+                className="hover:shadow-lg transition-shadow flex flex-col"
+              >
               <CardContent className="p-6 flex-1 flex flex-col">
                 {/* Company Info */}
                 {/* {job.companyInfo && (
@@ -192,13 +229,39 @@ export default function CandidateJobsPage() {
                     Posted {new Date(job.postedDate).toLocaleDateString()}
                   </span>
                   <Link href={`/candidate/jobs/${job.id}`} className="w-full">
-                    <Button className="w-full">View Details</Button>
+                    <Button className="w-full "> 
+                      <EyeIcon className="w-4 h-4 mr-2" />
+                      View Details</Button>
                   </Link>
                 </div>
               </CardContent>
             </Card>
           ))}
-        </div>
+          </div>
+
+          {/* Server-Side Pagination */}
+          {data?.pagination && data.pagination.totalPages > 1 && (
+            <Card className="mt-6">
+              <CardContent className="p-4">
+                <ServerPagination
+                  pagination={data.pagination}
+                  onPageChange={(page) =>
+                    setPaginationState((prev) => ({ ...prev, currentPage: page }))
+                  }
+                  onLimitChange={(limit) =>
+                    setPaginationState((prev) => ({
+                      ...prev,
+                      itemsPerPage: limit,
+                      currentPage: 1,
+                    }))
+                  }
+                  loading={loading}
+                  showFirstLast={true}
+                />
+              </CardContent>
+            </Card>
+          )}
+        </>
       )}
     </div>
   );
