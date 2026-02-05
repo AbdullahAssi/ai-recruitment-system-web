@@ -27,7 +27,7 @@ export default function JobDetailPage() {
   useEffect(() => {
     const fetchJob = async () => {
       try {
-        const res = await fetch(`/api/v1/jobs/${jobId}`);
+        const res = await fetch(`/api/jobs/${jobId}`);
         if (!res.ok) throw new Error("Failed to fetch job");
         const data = await res.json();
         setJob(data);

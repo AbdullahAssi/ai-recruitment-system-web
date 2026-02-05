@@ -212,7 +212,7 @@ export function useJobs(
       setCreating(true);
 
       try {
-        const response = await fetch(`/api/v1/jobs/${jobId}`, {
+        const response = await fetch(`/api/jobs/${jobId}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -255,7 +255,7 @@ export function useJobs(
     async (jobId: string, currentStatus: boolean) => {
       setUpdating(jobId);
       try {
-        const response = await fetch(`/api/v1/jobs/${jobId}`, {
+        const response = await fetch(`/api/jobs/${jobId}`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
