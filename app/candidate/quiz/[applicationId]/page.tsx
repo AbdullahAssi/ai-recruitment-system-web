@@ -67,6 +67,64 @@ export default function QuizAssessmentPage() {
     }
   }, []);
 
+  // Quiz Restrictions
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [violationType, setViolationType] = useState<string | null>(null);
+
+  // Prevention Event Listeners
+  useEffect(() => {
+    if (state !== "in-progress") return;
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        handleViolation("Tab switching/Minimizing window");
+      }
+    };
+
+    const handleBlur = () => {
+      handleViolation("Window focus lost");
+    };
+
+    const handleCopyPaste = (e: ClipboardEvent) => {
+      e.preventDefault();
+      // Optional: Toast warning? Or just silent block as requested "no warnings"
+    };
+
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("blur", handleBlur);
+    document.addEventListener("copy", handleCopyPaste);
+    document.addEventListener("cut", handleCopyPaste);
+    document.addEventListener("paste", handleCopyPaste);
+    document.addEventListener("contextmenu", handleContextMenu);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("blur", handleBlur);
+      document.removeEventListener("copy", handleCopyPaste);
+      document.removeEventListener("cut", handleCopyPaste);
+      document.removeEventListener("paste", handleCopyPaste);
+      document.removeEventListener("contextmenu", handleContextMenu);
+    };
+  }, [state]);
+
+  const handleViolation = (reason: string) => {
+    if (state === "submitting" || state === "completed" || violationType)
+      return;
+
+    setViolationType(reason);
+    submitQuiz(reason);
+  };
+
+  const startQuiz = () => {
+    setShowInstructions(false);
+    setStartTime(Date.now());
+    setState("in-progress");
+  };
+
   const generateQuiz = async () => {
     try {
       setState("loading");
@@ -92,7 +150,6 @@ export default function QuizAssessmentPage() {
 
       // If quiz is already completed, show results
       if (data.isCompleted) {
-        // Fetch results
         fetchResults(data.quizAttemptId);
         return;
       }
@@ -105,8 +162,9 @@ export default function QuizAssessmentPage() {
         setAnswers(data.existingAnswers);
       }
 
-      setStartTime(Date.now());
-      setState("in-progress");
+      // Show instructions before starting
+      setShowInstructions(true);
+      setState("ready");
     } catch (error: any) {
       console.error("Error generating quiz:", error);
       setError(error.message);
@@ -183,7 +241,7 @@ export default function QuizAssessmentPage() {
     }, 5000);
   };
 
-  const submitQuiz = async () => {
+  const submitQuiz = async (violationReason?: string) => {
     try {
       setState("submitting");
       setShowSubmitDialog(false);
@@ -198,6 +256,7 @@ export default function QuizAssessmentPage() {
           quizAttemptId,
           answers,
           timeSpent,
+          violation: violationReason, // Backend might support this, or we just log it
         }),
       });
 
@@ -252,11 +311,81 @@ export default function QuizAssessmentPage() {
   if (state === "completed" && results) {
     return (
       <div className="container mx-auto py-8 max-w-7xl">
+        {violationType && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertTriangle className="w-4 h-4" />
+            <AlertDescription className="font-semibold">
+              Quiz Terminated: {violationType}. Your answers have been submitted
+              as-is.
+            </AlertDescription>
+          </Alert>
+        )}
         <QuizResults
           results={results}
           questions={questions}
           timeSpent={results.timeSpent}
         />
+      </div>
+    );
+  }
+
+  // Instructions State
+  if (showInstructions) {
+    return (
+      <div className="container mx-auto py-8 max-w-7xl">
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-2xl">
+              <AlertTriangle className="h-6 w-6 text-yellow-600" />
+              Assessment Rules & Regulations
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100">
+              <p className="text-yellow-900 font-medium mb-2">
+                Zero Tolerance Policy
+              </p>
+              <p className="text-yellow-800 text-sm">
+                To ensure the integrity of this assessment, strict anti-cheating
+                measures are in place. Any violation will result in{" "}
+                <strong>immediate termination</strong> of your session.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="font-semibold text-lg">Please read carefully:</h3>
+              <ul className="space-y-3 list-disc list-inside text-gray-700">
+                <li>You must keep this tab open and active at all times.</li>
+                <li>
+                  <strong>Do not</strong> switch tabs or minimize the browser
+                  window.
+                </li>
+                <li>
+                  <strong>Do not</strong> attempt to copy questions or paste
+                  answers.
+                </li>
+                <li>Right-click context menu is disabled.</li>
+                <li>Once started, the timer cannot be paused.</li>
+              </ul>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t">
+              <Button
+                onClick={() => router.back()}
+                variant="outline"
+                className="w-full sm:w-auto"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={startQuiz}
+                className="w-full sm:w-auto bg-yellow-600 hover:bg-yellow-700 text-white"
+              >
+                I Understand & Start Quiz
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -267,7 +396,10 @@ export default function QuizAssessmentPage() {
   const canSubmit = Object.keys(answers).length === questions.length;
 
   return (
-    <div className="container mx-auto py-8 max-w-7xl">
+    <div
+      className="container mx-auto py-8 max-w-7xl select-none"
+      onContextMenu={(e) => e.preventDefault()}
+    >
       <div className="space-y-6">
         {/* Header */}
         <Card>
@@ -275,7 +407,7 @@ export default function QuizAssessmentPage() {
             <div className="flex items-center justify-between">
               <CardTitle className="text-2xl">{quiz?.title}</CardTitle>
               <QuizTimer
-                duration={quiz?.duration || 10}
+                duration={10}
                 onTimeUp={handleTimeUp}
                 isActive={state === "in-progress"}
               />
@@ -283,6 +415,10 @@ export default function QuizAssessmentPage() {
             {quiz?.description && (
               <p className="text-muted-foreground">{quiz.description}</p>
             )}
+            <div className="text-xs text-red-500 font-semibold mt-2 flex items-center gap-1">
+              <AlertTriangle className="h-3 w-3" />
+              Do not switch tabs or leave this window.
+            </div>
           </CardHeader>
         </Card>
 
@@ -349,7 +485,7 @@ export default function QuizAssessmentPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Review Answers</AlertDialogCancel>
-            <AlertDialogAction onClick={submitQuiz}>
+            <AlertDialogAction onClick={() => submitQuiz()}>
               Submit Anyway
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -367,7 +503,7 @@ export default function QuizAssessmentPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction onClick={submitQuiz}>
+            <AlertDialogAction onClick={() => submitQuiz()}>
               Submit Now
             </AlertDialogAction>
           </AlertDialogFooter>
