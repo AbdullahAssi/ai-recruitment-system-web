@@ -1,7 +1,13 @@
 "use client";
 
 import { format } from "date-fns";
-import { FiMail, FiBriefcase, FiCalendar, FiDownload, FiTrendingUp } from "react-icons/fi";
+import {
+  FiMail,
+  FiBriefcase,
+  FiCalendar,
+  FiDownload,
+  FiTrendingUp,
+} from "react-icons/fi";
 import { BsTrophy, BsCheckCircle, BsXCircle } from "react-icons/bs";
 import { HiSparkles } from "react-icons/hi";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,7 +25,7 @@ import { Application } from "../../types/application.types";
 import {
   getStatusColor,
   getScoreColor,
-  getScoreBadgeColor,
+  getScoreVariant,
   getApplicationBorderColor,
   downloadResume,
   formatStatusText,
@@ -83,14 +89,14 @@ export function ApplicationCard({
             className="mt-1"
             aria-label={`Select ${application.candidate.name}`}
           />
-          
+
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2">
               <h3 className="text-base font-semibold text-gray-900 truncate">
                 {application.candidate.name}
               </h3>
               {application.aiAnalysis && (
-                <Badge variant="outline" className="h-5 px-1.5 text-[10px] bg-emerald-50 text-emerald-700 border-emerald-300">
+                <Badge variant="success" className="h-5 px-1.5 text-[10px]">
                   <HiSparkles className="w-3 h-3 mr-1" />
                   AI
                 </Badge>
@@ -104,7 +110,9 @@ export function ApplicationCard({
               </div>
               <div className="flex items-center gap-1.5">
                 <FiCalendar className="w-4 h-4 text-gray-400" />
-                <span>{format(new Date(application.appliedAt), "MMM dd, HH:mm")}</span>
+                <span>
+                  {format(new Date(application.appliedAt), "MMM dd, HH:mm")}
+                </span>
               </div>
             </div>
           </div>
@@ -113,11 +121,11 @@ export function ApplicationCard({
         {/* Scores Section */}
         <div className="grid grid-cols-4 gap-2 mb-3">
           {/* Match Score */}
-          <div className={`rounded-lg p-2.5 border text-center ${getScoreColor(application.score)}`}>
+          <div
+            className={`rounded-lg p-2.5 border text-center ${getScoreColor(application.score)}`}
+          >
             <HiSparkles className="w-4 h-4 mx-auto mb-1" />
-            <div className="text-lg font-bold">
-              {application.score}%
-            </div>
+            <div className="text-lg font-bold">{application.score}%</div>
             <div className="text-[10px] font-medium">Match</div>
           </div>
 
@@ -125,12 +133,18 @@ export function ApplicationCard({
           {typeof application.candidate.quizScore === "number" && (
             <div className="bg-purple-50 rounded-lg p-2.5 border border-purple-200 text-center">
               <BsTrophy className="w-4 h-4 text-purple-600 mx-auto mb-1" />
-              <div className={`text-lg font-bold ${
-                application.candidate.quizPassed ? "text-emerald-700" : "text-red-700"
-              }`}>
+              <div
+                className={`text-lg font-bold ${
+                  application.candidate.quizPassed
+                    ? "text-emerald-700"
+                    : "text-red-700"
+                }`}
+              >
                 {application.candidate.quizScore}%
               </div>
-              <div className="text-[10px] text-purple-700 font-medium">Quiz</div>
+              <div className="text-[10px] text-purple-700 font-medium">
+                Quiz
+              </div>
             </div>
           )}
 
@@ -140,7 +154,9 @@ export function ApplicationCard({
             <div className="text-lg font-bold text-amber-700">
               {application.candidate.experience}y
             </div>
-            <div className="text-[10px] text-amber-700 font-medium">Experience</div>
+            <div className="text-[10px] text-amber-700 font-medium">
+              Experience
+            </div>
           </div>
 
           {/* AI Overall Score or Status */}
@@ -150,10 +166,14 @@ export function ApplicationCard({
               <div className="text-lg font-bold text-purple-700">
                 {application.aiAnalysis.overallScore}%
               </div>
-              <div className="text-[10px] text-purple-700 font-medium">AI Score</div>
+              <div className="text-[10px] text-purple-700 font-medium">
+                AI Score
+              </div>
             </div>
           ) : (
-            <div className={`rounded-lg p-2.5 border text-center ${getStatusColor(application.status)}`}>
+            <div
+              className={`rounded-lg p-2.5 border text-center ${getStatusColor(application.status)}`}
+            >
               <BsCheckCircle className="w-4 h-4 mx-auto mb-1" />
               <div className="text-xs font-bold">
                 {formatStatusText(application.status)}
@@ -192,11 +212,13 @@ export function ApplicationCard({
 
         {/* AI Recommendation */}
         {application.aiAnalysis && (
-          <div className={`rounded-lg p-2 mb-3 border ${getRecommendationColor(application.aiAnalysis.overallScore)}`}>
+          <div
+            className={`rounded-lg p-2 mb-3 border ${getRecommendationColor(application.aiAnalysis.overallScore)}`}
+          >
             <div className="flex items-center justify-center">
               <Badge
-                className={`${getScoreBadgeColor(application.aiAnalysis.overallScore)} text-xs px-3 py-1`}
-                variant="outline"
+                className="text-xs px-3 py-1"
+                variant={getScoreVariant(application.aiAnalysis.overallScore)}
               >
                 {application.aiAnalysis.recommendation.replace("_", " ")}
               </Badge>
@@ -217,11 +239,7 @@ export function ApplicationCard({
               Resume
             </Button>
           )}
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-9"
-          >
+          <Button size="sm" variant="outline" className="h-9">
             <FiMail className="w-4 h-4 mr-2" />
             Contact
           </Button>
@@ -233,13 +251,12 @@ export function ApplicationCard({
               className="h-9 col-span-2"
             >
               <HiSparkles className="w-4 h-4 mr-2" />
-              {application.aiAnalysis ? "View AI Details" : "Generate AI Analysis"}
+              {application.aiAnalysis
+                ? "View AI Details"
+                : "Generate AI Analysis"}
             </Button>
           )}
-          <Select
-            value={application.status}
-            onValueChange={onStatusUpdate}
-          >
+          <Select value={application.status} onValueChange={onStatusUpdate}>
             <SelectTrigger className="h-9 col-span-2">
               <SelectValue />
             </SelectTrigger>

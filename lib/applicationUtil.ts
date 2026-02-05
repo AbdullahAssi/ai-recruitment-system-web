@@ -34,11 +34,11 @@ export const getScoreColor = (score: number) => {
   return "text-red-600 bg-red-50";
 };
 
-export const getScoreBadgeColor = (score: number) => {
-  if (score >= 80) return "bg-green-100 text-green-800 border-green-300";
-  if (score >= 60) return "bg-yellow-100 text-yellow-800 border-yellow-300";
-  if (score >= 40) return "bg-orange-100 text-orange-800 border-orange-300";
-  return "bg-red-100 text-red-800 border-red-300";
+export const getScoreVariant = (score: number) => {
+  if (score >= 80) return "success";
+  if (score >= 60) return "warning";
+  if (score >= 40) return "warning"; // or create an orange variant if needed, but warning (amber) is close
+  return "danger";
 };
 
 export const getApplicationBorderColor = (

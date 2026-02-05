@@ -125,7 +125,8 @@ export default function JobsPage() {
       console.error("Error applying to job:", error);
       toast({
         title: "Application Failed",
-        description: "An unexpected error occurred while submitting your application",
+        description:
+          "An unexpected error occurred while submitting your application",
         variant: "destructive",
       });
     } finally {
@@ -292,7 +293,7 @@ export default function JobsPage() {
                 <div className="text-center">
                   <div
                     className={`text-4xl font-bold ${getScoreColor(
-                      applicationResult.matchDetails.overallScore
+                      applicationResult.matchDetails.overallScore,
                     )}`}
                   >
                     {applicationResult.matchDetails.overallScore}%
@@ -318,7 +319,7 @@ export default function JobsPage() {
                     </h4>
                     <div className="text-2xl font-bold text-green-600">
                       {applicationResult.matchDetails.skillMatchPercentage.toFixed(
-                        1
+                        1,
                       )}
                       %
                     </div>
@@ -336,13 +337,10 @@ export default function JobsPage() {
                     <div className="flex flex-wrap gap-2">
                       {applicationResult.matchDetails.matchedSkills.map(
                         (skill, index) => (
-                          <Badge
-                            key={index}
-                            className="bg-green-100 text-green-800"
-                          >
+                          <Badge key={index} variant="success">
                             {skill}
                           </Badge>
-                        )
+                        ),
                       )}
                     </div>
                   </div>
@@ -357,14 +355,10 @@ export default function JobsPage() {
                       <div className="flex flex-wrap gap-2">
                         {applicationResult.matchDetails.missingSkills.map(
                           (skill, index) => (
-                            <Badge
-                              key={index}
-                              variant="outline"
-                              className="border-red-200 text-red-800"
-                            >
+                            <Badge key={index} variant="danger">
                               {skill}
                             </Badge>
-                          )
+                          ),
                         )}
                       </div>
                     </div>

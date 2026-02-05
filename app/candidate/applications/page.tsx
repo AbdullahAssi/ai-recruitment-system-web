@@ -109,16 +109,20 @@ export default function CandidateApplicationsPage() {
     switch (status?.toLowerCase()) {
       case "accepted":
       case "hired":
-        return "default";
+        return "success";
       case "rejected":
-        return "destructive";
+        return "danger";
       case "interview":
       case "quiz_pending":
-        return "secondary";
+        return "warning";
       case "quiz_completed":
-        return "outline";
+        return "teal";
+      case "reviewed":
+        return "info";
+      case "shortlisted":
+        return "purple";
       default:
-        return "outline";
+        return "neutral";
     }
   };
 
