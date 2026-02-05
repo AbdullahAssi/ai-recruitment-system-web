@@ -71,6 +71,7 @@ export function QuizCard({
       </CardHeader>
       <CardContent>
         <RadioGroup
+          name={`question-${question.id}`}
           value={selectedAnswer}
           onValueChange={(value) => onAnswerSelect(question.id, value)}
           disabled={showResult}

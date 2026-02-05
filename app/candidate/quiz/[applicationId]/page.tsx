@@ -75,7 +75,7 @@ export default function QuizAssessmentPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           applicationId,
-          numQuestions: 5,
+          numQuestions: 10,
           difficulty: "medium",
         }),
       });
@@ -267,7 +267,7 @@ export default function QuizAssessmentPage() {
   const canSubmit = Object.keys(answers).length === questions.length;
 
   return (
-    <div className="container mx-auto py-8 max-w-4xl">
+    <div className="container mx-auto py-8 max-w-7xl">
       <div className="space-y-6">
         {/* Header */}
         <Card>
@@ -275,7 +275,7 @@ export default function QuizAssessmentPage() {
             <div className="flex items-center justify-between">
               <CardTitle className="text-2xl">{quiz?.title}</CardTitle>
               <QuizTimer
-                duration={quiz?.duration || 30}
+                duration={quiz?.duration || 10}
                 onTimeUp={handleTimeUp}
                 isActive={state === "in-progress"}
               />
@@ -300,6 +300,7 @@ export default function QuizAssessmentPage() {
         {/* Current Question */}
         {currentQuestion && (
           <QuizCard
+            key={currentQuestion.id}
             question={currentQuestion}
             questionNumber={currentQuestionIndex + 1}
             totalQuestions={questions.length}
