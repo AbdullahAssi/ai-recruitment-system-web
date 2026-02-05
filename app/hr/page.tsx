@@ -727,17 +727,18 @@ export default function HRPage() {
                         </p>
                       </div>
                       <Badge
-                        className={`text-xs font-medium flex-shrink-0 ${
-                          activity.status === "PENDING"
-                            ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400"
-                            : activity.status === "REVIEWED"
-                              ? "bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-400"
-                              : activity.status === "SHORTLISTED"
-                                ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
-                                : activity.status === "REJECTED"
-                                  ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
-                                  : "bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-400"
-                        }`}
+                        variant={
+                          (
+                            {
+                              PENDING: "warning",
+                              REVIEWED: "teal",
+                              SHORTLISTED: "info",
+                              REJECTED: "danger",
+                              ACCEPTED: "success",
+                            } as const
+                          )[activity.status] || "neutral"
+                        }
+                        className="text-xs font-medium flex-shrink-0"
                       >
                         {activity.status}
                       </Badge>

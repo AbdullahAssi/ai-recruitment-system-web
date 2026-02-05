@@ -12,10 +12,25 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  User,
+  Mail,
+  Phone,
+  Lock,
+  Briefcase,
+  UserCircle,
+} from "lucide-react";
 import Link from "next/link";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -80,62 +95,111 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-4">
-      <Card className="w-full max-w-xl shadow-lg">
+      <Card className="w-full max-w-2xl shadow-xl border-t-4 border-t-purple-600">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
             Create Account
           </CardTitle>
           <CardDescription className="text-center">
-            Sign up to get started with our recruitment platform
+            Join us to revolutionize your recruitment journey
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid lg:grid-cols-2 gap-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="grid lg:grid-cols-2 gap-5">
+              {/* Row 1: Name & Email */}
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="John Doe"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  required
-                />
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="name"
+                    type="text"
+                    placeholder="John Doe"
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
+                    required
+                    className="pl-9"
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                  required
-                />
+                <Label htmlFor="email">Email Address</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={formData.email}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
+                    required
+                    className="pl-9"
+                  />
+                </div>
               </div>
 
+              {/* Row 2: Phone & Role */}
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone (Optional)</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="+1 234 567 8900"
-                  value={formData.phone}
-                  onChange={(e) =>
-                    setFormData({ ...formData, phone: e.target.value })
-                  }
-                />
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="+1 234 567 8900"
+                    value={formData.phone}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phone: e.target.value })
+                    }
+                    className="pl-9"
+                  />
+                </div>
               </div>
 
+              <div className="space-y-2">
+                <Label>I am a...</Label>
+                <Select
+                  value={formData.role}
+                  onValueChange={(value: "CANDIDATE" | "HR") =>
+                    setFormData({ ...formData, role: value })
+                  }
+                >
+                  <SelectTrigger className="pl-9 relative">
+                    {formData.role === "HR" ? (
+                      <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-purple-600" />
+                    ) : (
+                      <UserCircle className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-600" />
+                    )}
+                    <SelectValue placeholder="Select your role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="CANDIDATE">
+                      <div className="flex items-center gap-2">
+                        <UserCircle className="h-4 w-4 text-blue-500" />
+                        <span>Job Seeker / Candidate</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="HR">
+                      <div className="flex items-center gap-2">
+                        <Briefcase className="h-4 w-4 text-purple-500" />
+                        <span>HR / Recruiter</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Row 3: Password & Confirm Password */}
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
@@ -145,12 +209,12 @@ export default function RegisterPage() {
                       setFormData({ ...formData, password: e.target.value })
                     }
                     required
-                    className="pr-10"
+                    className="pl-9 pr-10"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4" />
@@ -164,6 +228,7 @@ export default function RegisterPage() {
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm Password</Label>
                 <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
@@ -176,12 +241,12 @@ export default function RegisterPage() {
                       })
                     }
                     required
-                    className="pr-10"
+                    className="pl-9 pr-10"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
                   >
                     {showConfirmPassword ? (
                       <EyeOff className="h-4 w-4" />
@@ -193,42 +258,20 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>I am a</Label>
-              <RadioGroup
-                value={formData.role}
-                onValueChange={(value: "CANDIDATE" | "HR") =>
-                  setFormData({ ...formData, role: value })
-                }
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="CANDIDATE" id="candidate" />
-                  <Label
-                    htmlFor="candidate"
-                    className="font-normal cursor-pointer"
-                  >
-                    Job Seeker / Candidate
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="HR" id="hr" />
-                  <Label htmlFor="hr" className="font-normal cursor-pointer">
-                    HR / Recruiter
-                  </Label>
-                </div>
-              </RadioGroup>
-            </div>
-
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button
+              type="submit"
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-2.5 rounded-lg transition-all duration-200 transform hover:scale-[1.01]"
+              disabled={loading}
+            >
               {loading ? "Creating Account..." : "Create Account"}
             </Button>
           </form>
 
-          <div className="mt-4 text-center text-sm">
+          <div className="mt-6 text-center text-sm">
             <span className="text-gray-600">Already have an account? </span>
             <Link
               href="/auth/login"
-              className="text-blue-600 hover:underline font-medium"
+              className="text-purple-600 hover:text-purple-700 hover:underline font-semibold"
             >
               Sign in
             </Link>
@@ -237,7 +280,7 @@ export default function RegisterPage() {
           <div className="mt-4 text-center">
             <Link
               href="/"
-              className="text-sm text-gray-600 hover:text-gray-900"
+              className="text-xs text-gray-500 hover:text-gray-900 transition-colors"
             >
               ← Back to Home
             </Link>

@@ -29,7 +29,7 @@ import { Separator } from "@/components/ui/separator";
 import { Application, AIScoresData } from "../../types/application.types";
 import {
   getScoreColor,
-  getScoreBadgeColor,
+  getScoreVariant,
   getStatusColor,
   formatStatusText,
 } from "../../lib/applicationUtil";
@@ -140,9 +140,8 @@ export function AIAnalysisDialog({
                     {aiScoresData.explanation?.recommendation && (
                       <div className="text-center p-4 bg-white rounded-lg border">
                         <Badge
-                          className={`${getScoreBadgeColor(
-                            aiScoresData.score || 0,
-                          )} text-lg px-4 py-2 mb-2`}
+                          variant={getScoreVariant(aiScoresData.score || 0)}
+                          className="text-lg px-4 py-2 mb-2"
                         >
                           {aiScoresData.explanation.recommendation
                             .replace("_", " ")
@@ -446,10 +445,11 @@ export function AIAnalysisDialog({
                     </div>
                     {application.aiAnalysis && (
                       <Badge
-                        className={`${getScoreBadgeColor(
+                        variant={getScoreVariant(
                           application.aiAnalysis.overallScore ||
                             application.score,
-                        )} mt-1`}
+                        )}
+                        className="mt-1"
                       >
                         {application.aiAnalysis.recommendation
                           ? application.aiAnalysis.recommendation.replace(
