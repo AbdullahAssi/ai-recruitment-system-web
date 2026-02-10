@@ -11,7 +11,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Recruit.ai - Intelligent Resume Job Matching",
+  title: "Qmindai - Intelligent Resume Job Matching",
   description:
     "AI-powered resume and job description matching system with advanced skill analysis and compatibility scoring.",
   keywords:

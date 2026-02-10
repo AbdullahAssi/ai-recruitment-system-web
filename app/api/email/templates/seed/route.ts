@@ -17,11 +17,11 @@ const defaultTemplates = [
           <p>Our team will review your application and get back to you within 5-7 business days.</p>
           <p>If you have any questions, please don't hesitate to contact us.</p>
           <br>
-          <p>Best regards,<br>{{companyName}} Hiring Team</p>
+          <p>Best regards,<br>{{hrName}}<br>{{companyName}} Hiring Team</p>
         </body>
       </html>
     `,
-    type: "APPLICATION_RECEIVED"
+    type: "APPLICATION_RECEIVED",
   },
   {
     name: "Application Under Review",
@@ -35,11 +35,11 @@ const defaultTemplates = [
           <p>We're pleased to inform you that your application is currently under review by our hiring team.</p>
           <p>We will contact you with the next steps in the process soon.</p>
           <br>
-          <p>Best regards,<br>{{companyName}} Hiring Team</p>
+          <p>Best regards,<br>{{hrName}}<br>{{companyName}} Hiring Team</p>
         </body>
       </html>
     `,
-    type: "APPLICATION_UNDER_REVIEW"
+    type: "APPLICATION_UNDER_REVIEW",
   },
   {
     name: "Application Shortlisted",
@@ -54,11 +54,11 @@ const defaultTemplates = [
           <p>Our team will be in touch with you shortly to schedule the next round of interviews.</p>
           <p>Please keep an eye on your email and phone for further communication.</p>
           <br>
-          <p>Best regards,<br>{{companyName}} Hiring Team</p>
+          <p>Best regards,<br>{{hrName}}<br>{{companyName}} Hiring Team</p>
         </body>
       </html>
     `,
-    type: "APPLICATION_SHORTLISTED"
+    type: "APPLICATION_SHORTLISTED",
   },
   {
     name: "Application Rejected",
@@ -73,11 +73,11 @@ const defaultTemplates = [
           <p>We encourage you to apply for future positions that match your skills and experience.</p>
           <p>Thank you again for considering {{companyName}} as your potential employer.</p>
           <br>
-          <p>Best regards,<br>{{companyName}} Hiring Team</p>
+          <p>Best regards,<br>{{hrName}}<br>{{companyName}} Hiring Team</p>
         </body>
       </html>
     `,
-    type: "APPLICATION_REJECTED"
+    type: "APPLICATION_REJECTED",
   },
   {
     name: "Interview Invitation",
@@ -99,12 +99,12 @@ const defaultTemplates = [
           </ul>
           <p>We look forward to hearing from you.</p>
           <br>
-          <p>Best regards,<br>{{companyName}} Hiring Team</p>
+          <p>Best regards,<br>{{hrName}}<br>{{companyName}} Hiring Team</p>
         </body>
       </html>
     `,
-    type: "INTERVIEW_INVITE"
-  }
+    type: "INTERVIEW_INVITE",
+  },
 ];
 
 // POST create default email templates
@@ -138,13 +138,20 @@ export async function POST(request: NextRequest) {
           select: { createdAt: true },
         });
 
-        if (existingTemplate && new Date(upsertedTemplate.createdAt).getTime() === new Date(upsertedTemplate.updatedAt).getTime()) {
+        if (
+          existingTemplate &&
+          new Date(upsertedTemplate.createdAt).getTime() ===
+            new Date(upsertedTemplate.updatedAt).getTime()
+        ) {
           createdTemplates.push(upsertedTemplate);
         } else {
           updatedTemplates.push(upsertedTemplate);
         }
       } catch (templateError) {
-        console.error(`Error processing template ${template.name}:`, templateError);
+        console.error(
+          `Error processing template ${template.name}:`,
+          templateError,
+        );
         // Continue with other templates even if one fails
       }
     }
@@ -156,16 +163,24 @@ export async function POST(request: NextRequest) {
         created: createdTemplates.length,
         updated: updatedTemplates.length,
         total: defaultTemplates.length,
-        createdTemplates: createdTemplates.map(t => ({ id: t.id, name: t.name })),
-        updatedTemplates: updatedTemplates.map(t => ({ id: t.id, name: t.name })),
+        createdTemplates: createdTemplates.map((t) => ({
+          id: t.id,
+          name: t.name,
+        })),
+        updatedTemplates: updatedTemplates.map((t) => ({
+          id: t.id,
+          name: t.name,
+        })),
       },
     });
-
   } catch (error) {
     console.error("Error creating default email templates:", error);
     return NextResponse.json(
-      { error: "Failed to create default email templates", details: error instanceof Error ? error.message : String(error) },
-      { status: 500 }
+      {
+        error: "Failed to create default email templates",
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 },
     );
   }
 }

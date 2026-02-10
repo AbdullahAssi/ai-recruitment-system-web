@@ -10,7 +10,7 @@ export function HomepageFooter() {
           <div>
             <div className="flex items-center gap-2 mb-4">
               <Brain className="w-5 h-5 text-white" />
-              <span className="text-xl font-bold text-white"> Recruit.ai</span>
+              <span className="text-xl font-bold text-white"> Qmindai</span>
             </div>
             <p className="text-gray-400 text-sm">
               Transforming recruitment with intelligent automation and

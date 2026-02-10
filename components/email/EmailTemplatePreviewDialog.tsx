@@ -20,6 +20,7 @@ const TEMPLATE_VARIABLES = {
   jobLocation: "Remote",
   companyName: "Your Company",
   applicationDate: new Date().toLocaleDateString(),
+  hrName: "Jane Smith",
 };
 
 function replaceTemplateVariables(text: string): string {
@@ -31,8 +32,9 @@ function replaceTemplateVariables(text: string): string {
     .replace(/\{\{\s*companyName\s*\}\}/g, TEMPLATE_VARIABLES.companyName)
     .replace(
       /\{\{\s*applicationDate\s*\}\}/g,
-      TEMPLATE_VARIABLES.applicationDate
-    );
+      TEMPLATE_VARIABLES.applicationDate,
+    )
+    .replace(/\{\{\s*hrName\s*\}\}/g, TEMPLATE_VARIABLES.hrName);
 }
 
 export function EmailTemplatePreviewDialog({
