@@ -20,7 +20,7 @@ jobs:
           key: ${{ secrets.TARGET_KEY }}
           script: |
             set -e
-            cd ~/cv-jd-deployment
+            cd ~/fyp
 
             # Update .env file with secrets
             cat > .env.nextjs << EOF
@@ -47,7 +47,7 @@ jobs:
             git pull origin main
 
             # Rebuild and restart Next.js
-            cd ~/cv-jd-deployment
+            cd ~/fyp
             docker-compose -f docker-compose.prod.yml stop nextjs
             docker-compose -f docker-compose.prod.yml rm -f nextjs
             docker-compose -f docker-compose.prod.yml build nextjs
