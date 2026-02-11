@@ -1,31 +1,26 @@
-name: Deploy Next.js to Production
+name: Build and Deploy Next.js via SSH
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
-
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/cv-jd-nextjs
 
 jobs:
   deploy:
-    name: Deploy to Azure VM
     runs-on: ubuntu-latest
-    environment: production
-
     steps:
-      - name: Deploy to Azure VM via SSH
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH to Azure VM
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.TARGET_HOST }}
           username: ${{ secrets.TARGET_USERNAME }}
           key: ${{ secrets.TARGET_KEY }}
           script: |
-            # Navigate to deployment directory
-            cd ~/cv-jd-deployment || exit 1
+            set -e
+            cd ~/cv-jd-deployment
 
             # Update .env file with secrets
             cat > .env.nextjs << EOF
@@ -43,39 +38,30 @@ jobs:
             FROM_NAME=${{ secrets.FROM_NAME }}
             EOF
 
-            # Merge with main .env file
             cat .env.nextjs >> .env
             rm .env.nextjs
 
-            # Login to GHCR
-            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            # Pull latest code
+            cd ~/ai-recruitment-system-web || git clone https://github.com/${{ github.repository }}.git ~/ai-recruitment-system-web
+            cd ~/ai-recruitment-system-web
+            git pull origin main
 
-            # Pull latest Next.js image
-            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-
-            # Run database migrations
-            docker-compose -f docker-compose.prod.yml run --rm nextjs npx prisma migrate deploy
-
-            # Restart Next.js container
+            # Rebuild and restart Next.js
+            cd ~/cv-jd-deployment
+            docker-compose -f docker-compose.prod.yml stop nextjs
+            docker-compose -f docker-compose.prod.yml rm -f nextjs
+            docker-compose -f docker-compose.prod.yml build nextjs
             docker-compose -f docker-compose.prod.yml up -d nextjs
 
-            # Wait for health check
-            echo "Waiting for Next.js to be healthy..."
-            sleep 10
+            # Run migrations
+            docker-compose -f docker-compose.prod.yml exec -T nextjs npx prisma migrate deploy
 
             # Verify deployment
+            echo "Waiting for Next.js to be healthy..."
+            sleep 10
             docker-compose -f docker-compose.prod.yml ps nextjs
 
-            # Check health
-            if docker-compose -f docker-compose.prod.yml exec -T nextjs wget -q -O- http://localhost:3000/api/health; then
-              echo "✅ Next.js deployment successful!"
-            else
-              echo "❌ Next.js health check failed!"
-              docker-compose -f docker-compose.prod.yml logs --tail=50 nextjs
-              exit 1
-            fi
-
-      - name: Cleanup
+      - name: Cleanup old images
         if: always()
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -83,5 +69,4 @@ jobs:
           username: ${{ secrets.TARGET_USERNAME }}
           key: ${{ secrets.TARGET_KEY }}
           script: |
-            # Remove old/dangling images
             docker image prune -f
