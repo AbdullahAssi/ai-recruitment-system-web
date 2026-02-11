@@ -41,10 +41,17 @@ jobs:
             cat .env.nextjs >> .env
             rm .env.nextjs
 
-            # Pull latest code
-            cd ~/ai-recruitment-system-web || git clone https://github.com/${{ github.repository }}.git ~/ai-recruitment-system-web
-            cd ~/ai-recruitment-system-web
-            git pull origin main
+            cd ~/fyp
+            if [ -d "ai-recruitment-system-web/.git" ]; then
+                cd ai-recruitment-system-web
+                # Ensure we are using SSH remote 
+                git remote set-url origin git@github.com:AbdullahAssi/ai-recruitment-system-web.git
+                git fetch origin
+                git reset --hard origin/main
+            else
+                git clone git@github.com:AbdullahAssi/ai-recruitment-system-web.git
+                cd ai-recruitment-system-web
+            fi
 
             # Rebuild and restart Next.js
             cd ~/fyp
