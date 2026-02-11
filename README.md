@@ -1,4 +1,4 @@
-# 🚀 Recruit.ai - AI-Powered Recruitment Platform
+# 🚀 Qmindai - AI-Powered Recruitment Platform
 
 An intelligent recruitment management system built with Next.js 13+, featuring AI-powered resume scoring, candidate matching, quiz assessments, and role-based access control.
 

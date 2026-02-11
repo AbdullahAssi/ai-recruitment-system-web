@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/emailService";
+import { auth } from "@/lib/auth";
 
 // Force dynamic rendering for this API route
 export const dynamic = "force-dynamic";
@@ -28,7 +29,7 @@ async function getDefaultTemplateForStatus(status: string) {
 // Helper function to process template variables
 function processEmailTemplate(
   template: string,
-  variables: Record<string, string>
+  variables: Record<string, string>,
 ): string {
   let processed = template;
 
@@ -43,6 +44,13 @@ function processEmailTemplate(
 // POST trigger automated email workflow
 export async function POST(request: NextRequest) {
   try {
+    // Get authenticated user
+    const authResult = await auth(request);
+    if (!authResult?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const hrUser = authResult.user;
+
     const requestBody = await request.json();
     const {
       applicationId,
@@ -54,7 +62,7 @@ export async function POST(request: NextRequest) {
     if (!applicationId || !newStatus) {
       return NextResponse.json(
         { error: "applicationId and newStatus are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -63,14 +71,18 @@ export async function POST(request: NextRequest) {
       where: { id: applicationId },
       include: {
         candidate: true,
-        job: true,
+        job: {
+          include: {
+            companyInfo: true, // Include company information
+          },
+        },
       },
     });
 
     if (!application) {
       return NextResponse.json(
         { error: "Application not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -121,14 +133,18 @@ export async function POST(request: NextRequest) {
       candidateEmail: application.candidate.email,
       jobTitle: application.job.title,
       jobLocation: application.job.location || "",
-      companyName: "Your Company", // Make this configurable
+      companyName:
+        application.job.companyInfo?.name ||
+        application.job.company ||
+        "Your Company",
       applicationStatus: newStatus.toLowerCase().replace("_", " "),
+      hrName: hrUser.name || "Hiring Team",
     };
 
     // Process template
     const processedSubject = processEmailTemplate(
       emailTemplate.subject,
-      variables
+      variables,
     );
     const processedBody = processEmailTemplate(emailTemplate.body, variables);
 
@@ -146,9 +162,13 @@ export async function POST(request: NextRequest) {
     });
 
     // ✅ ACTUAL EMAIL SENDING WITH SMTP
-    console.log(`📧 [WORKFLOW] Sending email to: ${application.candidate.email}`);
-    console.log(`📧 [WORKFLOW] Status change: ${application.status} → ${newStatus}`);
-    
+    console.log(
+      `📧 [WORKFLOW] Sending email to: ${application.candidate.email}`,
+    );
+    console.log(
+      `📧 [WORKFLOW] Status change: ${application.status} → ${newStatus}`,
+    );
+
     try {
       // Send actual email using SMTP
       const emailResult = await sendEmail({
@@ -167,11 +187,14 @@ export async function POST(request: NextRequest) {
           },
         });
 
-        console.log(`✅ Workflow email sent successfully to ${application.candidate.email}`);
+        console.log(
+          `✅ Workflow email sent successfully to ${application.candidate.email}`,
+        );
 
         return NextResponse.json({
           success: true,
-          message: "✅ SMTP EMAIL SERVICE: Application status updated and email sent successfully",
+          message:
+            "✅ SMTP EMAIL SERVICE: Application status updated and email sent successfully",
           simulationMode: false,
           application: {
             id: application.id,
@@ -189,14 +212,20 @@ export async function POST(request: NextRequest) {
         throw new Error(emailResult.error || "Email sending failed");
       }
     } catch (emailError) {
-      console.error(`❌ Failed to send workflow email to ${application.candidate.email}:`, emailError);
+      console.error(
+        `❌ Failed to send workflow email to ${application.candidate.email}:`,
+        emailError,
+      );
 
       // Update email status to failed
       await prisma.emailHistory.update({
         where: { id: emailRecord.id },
         data: {
           status: "FAILED",
-          errorMessage: emailError instanceof Error ? emailError.message : "Unknown email error",
+          errorMessage:
+            emailError instanceof Error
+              ? emailError.message
+              : "Unknown email error",
         },
       });
 
@@ -213,7 +242,10 @@ export async function POST(request: NextRequest) {
           subject: processedSubject,
           recipient: application.candidate.email,
           status: "failed",
-          error: emailError instanceof Error ? emailError.message : "Unknown email error",
+          error:
+            emailError instanceof Error
+              ? emailError.message
+              : "Unknown email error",
         },
       });
     }
@@ -221,7 +253,7 @@ export async function POST(request: NextRequest) {
     console.error("Error in automated email workflow:", error);
     return NextResponse.json(
       { error: "Failed to process automated email workflow" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

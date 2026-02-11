@@ -166,6 +166,10 @@ export function EmailTemplateDialog({
                 </code>{" "}
                 - Application date
               </div>
+              <div>
+                <code className="bg-gray-200 px-1 rounded">{"{{hrName}}"}</code>{" "}
+                - HR user's name
+              </div>
             </div>
           </div>
 

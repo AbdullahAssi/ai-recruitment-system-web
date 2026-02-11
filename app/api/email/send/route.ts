@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/emailService";
+import { auth } from "@/lib/auth";
 
 // Force dynamic rendering for this API route
 export const dynamic = "force-dynamic";
@@ -8,7 +9,7 @@ export const dynamic = "force-dynamic";
 // Helper function to replace template variables
 function processEmailTemplate(
   template: string,
-  variables: Record<string, string>
+  variables: Record<string, string>,
 ): string {
   let processed = template;
 
@@ -24,6 +25,13 @@ function processEmailTemplate(
 // POST send email to candidates
 export async function POST(request: NextRequest) {
   try {
+    // Get authenticated user
+    const authResult = await auth(request);
+    if (!authResult?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const hrUser = authResult.user;
+
     const requestBody = await request.json();
     const { candidateIds, templateId, customSubject, customBody, jobId } =
       requestBody;
@@ -35,7 +43,7 @@ export async function POST(request: NextRequest) {
     ) {
       return NextResponse.json(
         { error: "candidateIds array is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -45,7 +53,7 @@ export async function POST(request: NextRequest) {
           error:
             "Either templateId or both customSubject and customBody are required",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -62,7 +70,7 @@ export async function POST(request: NextRequest) {
       if (!emailTemplate) {
         return NextResponse.json(
           { error: "Email template not found" },
-          { status: 404 }
+          { status: 404 },
         );
       }
 
@@ -96,7 +104,7 @@ export async function POST(request: NextRequest) {
     if (candidates.length === 0) {
       return NextResponse.json(
         { error: "No valid candidates found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -105,6 +113,9 @@ export async function POST(request: NextRequest) {
     if (jobId) {
       job = await prisma.job.findUnique({
         where: { id: jobId },
+        include: {
+          companyInfo: true, // Include company information
+        },
       });
     }
 
@@ -120,7 +131,8 @@ export async function POST(request: NextRequest) {
           candidateEmail: candidate.email,
           jobTitle: job?.title || "",
           jobLocation: job?.location || "",
-          companyName: "Your Company", //configurable
+          companyName: job?.companyInfo?.name || job?.company || "Your Company",
+          hrName: hrUser.name || "Hiring Team",
         };
 
         // Process template
@@ -175,14 +187,20 @@ export async function POST(request: NextRequest) {
             throw new Error(emailResult.error || "Email sending failed");
           }
         } catch (emailError) {
-          console.error(` Failed to send email to ${candidate.email}:`, emailError);
+          console.error(
+            ` Failed to send email to ${candidate.email}:`,
+            emailError,
+          );
 
           // Update status to failed
           await prisma.emailHistory.update({
             where: { id: emailRecord.id },
             data: {
               status: "FAILED",
-              errorMessage: emailError instanceof Error ? emailError.message : "Unknown email error",
+              errorMessage:
+                emailError instanceof Error
+                  ? emailError.message
+                  : "Unknown email error",
             },
           });
 
@@ -190,11 +208,17 @@ export async function POST(request: NextRequest) {
             candidateId: candidate.id,
             candidateName: candidate.name,
             email: candidate.email,
-            error: emailError instanceof Error ? emailError.message : "Unknown email error",
+            error:
+              emailError instanceof Error
+                ? emailError.message
+                : "Unknown email error",
           });
         }
       } catch (error) {
-        console.error(` Unexpected error processing ${candidate.email}:`, error);
+        console.error(
+          ` Unexpected error processing ${candidate.email}:`,
+          error,
+        );
 
         failedEmails.push({
           candidateId: candidate.id,
@@ -221,7 +245,7 @@ export async function POST(request: NextRequest) {
     console.error("Error sending emails:", error);
     return NextResponse.json(
       { error: "Failed to send emails" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

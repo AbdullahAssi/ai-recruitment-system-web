@@ -17,7 +17,7 @@ export function Navigation({ className = "" }: NavigationProps) {
           {/* Logo */}
           <div className="flex items-center gap-2">
             <Brain className="w-6 h-6 text-black" />
-            <span className="text-2xl font-bold text-gray-900">Recruit.ai</span>
+            <span className="text-2xl font-bold text-gray-900">Qmindai</span>
           </div>
 
           {/* Navigation Links */}
