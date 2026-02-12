@@ -18,8 +18,8 @@ jobs:
           host: ${{ secrets.TARGET_HOST }}
           username: ${{ secrets.TARGET_USERNAME }}
           key: ${{ secrets.TARGET_KEY }}
-          timeout: 15m
-          command_timeout: 20m
+          timeout: 35m
+          command_timeout: 40m
           script: |
             set -e
             cd ~/fyp
