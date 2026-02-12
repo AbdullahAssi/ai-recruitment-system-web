@@ -65,9 +65,8 @@ jobs:
             docker-compose -f docker-compose.prod.yml rm -f nextjs || true
 
             # Build with progress output and timeout
-            DOCKER_BUILDKIT=1 timeout 1200 docker-compose -f docker-compose.prod.yml build --no-cache nextjs
-            # Verify deployment
-            echo "Waiting for Next.js to be healthy..."
+            timeout 1200 docker-compose -f docker-compose.prod.yml build --no-cache nextjs
+            docker-compose -f docker-compose.prod.yml up -d nextjs
             sleep 10
             docker-compose -f docker-compose.prod.yml ps nextjs
 
