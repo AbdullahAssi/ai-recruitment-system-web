@@ -18,6 +18,8 @@ jobs:
           host: ${{ secrets.TARGET_HOST }}
           username: ${{ secrets.TARGET_USERNAME }}
           key: ${{ secrets.TARGET_KEY }}
+          timeout: 15m
+          command_timeout: 20m
           script: |
             set -e
             cd ~/fyp
@@ -55,14 +57,15 @@ jobs:
 
             # Rebuild and restart Next.js
             cd ~/fyp
-            docker-compose -f docker-compose.prod.yml stop nextjs
-            docker-compose -f docker-compose.prod.yml rm -f nextjs
-            docker-compose -f docker-compose.prod.yml build nextjs
-            docker-compose -f docker-compose.prod.yml up -d nextjs
+            # Fix uppercase image names in docker-compose file
+            sed -i 's/AbdullahAssi\//abdullahassi\//g' docker-compose.prod.yml
 
-            # Run migrations
-            docker-compose -f docker-compose.prod.yml exec -T nextjs npx prisma migrate deploy
+            # Build with timeout to prevent hanging
+            timeout 600 docker-compose -f docker-compose.prod.yml stop nextjs || true
+            docker-compose -f docker-compose.prod.yml rm -f nextjs || true
 
+            # Build with progress output and timeout
+            DOCKER_BUILDKIT=1 timeout 1200 docker-compose -f docker-compose.prod.yml build --no-cache nextjs
             # Verify deployment
             echo "Waiting for Next.js to be healthy..."
             sleep 10

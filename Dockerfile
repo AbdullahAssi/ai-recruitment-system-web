@@ -2,16 +2,17 @@
 # Stage 1: Dependencies
 FROM node:20-alpine AS deps
 
-# Install system dependencies
-RUN apk add --no-cache libc6-compat openssl
+# Install system dependencies with timeout and minimal packages  
+RUN apk add --no-cache --update libc6-compat openssl
 
 WORKDIR /app
 
 # Copy package files
 COPY package.json package-lock.json* ./
 
-# Install dependencies (include dev dependencies needed for build)
-RUN npm ci
+# Clear npm cache and install dependencies
+RUN npm cache clean --force && \
+    npm ci --no-optional --prefer-offline
 
 # Stage 2: Builder
 FROM node:20-alpine AS builder
