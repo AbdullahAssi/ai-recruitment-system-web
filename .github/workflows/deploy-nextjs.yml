@@ -60,6 +60,11 @@ jobs:
             # Fix uppercase image names in docker-compose file
             sed -i 's/AbdullahAssi\//abdullahassi\//g' docker-compose.prod.yml
 
+            # Clean up Docker storage to prevent mount callback failures
+            docker system prune -f --volumes || true
+            sleep 5
+            docker builder prune -f || true
+
             # Build with timeout to prevent hanging
             timeout 600 docker-compose -f docker-compose.prod.yml stop nextjs || true
             docker-compose -f docker-compose.prod.yml rm -f nextjs || true
