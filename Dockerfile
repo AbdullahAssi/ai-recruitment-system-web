@@ -13,9 +13,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Copy package files
 COPY package.json package-lock.json* ./
 
-# Clear npm cache and install dependencies
+# Clear npm cache and install ALL dependencies (including dev for build)
 RUN npm cache clean --force && \
-    npm ci --only=production --prefer-offline && \
+    npm ci --prefer-offline && \
     npm cache clean --force
 
 # Copy application code
