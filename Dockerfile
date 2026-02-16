@@ -6,14 +6,14 @@ RUN apk add --no-cache --update libc6-compat openssl
 
 WORKDIR /app
 
-# Set NODE_ENV to production
-ENV NODE_ENV=production
+# Set telemetry disabled early
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Copy package files
 COPY package.json package-lock.json* ./
 
 # Clear npm cache and install ALL dependencies (including dev for build)
+# Do NOT set NODE_ENV=production yet as it causes npm to skip devDependencies
 RUN npm cache clean --force && \
     npm ci --prefer-offline && \
     npm cache clean --force
@@ -26,6 +26,9 @@ RUN npx prisma generate
 
 # Build Next.js application
 RUN npm run build
+
+# NOW set NODE_ENV to production for runtime
+ENV NODE_ENV=production
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs && \
