@@ -1,6 +1,5 @@
 import React from "react";
 import Link from "next/link";
-import { Brain } from "lucide-react";
 
 export function HomepageFooter() {
   return (
@@ -9,8 +8,7 @@ export function HomepageFooter() {
         <div className="grid md:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <Brain className="w-5 h-5 text-white" />
-              <span className="text-xl font-bold text-white"> Qmindai</span>
+              <img src="/white.svg" alt="Qmindai" className="h-16 w-auto" />
             </div>
             <p className="text-gray-400 text-sm">
               Transforming recruitment with intelligent automation and
@@ -127,7 +125,7 @@ export function HomepageFooter() {
 
         <div className="border-t border-slate-800 mt-8 pt-8 text-center">
           <p className="text-gray-500 text-sm">
-            © 2025 RecruitAI. All Rights Reserved.
+            © 2026 Qmindai. All Rights Reserved.
           </p>
         </div>
       </div>

@@ -28,9 +28,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Qmindai
-              </h1>
+              <img src="/blue.svg" alt="Qmindai" className="h-16 mt-4 w-auto" />
             </div>
             <div className="flex items-center gap-4">
               {!loading && (
@@ -120,11 +118,11 @@ export default function HomePage() {
               {/* Candidate Portal Card */}
               <div
                 onClick={() => handlePortalNavigation("candidate")}
-                className="group cursor-pointer bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border-2 border-transparent hover:border-purple-500"
+                className="group cursor-pointer bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border-2 border-transparent hover:border-blue-500"
               >
                 <div className="flex flex-col items-center text-center">
-                  <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mb-6 group-hover:bg-purple-500 transition-colors">
-                    <Users className="w-10 h-10 text-purple-600 group-hover:text-white transition-colors" />
+                  <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-6 group-hover:bg-blue-500 transition-colors">
+                    <Users className="w-10 h-10 text-blue-600 group-hover:text-white transition-colors" />
                   </div>
                   <h3 className="text-2xl font-bold text-gray-900 mb-3">
                     Candidate Portal
@@ -133,7 +131,7 @@ export default function HomePage() {
                     Browse job openings, submit applications, track your
                     application status, and manage your profile
                   </p>
-                  <div className="flex items-center text-purple-600 font-semibold group-hover:gap-2 transition-all">
+                  <div className="flex items-center text-blue-600 font-semibold group-hover:gap-2 transition-all">
                     Access Candidate Portal
                     <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                   </div>

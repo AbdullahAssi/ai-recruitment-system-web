@@ -56,13 +56,13 @@ const HiringStepsSection: React.FC = () => {
           </div>
 
           {/* Notification popup */}
-          <div className="absolute bottom-6 left-6 right-6 bg-purple-600 text-white px-4 py-3 rounded-lg flex items-center gap-3">
+          <div className="absolute bottom-6 left-6 right-6 bg-blue-600 text-white px-4 py-3 rounded-lg flex items-center gap-3">
             <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
               <div className="w-2 h-2 bg-white rounded-full"></div>
             </div>
             <div className="flex-1">
               <div className="font-medium text-sm">AI Interview Scheduled</div>
-              <div className="text-purple-200 text-xs">with 24 candidates</div>
+              <div className="text-blue-200 text-xs">with 24 candidates</div>
             </div>
           </div>
         </div>
@@ -89,7 +89,7 @@ const HiringStepsSection: React.FC = () => {
 
           {/* Laptop screen with video call */}
           <div className="absolute top-6 right-6 w-32 h-20 bg-black rounded-lg overflow-hidden">
-            <div className="w-full h-full bg-gradient-to-br from-blue-900 to-purple-900 flex items-center justify-center">
+            <div className="w-full h-full bg-gradient-to-br from-blue-900 to-blue-900 flex items-center justify-center">
               <div className="grid grid-cols-2 gap-1 p-2">
                 <div className="w-12 h-8 bg-orange-400 rounded"></div>
                 <div className="w-12 h-8 bg-blue-400 rounded"></div>
@@ -146,7 +146,7 @@ const HiringStepsSection: React.FC = () => {
           {/* Candidate profile card */}
           <div className="absolute top-6 right-6 bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-lg max-w-xs">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold">
                 A
               </div>
               <div className="flex-1">
@@ -221,7 +221,7 @@ const HiringStepsSection: React.FC = () => {
           </span>
           <h2 className="text-5xl md:text-6xl font-bold text-black leading-tight mb-6">
             3 Simple Steps to <br />
-            <span className="text-purple-500">Hire Better</span>
+            <span className="text-blue-500">Hire Better</span>
           </h2>
           <p className="text-xl text-gray-600 max-w-2xl">
             Streamline your hiring process with AI tools built for speed, accuracy, and smarter decisions.
@@ -292,7 +292,7 @@ const HiringStepsSection: React.FC = () => {
                             key={dotIndex}
                             className={`w-2 h-2 rounded-full transition-colors duration-300 ${
                               dotIndex === index 
-                                ? 'bg-purple-500' 
+                                ? 'bg-blue-500' 
                                 : dotIndex < index 
                                 ? 'bg-gray-400' 
                                 : 'bg-gray-200'

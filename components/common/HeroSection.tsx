@@ -7,9 +7,9 @@ export function HeroSection() {
   return (
     <div className="relative overflow-hidden">
       {/* Background Elements */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-blue-50"></div>
       <div className="absolute top-20 left-10 w-72 h-72 bg-blue-100 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse"></div>
-      <div className="absolute top-40 right-10 w-72 h-72 bg-purple-100 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse delay-1000"></div>
+      <div className="absolute top-40 right-10 w-72 h-72 bg-blue-100 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse delay-1000"></div>
 
       <div className="relative container mx-auto px-4 py-10 lg:py-16">
         <div className="text-center mb-16">
@@ -21,7 +21,7 @@ export function HeroSection() {
           </div>
 
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-gray-900 mb-8 leading-tight">
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
               Hire Smarter
             </span>
             <br />
@@ -40,7 +40,7 @@ export function HeroSection() {
             <Link href="/candidate">
               <Button
                 size="lg"
-                className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-xl h-14 px-8 text-lg font-semibold"
+                className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-600 hover:from-blue-700 hover:to-blue-700 text-white shadow-xl h-14 px-8 text-lg font-semibold"
               >
                 Get Started Free
                 <ArrowRight className="w-5 h-5 ml-2" />
