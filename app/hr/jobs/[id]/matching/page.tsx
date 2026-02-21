@@ -56,16 +56,16 @@ export default function JobMatchingPage() {
     try {
       setLoading(true);
       // Fetch Job Details
-      const jobRes = await fetch(`/api/v1/jobs/${jobId}`);
+      const jobRes = await fetch(`/api/jobs/${jobId}`);
       if (!jobRes.ok) throw new Error("Failed to fetch job details");
       const jobData = await jobRes.json();
       setJob(jobData);
 
       // Fetch Candidates
-      const candRes = await fetch("/api/v1/candidates?include_resume=true");
+      const candRes = await fetch("/api/candidates?limit=100");
       if (!candRes.ok) throw new Error("Failed to fetch candidates");
       const candData = await candRes.json();
-      setCandidates(candData);
+      setCandidates(candData.candidates || candData);
     } catch (error: any) {
       console.error(error);
       toast.error("Error loading data");
@@ -89,7 +89,7 @@ export default function JobMatchingPage() {
         min_score: 0.3,
       };
 
-      const res = await fetch("/api/v1/match/jobs", {
+      const res = await fetch("/api/fastapi/matching/match", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -125,7 +125,7 @@ export default function JobMatchingPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 max-w-5xl space-y-8">
+    <div className="container mx-auto py-8 max-w-6xl space-y-8">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -144,7 +144,7 @@ export default function JobMatchingPage() {
           size="lg"
           onClick={runMatching}
           disabled={matching || candidates.length === 0}
-          className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg"
+          className="bg-gradient-to-r from-blue-600 to-blue-300 shadow-lg"
         >
           {matching ? (
             <>
@@ -177,7 +177,7 @@ export default function JobMatchingPage() {
         {results.map((match) => (
           <Card
             key={match.candidate_id}
-            className="overflow-hidden border-l-4 border-l-indigo-500 hover:shadow-md transition-shadow"
+            className="overflow-hidden  hover:shadow-md transition-shadow"
           >
             <CardContent className="p-6">
               <div className="flex flex-col md:flex-row gap-6">
