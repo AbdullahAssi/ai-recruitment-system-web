@@ -125,7 +125,7 @@ export function HomepageFooter() {
 
         <div className="border-t border-slate-800 mt-8 pt-8 text-center">
           <p className="text-gray-500 text-sm">
-            © 2026 Qmindai. All Rights Reserved.
+            © {new Date().getFullYear()} Qmindai. All Rights Reserved.
           </p>
         </div>
       </div>

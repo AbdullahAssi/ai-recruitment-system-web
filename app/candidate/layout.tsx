@@ -3,26 +3,29 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
-  Home,
-  Briefcase,
-  FileText,
-  User,
-  Bell,
-  LogOut,
-  Menu,
-  X,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+  HiOutlineHome,
+  HiOutlineBriefcase,
+  HiOutlineDocumentText,
+  HiOutlineUser,
+  HiOutlineLogout,
+  HiOutlineMenu,
+  HiOutlineX,
+  HiOutlineChevronLeft,
+  HiOutlineChevronRight,
+} from "react-icons/hi";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 const navigation = [
-  { name: "Dashboard", href: "/candidate", icon: Home },
-  { name: "Browse Jobs", href: "/candidate/jobs", icon: Briefcase },
-  { name: "My Applications", href: "/candidate/applications", icon: FileText },
-  { name: "Profile", href: "/candidate/profile", icon: User },
+  { name: "Dashboard", href: "/candidate", icon: HiOutlineHome },
+  { name: "Browse Jobs", href: "/candidate/jobs", icon: HiOutlineBriefcase },
+  {
+    name: "My Applications",
+    href: "/candidate/applications",
+    icon: HiOutlineDocumentText,
+  },
+  { name: "Profile", href: "/candidate/profile", icon: HiOutlineUser },
 ];
 
 export default function CandidateLayout({
@@ -36,7 +39,7 @@ export default function CandidateLayout({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
@@ -47,20 +50,19 @@ export default function CandidateLayout({
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 bg-white shadow-lg transform transition-all duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 bg-gradient-to-b from-white to-gray-50 shadow-xl border-r border-gray-200 transform transition-all duration-300 ease-in-out lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } ${sidebarCollapsed ? "lg:w-20" : "lg:w-64"} w-64`}
+        } ${sidebarCollapsed ? "lg:w-20" : "lg:w-64"} w-64 overflow-visible`}
       >
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full overflow-visible">
           {/* Logo */}
           <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
-            <Link href="/candidate" className="flex items-center min-w-0">
-              <User className="w-8 h-8 text-blue-600 flex-shrink-0" />
-              {!sidebarCollapsed && (
-                <span className="text-xl font-bold text-gray-900 ml-2 truncate">
-                  Candidate Portal
-                </span>
-              )}
+            <Link href="/candidate" className="flex items-center gap-3 min-w-0">
+              <img
+                src="/favicon.png"
+                alt="Qmindai"
+                className="w-8 h-8 flex-shrink-0 object-contain"
+              />
             </Link>
             <div className="flex items-center gap-2">
               <button
@@ -72,51 +74,51 @@ export default function CandidateLayout({
                 }
               >
                 {sidebarCollapsed ? (
-                  <ChevronRight className="w-5 h-5" />
+                  <HiOutlineChevronRight className="w-5 h-5" />
                 ) : (
-                  <ChevronLeft className="w-5 h-5" />
+                  <HiOutlineChevronLeft className="w-5 h-5" />
                 )}
               </button>
               <button
                 onClick={() => setSidebarOpen(false)}
                 className="lg:hidden text-gray-500 hover:text-gray-700"
               >
-                <X className="w-6 h-6" />
+                <HiOutlineX className="w-6 h-6" />
               </button>
             </div>
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+          <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto overflow-x-visible">
             {navigation.map((item) => {
               const isActive = pathname === item.href;
               return (
-                <div key={item.name} className="relative">
-                  <Link
-                    href={item.href}
-                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 group ${
-                      isActive
-                        ? "bg-blue-50 text-blue-700"
-                        : "text-gray-700 hover:bg-gray-100"
-                    } ${sidebarCollapsed ? "justify-center" : ""}`}
-                    onClick={() => setSidebarOpen(false)}
-                  >
-                    <item.icon
-                      className={`w-5 h-5 flex-shrink-0 ${!sidebarCollapsed && "mr-3"}`}
-                    />
-                    {!sidebarCollapsed && <span>{item.name}</span>}
-                  </Link>
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={`flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group relative ${
+                    isActive
+                      ? "bg-gradient-to-r from-blue-50 to-blue-50/50 text-blue-700 shadow-sm"
+                      : "text-gray-700 hover:bg-gray-100 hover:shadow-sm"
+                  } ${sidebarCollapsed ? "justify-center" : ""}`}
+                  onClick={() => setSidebarOpen(false)}
+                  title={sidebarCollapsed ? item.name : undefined}
+                >
+                  <div className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 group-hover:bg-gray-200 transition-colors flex-shrink-0">
+                    <item.icon className="w-5 h-5" />
+                  </div>
+                  {!sidebarCollapsed && (
+                    <span className="ml-3">{item.name}</span>
+                  )}
 
                   {/* Tooltip for collapsed state */}
                   {sidebarCollapsed && (
-                    <div className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-[9999]">
-                      <div className="bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap shadow-lg">
-                        {item.name}
-                        <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-gray-900"></div>
-                      </div>
-                    </div>
+                    <span className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-[100]">
+                      {item.name}
+                      <span className="absolute right-full top-1/2 -translate-y-1/2 -mr-1 border-4 border-transparent border-r-gray-900"></span>
+                    </span>
                   )}
-                </div>
+                </Link>
               );
             })}
           </nav>
@@ -146,7 +148,7 @@ export default function CandidateLayout({
                   className="w-full"
                   size="sm"
                 >
-                  <LogOut className="w-4 h-4 mr-2" />
+                  <HiOutlineLogout className="w-4 h-4 mr-2" />
                   Logout
                 </Button>
               </>
@@ -166,7 +168,7 @@ export default function CandidateLayout({
                   size="icon"
                   title="Logout"
                 >
-                  <LogOut className="w-4 h-4" />
+                  <HiOutlineLogout className="w-4 h-4" />
                 </Button>
               </div>
             )}
@@ -187,7 +189,7 @@ export default function CandidateLayout({
               onClick={() => setSidebarOpen(true)}
               className="text-gray-500 hover:text-gray-700"
             >
-              <Menu className="w-6 h-6" />
+              <HiOutlineMenu className="w-6 h-6" />
             </button>
             <span className="text-lg font-semibold text-gray-900">
               Candidate Portal
