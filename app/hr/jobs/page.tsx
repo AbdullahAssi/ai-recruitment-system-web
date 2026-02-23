@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -21,7 +21,7 @@ import {
   EmptyJobsState,
 } from "../../../components/hr";
 import { LoadingState, ServerPagination } from "../../../components/reusables";
-import { useJobs } from "../../../hooks/hooks";
+import { useJobs, useDebounce } from "../../../hooks/hooks";
 import {
   JobFormData,
   Job,
@@ -39,7 +39,7 @@ export default function HRJobsPage() {
     itemsPerPage: 10,
   });
 
-  // Filters state
+  // Filters state – mirrors the UI immediately
   const [filters, setFilters] = useState<FilterState>({
     search: "",
     status: "all",
@@ -47,6 +47,30 @@ export default function HRJobsPage() {
     sortBy: "date",
     sortOrder: "desc",
   });
+
+  // Debounced text-input values so the API is only called 400 ms after the
+  // user stops typing – select/dropdown changes still fire immediately.
+  const debouncedSearch = useDebounce(filters.search, 400);
+  const debouncedLocation = useDebounce(filters.location, 400);
+
+  // Compose the filter object that is actually sent to the API.
+  // Using useMemo to keep a stable object reference between renders so that
+  // the hook's dependency array only fires when the values truly change.
+  const apiFilters = useMemo<FilterState>(
+    () => ({
+      ...filters,
+      search: debouncedSearch,
+      location: debouncedLocation,
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      debouncedSearch,
+      debouncedLocation,
+      filters.status,
+      filters.sortBy,
+      filters.sortOrder,
+    ],
+  );
 
   useEffect(() => {
     // Fetch HR profile to get company ID
@@ -72,7 +96,7 @@ export default function HRJobsPage() {
     createJob,
     updateJob,
     toggleJobStatus,
-  } = useJobs(companyId, paginationState, filters);
+  } = useJobs(companyId, paginationState, apiFilters);
 
   // Dialog states
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -89,27 +113,44 @@ export default function HRJobsPage() {
   });
 
   // Event handlers
-  const handleFilterChange = (key: keyof FilterState, value: string) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
+  const handleFilterChange = useCallback(
+    (key: keyof FilterState, value: string) => {
+      setFilters((prev) => ({ ...prev, [key]: value }));
+      // Text inputs (search, location) are debounced – page resets when the
+      // debounced value fires (see useEffect below). Dropdowns reset immediately.
+      if (key !== "search" && key !== "location") {
+        setPaginationState((prev) => ({ ...prev, currentPage: 1 }));
+      }
+    },
+    [],
+  );
+
+  // Reset to page 1 when the debounced text filters actually fire so we don't
+  // double-fetch (once for the page reset and once for the new search term).
+  useEffect(() => {
     setPaginationState((prev) => ({ ...prev, currentPage: 1 }));
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch, debouncedLocation]);
 
-  const handleCreateJob = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const success = await createJob(formData, user?.id);
-    if (success) {
-      setShowCreateDialog(false);
-      setFormData({
-        title: "",
-        description: "",
-        location: "",
-        requirements: "",
-        responsibilities: "",
-      });
-    }
-  };
+  const handleCreateJob = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      const success = await createJob(formData, user?.id);
+      if (success) {
+        setShowCreateDialog(false);
+        setFormData({
+          title: "",
+          description: "",
+          location: "",
+          requirements: "",
+          responsibilities: "",
+        });
+      }
+    },
+    [createJob, formData, user?.id],
+  );
 
-  const handleEditJob = (job: Job) => {
+  const handleEditJob = useCallback((job: Job) => {
     setEditingJob(job);
     setFormData({
       title: job.title,
@@ -119,27 +160,29 @@ export default function HRJobsPage() {
       responsibilities: job.responsibilities || "",
     });
     setShowEditDialog(true);
-  };
+  }, []);
 
-  const handleUpdateJob = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingJob) return;
+  const handleUpdateJob = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!editingJob) return;
+      const success = await updateJob(editingJob.id, formData);
+      if (success) {
+        setShowEditDialog(false);
+        setEditingJob(null);
+        setFormData({
+          title: "",
+          description: "",
+          location: "",
+          requirements: "",
+          responsibilities: "",
+        });
+      }
+    },
+    [updateJob, editingJob, formData],
+  );
 
-    const success = await updateJob(editingJob.id, formData);
-    if (success) {
-      setShowEditDialog(false);
-      setEditingJob(null);
-      setFormData({
-        title: "",
-        description: "",
-        location: "",
-        requirements: "",
-        responsibilities: "",
-      });
-    }
-  };
-
-  const handleCancelCreate = () => {
+  const handleCancelCreate = useCallback(() => {
     setShowCreateDialog(false);
     setFormData({
       title: "",
@@ -148,9 +191,9 @@ export default function HRJobsPage() {
       requirements: "",
       responsibilities: "",
     });
-  };
+  }, []);
 
-  const handleCancelEdit = () => {
+  const handleCancelEdit = useCallback(() => {
     setShowEditDialog(false);
     setEditingJob(null);
     setFormData({
@@ -160,7 +203,42 @@ export default function HRJobsPage() {
       requirements: "",
       responsibilities: "",
     });
-  };
+  }, []);
+
+  // Stable pagination callbacks so ServerPagination doesn't re-render
+  // unnecessarily if it is wrapped in React.memo.
+  const handlePageChange = useCallback(
+    (page: number) =>
+      setPaginationState((prev) => ({ ...prev, currentPage: page })),
+    [],
+  );
+  const handleLimitChange = useCallback(
+    (limit: number) =>
+      setPaginationState((prev) => ({
+        ...prev,
+        itemsPerPage: limit,
+        currentPage: 1,
+      })),
+    [],
+  );
+  const handleOpenCreate = useCallback(() => setShowCreateDialog(true), []);
+  const handleFormDataChange = useCallback(
+    (data: Partial<JobFormData>) =>
+      setFormData((prev) => ({ ...prev, ...data })),
+    [],
+  );
+  const handleJobFilterChange = useCallback(
+    (key: string, value: string) =>
+      handleFilterChange(key as keyof FilterState, value),
+    [handleFilterChange],
+  );
+
+  // Derived display values
+  const totalJobs = useMemo(
+    () => data?.pagination?.total || 0,
+    [data?.pagination?.total],
+  );
+  const hasJobs = useMemo(() => totalJobs > 0, [totalJobs]);
 
   if (loading) {
     return (
@@ -180,25 +258,20 @@ export default function HRJobsPage() {
         <JobsHeader
           loading={loading}
           onRefresh={fetchJobs}
-          onCreateNew={() => setShowCreateDialog(true)}
+          onCreateNew={handleOpenCreate}
         />
 
         {/* Filters */}
         <JobFilters
           filters={filters}
-          totalJobs={data?.pagination?.total || 0}
+          totalJobs={totalJobs}
           filteredCount={jobs.length}
-          onFilterChange={(key, value) =>
-            handleFilterChange(key as keyof FilterState, value)
-          }
+          onFilterChange={handleJobFilterChange}
         />
 
         {/* Jobs Grid */}
         {jobs.length === 0 && !loading ? (
-          <EmptyJobsState
-            hasJobs={(data?.pagination?.total || 0) > 0}
-            onCreateNew={() => setShowCreateDialog(true)}
-          />
+          <EmptyJobsState hasJobs={hasJobs} onCreateNew={handleOpenCreate} />
         ) : (
           <>
             <div className="grid lg:grid-cols-2 gap-6">
@@ -219,19 +292,8 @@ export default function HRJobsPage() {
                 <CardContent className="p-4">
                   <ServerPagination
                     pagination={data.pagination}
-                    onPageChange={(page) =>
-                      setPaginationState((prev) => ({
-                        ...prev,
-                        currentPage: page,
-                      }))
-                    }
-                    onLimitChange={(limit) =>
-                      setPaginationState((prev) => ({
-                        ...prev,
-                        itemsPerPage: limit,
-                        currentPage: 1,
-                      }))
-                    }
+                    onPageChange={handlePageChange}
+                    onLimitChange={handleLimitChange}
                     loading={loading}
                     showFirstLast={true}
                   />
@@ -256,9 +318,7 @@ export default function HRJobsPage() {
             <JobForm
               formData={formData}
               loading={creating}
-              onFormDataChange={(data) =>
-                setFormData((prev) => ({ ...prev, ...data }))
-              }
+              onFormDataChange={handleFormDataChange}
               onSubmit={handleCreateJob}
               onCancel={handleCancelCreate}
             />
@@ -278,9 +338,7 @@ export default function HRJobsPage() {
               formData={formData}
               isEditing={true}
               loading={creating}
-              onFormDataChange={(data) =>
-                setFormData((prev) => ({ ...prev, ...data }))
-              }
+              onFormDataChange={handleFormDataChange}
               onSubmit={handleUpdateJob}
               onCancel={handleCancelEdit}
             />

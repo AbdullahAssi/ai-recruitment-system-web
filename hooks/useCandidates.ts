@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { createDownloadHandler } from "@/lib/resumeDownload";
 
@@ -78,7 +78,7 @@ export function useCandidates(
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const fetchCandidates = async () => {
+  const fetchCandidates = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
@@ -136,16 +136,20 @@ export function useCandidates(
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchCandidates();
+  // Use individual primitives so a new object reference does not cause a
+  // re-fetch when the parent re-renders without changing any filter value.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     companyId,
     paginationState?.currentPage,
     paginationState?.itemsPerPage,
-    filters,
+    filters?.searchTerm,
+    filters?.experienceFilter,
   ]);
+
+  useEffect(() => {
+    fetchCandidates();
+  }, [fetchCandidates]);
 
   return {
     data,

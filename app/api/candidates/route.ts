@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth } from "@/lib/apiAuth";
 
 // Force dynamic rendering for this API route
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
+  // Only HR users and admins may list candidates.
+  const { user, error } = await requireAuth(["HR", "ADMIN"]);
+  if (error) return error;
+
   try {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");
@@ -75,7 +80,8 @@ export async function GET(request: NextRequest) {
             fileName: true,
             filePath: true,
             uploadDate: true,
-            extractedText: true,
+            // extractedText is large and only needed on the individual profile
+            // page — exclude it from list responses to keep payloads small.
           },
         },
         applications: {

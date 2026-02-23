@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -25,7 +26,6 @@ import { Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ServerPagination } from "../../../components/reusables";
 
-// Import modular components and hooks
 import {
   CandidatesHeader,
   CandidateFiltersCard,
@@ -35,12 +35,10 @@ import {
 } from "../../../components/candidates";
 import {
   useCandidates,
-  useCandidateFilters,
   useEmailTemplates,
   CandidateFilters,
 } from "../../../hooks/hooks";
 
-// Import centralized download utility
 import { createDownloadHandler } from "../../../lib/resumeDownload";
 
 export default function CandidatesPage() {
@@ -54,13 +52,19 @@ export default function CandidatesPage() {
     itemsPerPage: 12,
   });
 
-  // Filters state
   const [filters, setFilters] = useState<CandidateFilters>({
     searchTerm: "",
     experienceFilter: "",
   });
 
-  // Fetch HR profile to get company ID
+  const debouncedSearch = useDebounce(filters.searchTerm, 400);
+
+  const apiFilters = useMemo<CandidateFilters>(
+    () => ({ ...filters, searchTerm: debouncedSearch }),
+    [debouncedSearch, filters.experienceFilter],
+  );
+
+  // hr profile to get company ID
   useEffect(() => {
     const fetchCompanyId = async () => {
       if (user?.id) {
@@ -74,11 +78,10 @@ export default function CandidatesPage() {
     fetchCompanyId();
   }, [user]);
 
-  // Core data hooks
   const { data, candidates, loading, fetchCandidates } = useCandidates(
     companyId,
     paginationState,
-    filters,
+    apiFilters,
   );
   const { emailTemplates } = useEmailTemplates();
 
@@ -93,13 +96,46 @@ export default function CandidatesPage() {
   // Centralized download handler
   const downloadResume = useMemo(() => createDownloadHandler(toast), [toast]);
 
-  const clearFilters = () => {
+  // Reset page when the debounced search fires so we avoid a double-fetch.
+  useEffect(() => {
+    setPaginationState((prev) => ({ ...prev, currentPage: 1 }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch]);
+
+  const clearFilters = useCallback(() => {
     setFilters({
       searchTerm: "",
       experienceFilter: "",
     });
     setPaginationState((prev) => ({ ...prev, currentPage: 1 }));
-  };
+  }, []);
+
+  // Stable named handlers so CandidateFiltersCard gets the same reference
+  // between renders and doesn't re-render if it is React.memo wrapped.
+  const handleSearchChange = useCallback((value: string) => {
+    setFilters((prev) => ({ ...prev, searchTerm: value }));
+  }, []);
+
+  const handleExperienceFilterChange = useCallback((value: string) => {
+    setFilters((prev) => ({ ...prev, experienceFilter: value }));
+    setPaginationState((prev) => ({ ...prev, currentPage: 1 }));
+  }, []);
+
+  // Stable pagination callbacks
+  const handlePageChange = useCallback(
+    (page: number) =>
+      setPaginationState((prev) => ({ ...prev, currentPage: page })),
+    [],
+  );
+  const handleLimitChange = useCallback(
+    (limit: number) =>
+      setPaginationState((prev) => ({
+        ...prev,
+        itemsPerPage: limit,
+        currentPage: 1,
+      })),
+    [],
+  );
 
   // Memoized event handlers
   const handleSelectAll = useCallback(
@@ -206,6 +242,18 @@ export default function CandidatesPage() {
     }
   }, [selectedCandidates, selectedTemplate, customSubject, customBody, toast]);
 
+  // Derived booleans – must be declared before any early return to satisfy
+  // the Rules of Hooks (hooks cannot be called conditionally).
+  const hasActiveFilters = useMemo(
+    () => !!(filters.searchTerm || filters.experienceFilter),
+    [filters.searchTerm, filters.experienceFilter],
+  );
+
+  const totalCandidates = useMemo(
+    () => data?.pagination?.total || 0,
+    [data?.pagination?.total],
+  );
+
   // Loading state
   if (loading) {
     return (
@@ -217,8 +265,6 @@ export default function CandidatesPage() {
       </div>
     );
   }
-
-  const hasActiveFilters = !!(filters.searchTerm || filters.experienceFilter);
 
   return (
     <div className="min-h-screen  p-4">
@@ -233,16 +279,10 @@ export default function CandidatesPage() {
         {/* Filters */}
         <CandidateFiltersCard
           filters={filters}
-          totalCandidates={data?.pagination?.total || 0}
+          totalCandidates={totalCandidates}
           filteredCount={candidates.length}
-          onSearchChange={(value) => {
-            setFilters((prev) => ({ ...prev, searchTerm: value }));
-            setPaginationState((prev) => ({ ...prev, currentPage: 1 }));
-          }}
-          onExperienceFilterChange={(value) => {
-            setFilters((prev) => ({ ...prev, experienceFilter: value }));
-            setPaginationState((prev) => ({ ...prev, currentPage: 1 }));
-          }}
+          onSearchChange={handleSearchChange}
+          onExperienceFilterChange={handleExperienceFilterChange}
           onClearFilters={clearFilters}
         />
 
@@ -279,16 +319,8 @@ export default function CandidatesPage() {
                 <CardContent className="p-4">
                   <ServerPagination
                     pagination={data.pagination}
-                    onPageChange={(page) =>
-                      setPaginationState((prev) => ({ ...prev, currentPage: page }))
-                    }
-                    onLimitChange={(limit) =>
-                      setPaginationState((prev) => ({
-                        ...prev,
-                        itemsPerPage: limit,
-                        currentPage: 1,
-                      }))
-                    }
+                    onPageChange={handlePageChange}
+                    onLimitChange={handleLimitChange}
                     loading={loading}
                     showFirstLast={true}
                   />

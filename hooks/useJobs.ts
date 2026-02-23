@@ -123,7 +123,11 @@ export function useJobs(
     companyId,
     paginationState?.currentPage,
     paginationState?.itemsPerPage,
-    filters,
+    filters?.search,
+    filters?.location,
+    filters?.status,
+    filters?.sortBy,
+    filters?.sortOrder,
   ]);
 
   useEffect(() => {

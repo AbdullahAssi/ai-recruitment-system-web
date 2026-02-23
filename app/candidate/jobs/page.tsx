@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -62,11 +63,18 @@ export default function CandidateJobsPage() {
     itemsPerPage: 9,
   });
 
-  useEffect(() => {
-    fetchJobs();
-  }, [paginationState.currentPage, paginationState.itemsPerPage, searchTerm]);
+  // Debounce the search input so the API is only called 400 ms after the
+  // user stops typing.
+  const debouncedSearch = useDebounce(searchTerm, 400);
 
-  const fetchJobs = async () => {
+  // Reset to page 1 when the debounced search value changes so we only
+  // fire one API call (not one for the page reset + one for the new term).
+  useEffect(() => {
+    setPaginationState((prev) => ({ ...prev, currentPage: 1 }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch]);
+
+  const fetchJobs = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
@@ -75,42 +83,39 @@ export default function CandidateJobsPage() {
         status: "active", // Only fetch active jobs for candidates
       });
 
-      if (searchTerm) {
-        params.append("search", searchTerm);
+      if (debouncedSearch) {
+        params.append("search", debouncedSearch);
       }
 
-      const response = await fetch(`/api/jobs?${params.toString()}`);
-      const result = await response.json();
-      
+      // Fire both requests in parallel to halve the round-trip time.
+      const [jobsResponse, applicationsResponse] = await Promise.all([
+        fetch(`/api/jobs?${params.toString()}`),
+        user?.candidate?.id
+          ? fetch(`/api/applications?candidateId=${user.candidate.id}`)
+          : Promise.resolve(null),
+      ]);
+
+      const result = await jobsResponse.json();
+      const applicationsData = applicationsResponse
+        ? await applicationsResponse.json()
+        : null;
+
       if (result.success) {
-        // Check if user has applied to these jobs
-        if (user?.candidate?.id) {
-          const applicationsResponse = await fetch(
-            `/api/applications?candidateId=${user.candidate.id}`,
+        if (applicationsData?.success) {
+          const appliedJobIds = new Set(
+            applicationsData.applications.map((app: any) => app.jobId),
           );
-          const applicationsData = await applicationsResponse.json();
 
-          if (applicationsData.success) {
-            const appliedJobIds = new Set(
-              applicationsData.applications.map((app: any) => app.jobId),
-            );
+          // Mark jobs as applied
+          const jobsWithAppliedStatus = result.jobs.map((job: Job) => ({
+            ...job,
+            hasApplied: appliedJobIds.has(job.id),
+          }));
 
-            // Mark jobs as applied
-            const jobsWithAppliedStatus = result.jobs.map((job: Job) => ({
-              ...job,
-              hasApplied: appliedJobIds.has(job.id),
-            }));
-
-            setData({
-              jobs: jobsWithAppliedStatus,
-              pagination: result.pagination,
-            });
-          } else {
-            setData({
-              jobs: result.jobs,
-              pagination: result.pagination,
-            });
-          }
+          setData({
+            jobs: jobsWithAppliedStatus,
+            pagination: result.pagination,
+          });
         } else {
           setData({
             jobs: result.jobs,
@@ -123,14 +128,40 @@ export default function CandidateJobsPage() {
     } finally {
       setLoading(false);
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    paginationState.currentPage,
+    paginationState.itemsPerPage,
+    debouncedSearch,
+    user?.candidate?.id,
+  ]);
 
-  const handleSearchChange = (value: string) => {
+  useEffect(() => {
+    fetchJobs();
+  }, [fetchJobs]);
+
+  // No need to reset page here — the useEffect on debouncedSearch handles it.
+  const handleSearchChange = useCallback((value: string) => {
     setSearchTerm(value);
-    setPaginationState((prev) => ({ ...prev, currentPage: 1 }));
-  };
+  }, []);
 
-  const jobs = data?.jobs || [];
+  // Stable pagination callbacks
+  const handlePageChange = useCallback(
+    (page: number) =>
+      setPaginationState((prev) => ({ ...prev, currentPage: page })),
+    [],
+  );
+  const handleLimitChange = useCallback(
+    (limit: number) =>
+      setPaginationState((prev) => ({
+        ...prev,
+        itemsPerPage: limit,
+        currentPage: 1,
+      })),
+    [],
+  );
+
+  const jobs = useMemo(() => data?.jobs || [], [data?.jobs]);
 
   return (
     <div className="space-y-6">
@@ -155,12 +186,12 @@ export default function CandidateJobsPage() {
 
       {/* Jobs List */}
       {loading ? (
-       <div className="min-h-[50vh]   flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading Jobs...</p>
+        <div className="min-h-[50vh]   flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading Jobs...</p>
+          </div>
         </div>
-      </div>
       ) : jobs.length === 0 ? (
         <Card>
           <CardContent className="text-center py-12">
@@ -176,9 +207,9 @@ export default function CandidateJobsPage() {
                 key={job.id}
                 className="hover:shadow-lg transition-shadow flex flex-col"
               >
-              <CardContent className="p-6 flex-1 flex flex-col">
-                {/* Company Info */}
-                {/* {job.companyInfo && (
+                <CardContent className="p-6 flex-1 flex flex-col">
+                  {/* Company Info */}
+                  {/* {job.companyInfo && (
                   <div className="mb-4">
                     <CompanyInfoCard
                       company={job.companyInfo}
@@ -187,56 +218,57 @@ export default function CandidateJobsPage() {
                   </div>
                 )} */}
 
-                {/* Job Info */}
-                <div className="mb-4 flex-1">
-                  <div className="flex justify-between items-start mb-2 gap-2">
-                    <h3 className="text-lg font-bold text-gray-900 line-clamp-2">
-                      {job.title}
-                    </h3>
-                    {job.hasApplied && (
-                      <Badge className="bg-blue-100 text-blue-800 shrink-0">
-                        <CheckCircle className="w-3 h-3 mr-1" />
-                        Applied
-                      </Badge>
-                    )}
-                  </div>
+                  {/* Job Info */}
+                  <div className="mb-4 flex-1">
+                    <div className="flex justify-between items-start mb-2 gap-2">
+                      <h3 className="text-lg font-bold text-gray-900 line-clamp-2">
+                        {job.title}
+                      </h3>
+                      {job.hasApplied && (
+                        <Badge className="bg-blue-100 text-blue-800 shrink-0">
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          Applied
+                        </Badge>
+                      )}
+                    </div>
 
-                  <div className="flex flex-col gap-2 text-sm text-gray-600 mb-3">
-                    {(job.companyInfo?.name || job.company) && (
-                      <span className="flex items-center">
-                        <Building2 className="w-4 h-4 mr-1 shrink-0" />
-                        <span className="truncate">
-                          {job.companyInfo?.name || job.company}
+                    <div className="flex flex-col gap-2 text-sm text-gray-600 mb-3">
+                      {(job.companyInfo?.name || job.company) && (
+                        <span className="flex items-center">
+                          <Building2 className="w-4 h-4 mr-1 shrink-0" />
+                          <span className="truncate">
+                            {job.companyInfo?.name || job.company}
+                          </span>
                         </span>
-                      </span>
-                    )}
-                    {job.location && (
-                      <span className="flex items-center">
-                        <MapPin className="w-4 h-4 mr-1 shrink-0" />
-                        <span className="truncate">{job.location}</span>
-                      </span>
-                    )}
+                      )}
+                      {job.location && (
+                        <span className="flex items-center">
+                          <MapPin className="w-4 h-4 mr-1 shrink-0" />
+                          <span className="truncate">{job.location}</span>
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="text-gray-600 text-sm line-clamp-3">
+                      {job.description}
+                    </p>
                   </div>
 
-                  <p className="text-gray-600 text-sm line-clamp-3">
-                    {job.description}
-                  </p>
-                </div>
-
-                {/* Footer */}
-                <div className="flex flex-col gap-3 pt-4 border-t mt-auto">
-                  <span className="text-xs text-gray-500">
-                    Posted {new Date(job.postedDate).toLocaleDateString()}
-                  </span>
-                  <Link href={`/candidate/jobs/${job.id}`} className="w-full">
-                    <Button className="w-full "> 
-                      <EyeIcon className="w-4 h-4 mr-2" />
-                      View Details</Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                  {/* Footer */}
+                  <div className="flex flex-col gap-3 pt-4 border-t mt-auto">
+                    <span className="text-xs text-gray-500">
+                      Posted {new Date(job.postedDate).toLocaleDateString()}
+                    </span>
+                    <Link href={`/candidate/jobs/${job.id}`} className="w-full">
+                      <Button className="w-full ">
+                        <EyeIcon className="w-4 h-4 mr-2" />
+                        View Details
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
 
           {/* Server-Side Pagination */}
@@ -245,16 +277,8 @@ export default function CandidateJobsPage() {
               <CardContent className="p-4">
                 <ServerPagination
                   pagination={data.pagination}
-                  onPageChange={(page) =>
-                    setPaginationState((prev) => ({ ...prev, currentPage: page }))
-                  }
-                  onLimitChange={(limit) =>
-                    setPaginationState((prev) => ({
-                      ...prev,
-                      itemsPerPage: limit,
-                      currentPage: 1,
-                    }))
-                  }
+                  onPageChange={handlePageChange}
+                  onLimitChange={handleLimitChange}
                   loading={loading}
                   showFirstLast={true}
                 />

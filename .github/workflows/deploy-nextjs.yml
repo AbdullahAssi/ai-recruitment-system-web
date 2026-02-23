@@ -31,6 +31,7 @@ jobs:
             OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
             NEXT_PUBLIC_FASTAPI_URL=http://fastapi:8000/api/v1
             NODE_ENV=production
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
             NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
             SMTP_HOST=${{ secrets.SMTP_HOST }}
             SMTP_PORT=${{ secrets.SMTP_PORT }}

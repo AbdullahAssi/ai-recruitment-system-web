@@ -4,8 +4,18 @@ import { cookies } from "next/headers";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+// Guard against a missing secret. Fail at startup in production so the app
+// never runs with an insecure default. In development, fall back with a warning.
+if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET environment variable must be set in production.");
+}
+if (!process.env.JWT_SECRET) {
+  console.warn(
+    "⚠️  JWT_SECRET is not set. Using an insecure default — for development only.",
+  );
+}
 const JWT_SECRET =
-  process.env.JWT_SECRET || "your-secret-key-change-in-production";
+  process.env.JWT_SECRET ?? "dev-only-insecure-secret-do-not-use-in-production";
 const JWT_EXPIRES_IN = "7d";
 
 export interface TokenPayload {
@@ -158,10 +168,12 @@ export async function auth(
         email: user.email,
         name: user.name,
         role: user.role,
-        hrProfile: user.hrProfile ? {
-          id: user.hrProfile.id,
-          companyId: user.hrProfile.companyId || undefined,
-        } : undefined,
+        hrProfile: user.hrProfile
+          ? {
+              id: user.hrProfile.id,
+              companyId: user.hrProfile.companyId || undefined,
+            }
+          : undefined,
       },
     };
   } catch (error) {

@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
       orderBy,
     });
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       jobs,
       pagination: {
@@ -119,6 +119,20 @@ export async function GET(request: NextRequest) {
         totalPages,
       },
     });
+
+    // Cache public active-jobs responses (candidate browsing) for a short
+    // window so repeated requests hit the CDN / browser cache instead of the
+    // DB. HR-specific requests (companyId or includeInactive) are never cached.
+    if (!companyId && !includeInactive) {
+      response.headers.set(
+        "Cache-Control",
+        "public, s-maxage=30, stale-while-revalidate=60",
+      );
+    } else {
+      response.headers.set("Cache-Control", "no-store");
+    }
+
+    return response;
   } catch (error) {
     console.error("Error fetching jobs:", error);
     return NextResponse.json(

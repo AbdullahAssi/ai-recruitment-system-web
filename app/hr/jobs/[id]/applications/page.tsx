@@ -43,6 +43,7 @@ import {
   useEmailTemplates,
   useBulkEmail,
   useScores,
+  useDebounce,
 } from "../../../../../hooks/hooks";
 import { filterAndSortApplications } from "../../../../../lib/applicationUtil";
 import {
@@ -62,11 +63,26 @@ export default function JobApplicationsPage({
   const { toast } = useToast();
 
   // State management with proper types
+  // Local filter state – reflects the UI immediately
   const [filters, setFilters] = useState<FilterState>({
     searchTerm: "",
     statusFilter: "all",
     sortBy: "newest",
   });
+
+  // Debounce only the free-text search so typing does not trigger API calls
+  // on every keystroke. Select/dropdown changes still take effect immediately.
+  const debouncedSearchTerm = useDebounce(filters.searchTerm, 400);
+
+  // Stable API filter object – avoid new object reference on every render
+  const apiFilters = useMemo<FilterState>(
+    () => ({
+      ...filters,
+      searchTerm: debouncedSearchTerm,
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [debouncedSearchTerm, filters.statusFilter, filters.sortBy],
+  );
 
   const [paginationState, setPaginationState] = useState<PaginationState>({
     currentPage: 1,
@@ -101,7 +117,7 @@ export default function JobApplicationsPage({
   const { data, loading, updateApplicationStatus } = useJobApplications(
     params.id,
     paginationState,
-    filters,
+    apiFilters,
   );
 
   const { aiScoresData, loadingScores, fetchAiScores, resetAiScores } =
@@ -194,9 +210,19 @@ export default function JobApplicationsPage({
   // Event handlers
   const handleFilterChange = (key: keyof FilterState, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
-    // Reset to page 1 when filters change
-    setPaginationState((prev) => ({ ...prev, currentPage: 1 }));
+    // searchTerm is debounced – page resets when the debounced value fires.
+    // Status and sort dropdowns reset the page immediately.
+    if (key !== "searchTerm") {
+      setPaginationState((prev) => ({ ...prev, currentPage: 1 }));
+    }
   };
+
+  // Reset to page 1 when the debounced search term fires so we avoid a
+  // double-fetch (one for the page reset, one for the actual new term).
+  useEffect(() => {
+    setPaginationState((prev) => ({ ...prev, currentPage: 1 }));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearchTerm]);
 
   const handleClearFilters = () => {
     setFilters({

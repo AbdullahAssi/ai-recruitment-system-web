@@ -9,23 +9,28 @@ interface TokenPayload {
   name: string;
 }
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
+// Fail loudly in production if the secret is missing.
+if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET environment variable must be set in production.");
+}
+const JWT_SECRET =
+  process.env.JWT_SECRET ?? "dev-only-insecure-secret-do-not-use-in-production";
 
 async function verifyTokenEdge(token: string): Promise<TokenPayload | null> {
   try {
     const secret = new TextEncoder().encode(JWT_SECRET);
     const { payload } = await jwtVerify(token, secret);
-    
+
     // Validate that payload has required fields
     if (
-      typeof payload.userId === 'string' &&
-      typeof payload.email === 'string' &&
-      typeof payload.role === 'string' &&
-      typeof payload.name === 'string'
+      typeof payload.userId === "string" &&
+      typeof payload.email === "string" &&
+      typeof payload.role === "string" &&
+      typeof payload.name === "string"
     ) {
       return payload as unknown as TokenPayload;
     }
-    
+
     return null;
   } catch (error) {
     console.error("Token verification failed:", error);
@@ -86,7 +91,7 @@ export async function middleware(request: NextRequest) {
   // Check role-based access
   if (hrRoutes.some((route) => pathname.startsWith(route))) {
     if (payload.role !== "HR" && payload.role !== "ADMIN") {
-    //   console.log("HR route access denied for role:", payload.role);
+      //   console.log("HR route access denied for role:", payload.role);
       // Unauthorized - redirect to appropriate portal
       const url = request.nextUrl.clone();
       url.pathname = payload.role === "CANDIDATE" ? "/candidate" : "/";
@@ -96,7 +101,7 @@ export async function middleware(request: NextRequest) {
 
   if (candidateRoutes.some((route) => pathname.startsWith(route))) {
     if (payload.role !== "CANDIDATE" && payload.role !== "ADMIN") {
-    //   console.log("Candidate route access denied for role:", payload.role);
+      //   console.log("Candidate route access denied for role:", payload.role);
       // Unauthorized - redirect to appropriate portal
       const url = request.nextUrl.clone();
       url.pathname = payload.role === "HR" ? "/hr" : "/";
@@ -104,7 +109,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-//   console.log("Access granted, allowing request");
+  //   console.log("Access granted, allowing request");
   return NextResponse.next();
 }
 

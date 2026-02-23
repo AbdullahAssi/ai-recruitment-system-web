@@ -43,9 +43,17 @@ export async function POST(request: NextRequest) {
     if (!validateFileType(file.name || "")) {
       return NextResponse.json(
         {
-          error:
-            "Invalid file type. Only PDF, DOC, DOCX, and TXT files are allowed.",
+          error: "Invalid file type. Only PDF files are allowed.",
         },
+        { status: 400 },
+      );
+    }
+
+    // Enforce a 5 MB file size limit to prevent DoS via large uploads.
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { error: "File size must not exceed 5 MB." },
         { status: 400 },
       );
     }
@@ -91,13 +99,12 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Create resume record - FastAPI will handle text extraction and parsing during scoring
     const resume = await prisma.resume.create({
       data: {
         candidateId: candidate.id,
         filePath: filePath,
         fileName: file.name || "unknown",
-        extractedText: "", // FastAPI will extract when needed
+        extractedText: "",
       },
     });
 

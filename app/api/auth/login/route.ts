@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { comparePassword, generateToken, setAuthCookie } from "@/lib/auth";
+import { comparePassword, generateToken } from "@/lib/auth";
+import { checkRateLimit } from "@/lib/rateLimit";
 import { z } from "zod";
 
 const loginSchema = z.object({
@@ -9,6 +10,18 @@ const loginSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  // Rate limit: max 10 login attempts per IP per 15 minutes.
+  const ip =
+    request.headers.get("x-forwarded-for")?.split(",")[0].trim() ??
+    request.headers.get("x-real-ip") ??
+    "unknown";
+  if (!checkRateLimit(`login:${ip}`, 10, 15 * 60 * 1000)) {
+    return NextResponse.json(
+      { error: "Too many login attempts. Please try again later." },
+      { status: 429 },
+    );
+  }
+
   try {
     const body = await request.json();
 
@@ -74,10 +87,10 @@ export async function POST(request: NextRequest) {
       token,
     });
 
-    // Set cookie in response
+    // Set auth cookie — secure flag is enabled automatically in production.
     response.cookies.set("auth_token", token, {
       httpOnly: true,
-      secure: false, // Set to false for HTTP access (use true only with HTTPS)
+      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 7, // 7 days
       path: "/",

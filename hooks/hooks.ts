@@ -15,6 +15,7 @@ export { useScores } from "./useScores";
 export { useApi } from "./useApi";
 export { useFilters } from "./useFilters";
 export { usePagination } from "./usePagination";
+export { useDebounce } from "./useDebounce";
 export {
   useCandidates,
   useCandidateProfile,
@@ -91,6 +92,7 @@ export function useJobApplications(
     filters?.statusFilter,
     filters?.sortBy,
     toast,
+    // spread individual primitives so a new object reference doesn't cause re-fetch
   ]);
 
   useEffect(() => {
