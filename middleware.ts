@@ -9,16 +9,26 @@ interface TokenPayload {
   name: string;
 }
 
-// Fail loudly in production if the secret is missing.
-if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET) {
-  throw new Error("JWT_SECRET environment variable must be set in production.");
+// Never throw at module level – that executes during `next build` when the
+// env variable isn't present yet. Validate inside the function at request time.
+function getJwtSecret(): Uint8Array {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "JWT_SECRET environment variable must be set in production.",
+      );
+    }
+    return new TextEncoder().encode(
+      "dev-only-insecure-secret-do-not-use-in-production",
+    );
+  }
+  return new TextEncoder().encode(secret);
 }
-const JWT_SECRET =
-  process.env.JWT_SECRET ?? "dev-only-insecure-secret-do-not-use-in-production";
 
 async function verifyTokenEdge(token: string): Promise<TokenPayload | null> {
   try {
-    const secret = new TextEncoder().encode(JWT_SECRET);
+    const secret = getJwtSecret();
     const { payload } = await jwtVerify(token, secret);
 
     // Validate that payload has required fields

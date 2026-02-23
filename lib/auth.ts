@@ -4,18 +4,24 @@ import { cookies } from "next/headers";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// Guard against a missing secret. Fail at startup in production so the app
-// never runs with an insecure default. In development, fall back with a warning.
-if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET) {
-  throw new Error("JWT_SECRET environment variable must be set in production.");
+// Never read JWT_SECRET at module level – that code runs during `next build`
+// when the variable isn't available yet. Use getJwtSecret() inside functions
+// so the check happens at request time (runtime), not build time.
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "JWT_SECRET environment variable must be set in production.",
+      );
+    }
+    console.warn(
+      "⚠️  JWT_SECRET is not set. Using an insecure default — for development only.",
+    );
+    return "dev-only-insecure-secret-do-not-use-in-production";
+  }
+  return secret;
 }
-if (!process.env.JWT_SECRET) {
-  console.warn(
-    "⚠️  JWT_SECRET is not set. Using an insecure default — for development only.",
-  );
-}
-const JWT_SECRET =
-  process.env.JWT_SECRET ?? "dev-only-insecure-secret-do-not-use-in-production";
 const JWT_EXPIRES_IN = "7d";
 
 export interface TokenPayload {
@@ -57,7 +63,7 @@ export async function comparePassword(
  * Generate JWT token
  */
 export function generateToken(payload: TokenPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+  return jwt.sign(payload, getJwtSecret(), { expiresIn: JWT_EXPIRES_IN });
 }
 
 /**
@@ -65,13 +71,7 @@ export function generateToken(payload: TokenPayload): string {
  */
 export function verifyToken(token: string): TokenPayload | null {
   try {
-    // console.log(
-    //   "Verifying token with secret:",
-    //   JWT_SECRET.substring(0, 10) + "..."
-    // );
-    // console.log("Token to verify:", token.substring(0, 50) + "...");
-    const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;
-    // console.log("Token verified successfully:", decoded);
+    const decoded = jwt.verify(token, getJwtSecret()) as TokenPayload;
     return decoded;
   } catch (error) {
     console.error("Token verification failed:", error);
