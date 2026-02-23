@@ -65,9 +65,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-50 via-white to-blue-50 p-4">
+      <Card className="w-full max-w-md shadow-xl border-0">
+        <CardHeader className="space-y-3 pb-2">
+          <div className="flex justify-center">
+            <img src="/blue.png" alt="Qmindai" className="h-12 w-auto" />
+          </div>
           <CardTitle className="text-2xl font-bold text-center">
             Welcome Back
           </CardTitle>
@@ -113,25 +116,35 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Signing in..." : "Sign In"}
-            </Button>
+            <div className="flex justify-center pt-2">
+              <Button
+                type="submit"
+                className="w-full sm:w-auto sm:min-w-[200px] text-white font-medium py-2.5 rounded-lg transition-all duration-200 hover:opacity-90"
+                style={{
+                  background: "linear-gradient(135deg, #0b66c3, #3f89d2)",
+                }}
+                disabled={loading}
+              >
+                {loading ? "Signing in..." : "Sign In"}
+              </Button>
+            </div>
           </form>
 
-          <div className="mt-4 text-center text-sm">
-            <span className="text-gray-600">Don't have an account? </span>
+          <div className="mt-5 text-center text-sm">
+            <span className="text-gray-600">Don&apos;t have an account? </span>
             <Link
               href="/auth/register"
-              className="text-blue-600 hover:underline font-medium"
+              className="font-semibold hover:underline"
+              style={{ color: "#0b66c3" }}
             >
               Sign up
             </Link>
           </div>
 
-          <div className="mt-4 text-center">
+          <div className="mt-3 text-center">
             <Link
               href="/"
-              className="text-sm text-gray-600 hover:text-gray-900"
+              className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
             >
               ← Back to Home
             </Link>

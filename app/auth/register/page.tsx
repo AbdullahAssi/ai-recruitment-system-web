@@ -94,9 +94,12 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-4">
-      <Card className="w-full max-w-2xl shadow-xl border-t-4 border-t-purple-600">
-        <CardHeader className="space-y-1">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-50 via-white to-blue-50 p-4">
+      <Card className="w-full max-w-2xl shadow-xl border-0">
+        <CardHeader className="space-y-3 pb-2">
+          <div className="flex justify-center">
+            <img src="/blue.png" alt="Qmindai" className="h-12 w-auto" />
+          </div>
           <CardTitle className="text-2xl font-bold text-center">
             Create Account
           </CardTitle>
@@ -170,12 +173,7 @@ export default function RegisterPage() {
                     setFormData({ ...formData, role: value })
                   }
                 >
-                  <SelectTrigger className="pl-9 relative">
-                    {formData.role === "HR" ? (
-                      <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-purple-600" />
-                    ) : (
-                      <UserCircle className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-600" />
-                    )}
+                  <SelectTrigger>
                     <SelectValue placeholder="Select your role" />
                   </SelectTrigger>
                   <SelectContent>
@@ -258,26 +256,30 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            <Button
-              type="submit"
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-2.5 rounded-lg transition-all duration-200 transform hover:scale-[1.01]"
-              disabled={loading}
-            >
-              {loading ? "Creating Account..." : "Create Account"}
-            </Button>
+            <div className="flex justify-center pt-2">
+              <Button
+                type="submit"
+                className="w-full sm:w-auto sm:min-w-[200px] text-white font-medium py-2.5 rounded-lg transition-all duration-200 hover:opacity-90"
+                style={{ background: "linear-gradient(135deg, #0b66c3, #3f89d2)" }}
+                disabled={loading}
+              >
+                {loading ? "Creating Account..." : "Create Account"}
+              </Button>
+            </div>
           </form>
 
-          <div className="mt-6 text-center text-sm">
+          <div className="mt-5 text-center text-sm">
             <span className="text-gray-600">Already have an account? </span>
             <Link
               href="/auth/login"
-              className="text-purple-600 hover:text-purple-700 hover:underline font-semibold"
+              className="font-semibold hover:underline"
+              style={{ color: "#0b66c3" }}
             >
               Sign in
             </Link>
           </div>
 
-          <div className="mt-4 text-center">
+          <div className="mt-3 text-center">
             <Link
               href="/"
               className="text-xs text-gray-500 hover:text-gray-900 transition-colors"

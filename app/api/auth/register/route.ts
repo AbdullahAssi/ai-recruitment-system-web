@@ -96,10 +96,12 @@ export async function POST(request: NextRequest) {
       token,
     });
 
-    // Set auth cookie — secure flag is enabled automatically in production.
+    // Set auth cookie.
+    // COOKIE_SECURE should be "true" only when the app is served over HTTPS.
+    // Defaults to false so plain-HTTP deployments (e.g. direct port access) work correctly.
     response.cookies.set("auth_token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.COOKIE_SECURE === "true",
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 7, // 7 days
       path: "/",
