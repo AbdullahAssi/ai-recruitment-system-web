@@ -23,6 +23,7 @@ import {
 import Link from "next/link";
 import { JobApplicationDialog } from "@/components/jobs/JobApplicationDialog";
 import { CompanyInfoCard } from "@/components/common/CompanyInfoCard";
+import { LoadingState } from "@/components/reusables";
 
 interface Company {
   id: string;
@@ -163,14 +164,7 @@ export default function JobDetailPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading job details...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState variant="page" message="Loading job details..." />;
   }
 
   if (!job) {

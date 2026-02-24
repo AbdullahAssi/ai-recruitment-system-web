@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Users, Send } from "lucide-react";
+import { LoadingState } from "@/components/reusables";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -221,7 +222,7 @@ export default function JobApplicationsPage({
   // double-fetch (one for the page reset, one for the actual new term).
   useEffect(() => {
     setPaginationState((prev) => ({ ...prev, currentPage: 1 }));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearchTerm]);
 
   const handleClearFilters = () => {
@@ -411,14 +412,7 @@ export default function JobApplicationsPage({
 
   // Loading state
   if (loading) {
-    return (
-      <div className="min-h-screen   flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading applications...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState variant="page" message="Loading applications..." />;
   }
 
   // Error state

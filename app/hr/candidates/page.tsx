@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { ServerPagination } from "../../../components/reusables";
+import { ServerPagination, LoadingState } from "../../../components/reusables";
 
 import {
   CandidatesHeader,
@@ -256,14 +256,7 @@ export default function CandidatesPage() {
 
   // Loading state
   if (loading) {
-    return (
-      <div className="min-h-screen  flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading candidates...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState variant="page" message="Loading candidates..." />;
   }
 
   return (

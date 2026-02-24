@@ -22,6 +22,7 @@ import {
 import { toast } from "sonner";
 import Link from "next/link";
 import { FeedbackDialog } from "@/components/hr/FeedbackDialog";
+import { LoadingState } from "@/components/reusables";
 
 interface MatchResult {
   candidate_id: string;
@@ -113,11 +114,7 @@ export default function JobMatchingPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-[50vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
+    return <LoadingState variant="page" message="Loading matching data..." />;
   }
 
   if (!job) {

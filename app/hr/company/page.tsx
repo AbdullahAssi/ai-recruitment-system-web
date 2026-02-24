@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { CompanyForm } from "@/components/reusables/CompanyForm";
+import { LoadingState } from "@/components/reusables";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -81,14 +82,7 @@ export default function CompanyPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading company profile...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState variant="page" message="Loading company profile..." />;
   }
 
   if (editing) {
