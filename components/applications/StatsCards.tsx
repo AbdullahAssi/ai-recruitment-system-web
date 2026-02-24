@@ -22,12 +22,10 @@ export function StatsCards({ stats }: StatsCardsProps) {
           <div className="text-sm text-yellow-700">Pending</div>
         </CardContent>
       </Card>
-      <Card className="bg-blue-50 border-blue-200">
+      <Card className="bg-brand-50 border-brand-200">
         <CardContent className="p-4 text-center">
-          <div className="text-2xl font-bold text-blue-600">
-            {stats.reviewed}
-          </div>
-          <div className="text-sm text-blue-700">Reviewed</div>
+          <div className="text-2xl font-bold text-brand">{stats.reviewed}</div>
+          <div className="text-sm text-brand-light">Reviewed</div>
         </CardContent>
       </Card>
       <Card className="bg-green-50 border-green-200">

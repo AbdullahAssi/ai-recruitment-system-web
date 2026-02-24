@@ -15,7 +15,7 @@ export function LoadingState({
 }: LoadingStateProps) {
   const LoadingContent = () => (
     <div className="flex flex-col items-center justify-center py-8">
-      <Loader2 className="w-8 h-8 animate-spin text-blue-600 mb-3" />
+      <Loader2 className="w-8 h-8 animate-spin text-brand mb-3" />
       <p className="text-gray-600 text-sm">{message}</p>
     </div>
   );
@@ -23,7 +23,7 @@ export function LoadingState({
   if (variant === "inline") {
     return (
       <div className={`flex items-center gap-2 ${className}`}>
-        <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+        <Loader2 className="w-4 h-4 animate-spin text-brand" />
         <span className="text-gray-600 text-sm">{message}</span>
       </div>
     );

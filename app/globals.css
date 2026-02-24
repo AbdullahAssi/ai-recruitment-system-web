@@ -43,6 +43,14 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
+
+    /* Brand palette — #0b66c3 / #3f89d2 */
+    --brand: 210 89% 40%;
+    --brand-light: 210 62% 54%;
+    --brand-foreground: 0 0% 100%;
+    --brand-50: 210 100% 97%;
+    --brand-100: 210 90% 92%;
+    --brand-200: 210 80% 82%;
   }
   .dark {
     --background: 0 0% 3.9%;

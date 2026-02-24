@@ -166,7 +166,7 @@ export default function JobDetailPage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading job details...</p>
         </div>
       </div>
@@ -382,8 +382,8 @@ export default function JobDetailPage() {
                       </span>
                     </div>
 
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <p className="text-sm text-blue-900">
+                    <div className="bg-brand-50 border border-brand-200 rounded-lg p-4">
+                      <p className="text-sm text-brand">
                         Your application has been submitted successfully. We'll
                         notify you of any updates.
                       </p>
@@ -419,7 +419,7 @@ export default function JobDetailPage() {
 
                           <Button
                             onClick={handleApply}
-                            className="w-full"
+                            className="w-full bg-brand hover:bg-brand-light text-brand-foreground"
                             size="lg"
                           >
                             Apply Now

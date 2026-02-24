@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -14,11 +14,10 @@ import {
   Building2,
   Search,
   CheckCircle,
-  EyeIcon,
+  ArrowRight,
+  Calendar,
 } from "lucide-react";
 import Link from "next/link";
-import { CompanyInfoCard } from "@/components/common/CompanyInfoCard";
-import { BsEyeFill } from "react-icons/bs";
 
 interface Company {
   id: string;
@@ -180,7 +179,7 @@ export default function CandidateJobsPage() {
           placeholder="Search jobs by title, company, or location..."
           value={searchTerm}
           onChange={(e) => handleSearchChange(e.target.value)}
-          className="pl-10"
+          className="pl-10 focus-visible:ring-brand"
         />
       </div>
 
@@ -188,7 +187,7 @@ export default function CandidateJobsPage() {
       {loading ? (
         <div className="min-h-[50vh]   flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand mx-auto mb-4"></div>
             <p className="text-gray-600">Loading Jobs...</p>
           </div>
         </div>
@@ -202,73 +201,90 @@ export default function CandidateJobsPage() {
       ) : (
         <>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {jobs.map((job) => (
-              <Card
-                key={job.id}
-                className="hover:shadow-lg transition-shadow flex flex-col"
-              >
-                <CardContent className="p-6 flex-1 flex flex-col">
-                  {/* Company Info */}
-                  {/* {job.companyInfo && (
-                  <div className="mb-4">
-                    <CompanyInfoCard
-                      company={job.companyInfo}
-                      variant="compact"
-                    />
-                  </div>
-                )} */}
+            {jobs.map((job) => {
+              const companyName = job.companyInfo?.name || job.company || "";
+              const initials = companyName
+                ? companyName.slice(0, 2).toUpperCase()
+                : "?";
 
-                  {/* Job Info */}
-                  <div className="mb-4 flex-1">
-                    <div className="flex justify-between items-start mb-2 gap-2">
-                      <h3 className="text-lg font-bold text-gray-900 line-clamp-2">
-                        {job.title}
-                      </h3>
-                      {job.hasApplied && (
-                        <Badge className="bg-blue-100 text-blue-800 shrink-0">
-                          <CheckCircle className="w-3 h-3 mr-1" />
-                          Applied
-                        </Badge>
-                      )}
+              return (
+                <div
+                  key={job.id}
+                  className="group relative bg-white rounded-xl border border-gray-200 hover:shadow-lg transition-all duration-200 flex flex-col overflow-hidden min-h-[320px]"
+                >
+                  {/* Brand accent bar */}
+                  {/* <div className="h-1 w-full bg-gradient-to-r from-brand to-brand-light" /> */}
+
+                  <div className="p-5 flex-1 flex flex-col">
+                    {/* Card header: avatar + title + applied badge */}
+                    <div className="flex items-start gap-3 mb-2">
+                      {/* Company avatar */}
+                      <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-brand-50 border border-brand-200 flex items-center justify-center">
+                        <span className="text-sm font-bold text-brand">
+                          {initials}
+                        </span>
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <h3 className="font-semibold text-gray-900 text-base leading-snug line-clamp-2 group-hover:text-brand transition-colors">
+                            {job.title}
+                          </h3>
+                          {job.hasApplied && (
+                            <Badge className="bg-brand-50 text-brand border border-brand-200 shrink-0 text-[10px] px-1.5 py-0.5">
+                              <CheckCircle className="w-2.5 h-2.5 mr-1" />
+                              Applied
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="flex flex-col gap-2 text-sm text-gray-600 mb-3">
-                      {(job.companyInfo?.name || job.company) && (
-                        <span className="flex items-center">
-                          <Building2 className="w-4 h-4 mr-1 shrink-0" />
-                          <span className="truncate">
-                            {job.companyInfo?.name || job.company}
-                          </span>
+                    {/* Meta chips — own row, always single line, never wraps into header */}
+                    <div className="flex gap-1.5 mb-3 overflow-hidden">
+                      {companyName && (
+                        <span className="inline-flex items-center gap-1 text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-full px-2.5 py-1 min-w-0 shrink">
+                          <Building2 className="w-3 h-3 shrink-0" />
+                          <span className="truncate">{companyName}</span>
                         </span>
                       )}
                       {job.location && (
-                        <span className="flex items-center">
-                          <MapPin className="w-4 h-4 mr-1 shrink-0" />
+                        <span className="inline-flex items-center gap-1 text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-full px-2.5 py-1 min-w-0 shrink">
+                          <MapPin className="w-3 h-3 shrink-0" />
                           <span className="truncate">{job.location}</span>
                         </span>
                       )}
                     </div>
 
-                    <p className="text-gray-600 text-sm line-clamp-3">
+                    {/* Description */}
+                    <p className="text-gray-500 text-sm leading-relaxed line-clamp-5 flex-1">
                       {job.description}
                     </p>
                   </div>
 
                   {/* Footer */}
-                  <div className="flex flex-col gap-3 pt-4 border-t mt-auto">
-                    <span className="text-xs text-gray-500">
-                      Posted {new Date(job.postedDate).toLocaleDateString()}
+                  <div className="px-5 py-3 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1 text-[11px] text-gray-400">
+                      <Calendar className="w-3 h-3" />
+                      {new Date(job.postedDate).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
                     </span>
-                    <Link href={`/candidate/jobs/${job.id}`} className="w-full">
-                      <Button className="w-full ">
-                        <EyeIcon className="w-4 h-4 mr-2" />
-                        View Details
+                    <Link href={`/candidate/jobs/${job.id}`}>
+                      <Button
+                        size="sm"
+                        className="bg-brand hover:bg-brand-light text-brand-foreground text-xs px-3 h-7 gap-1"
+                      >
+                        View
+                        <ArrowRight className="w-3 h-3" />
                       </Button>
                     </Link>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+                </div>
+              );
+            })}
           </div>
 
           {/* Server-Side Pagination */}

@@ -131,8 +131,8 @@ export function ApplicationCard({
 
           {/* Quiz Score */}
           {typeof application.candidate.quizScore === "number" && (
-            <div className="bg-purple-50 rounded-lg p-2.5 border border-purple-200 text-center">
-              <BsTrophy className="w-4 h-4 text-purple-600 mx-auto mb-1" />
+            <div className="bg-brand-50 rounded-lg p-2.5 border border-brand-200 text-center">
+              <BsTrophy className="w-4 h-4 text-brand mx-auto mb-1" />
               <div
                 className={`text-lg font-bold ${
                   application.candidate.quizPassed
@@ -142,9 +142,7 @@ export function ApplicationCard({
               >
                 {application.candidate.quizScore}%
               </div>
-              <div className="text-[10px] text-purple-700 font-medium">
-                Quiz
-              </div>
+              <div className="text-[10px] text-brand font-medium">Quiz</div>
             </div>
           )}
 
@@ -161,14 +159,12 @@ export function ApplicationCard({
 
           {/* AI Overall Score or Status */}
           {application.aiAnalysis ? (
-            <div className="bg-gradient-to-br from-violet-50 to-purple-50 rounded-lg p-2.5 border border-purple-200 text-center">
-              <HiSparkles className="w-4 h-4 text-purple-600 mx-auto mb-1" />
-              <div className="text-lg font-bold text-purple-700">
+            <div className="bg-gradient-to-br from-brand-50 to-brand-100 rounded-lg p-2.5 border border-brand-200 text-center">
+              <HiSparkles className="w-4 h-4 text-brand mx-auto mb-1" />
+              <div className="text-lg font-bold text-brand">
                 {application.aiAnalysis.overallScore}%
               </div>
-              <div className="text-[10px] text-purple-700 font-medium">
-                AI Score
-              </div>
+              <div className="text-[10px] text-brand font-medium">AI Score</div>
             </div>
           ) : (
             <div
@@ -186,19 +182,19 @@ export function ApplicationCard({
         {/* AI Analysis Breakdown (if available) */}
         {application.aiAnalysis && (
           <div className="grid grid-cols-3 gap-2 mb-3">
-            <div className="bg-blue-50 rounded p-2 border border-blue-200 text-center">
-              <FiTrendingUp className="w-3.5 h-3.5 text-blue-600 mx-auto mb-0.5" />
-              <div className="text-sm font-bold text-blue-700">
+            <div className="bg-brand-50 rounded p-2 border border-brand-200 text-center">
+              <FiTrendingUp className="w-3.5 h-3.5 text-brand mx-auto mb-0.5" />
+              <div className="text-sm font-bold text-brand">
                 {application.aiAnalysis.scores.skills}
               </div>
-              <div className="text-[9px] text-blue-700">Skills</div>
+              <div className="text-[9px] text-brand">Skills</div>
             </div>
-            <div className="bg-indigo-50 rounded p-2 border border-indigo-200 text-center">
-              <FiBriefcase className="w-3.5 h-3.5 text-indigo-600 mx-auto mb-0.5" />
-              <div className="text-sm font-bold text-indigo-700">
+            <div className="bg-brand-50 rounded p-2 border border-brand-200 text-center">
+              <FiBriefcase className="w-3.5 h-3.5 text-brand-light mx-auto mb-0.5" />
+              <div className="text-sm font-bold text-brand-light">
                 {application.aiAnalysis.scores.experience}
               </div>
-              <div className="text-[9px] text-indigo-700">Exp</div>
+              <div className="text-[9px] text-brand-light">Exp</div>
             </div>
             <div className="bg-emerald-50 rounded p-2 border border-emerald-200 text-center">
               <BsCheckCircle className="w-3.5 h-3.5 text-emerald-600 mx-auto mb-0.5" />

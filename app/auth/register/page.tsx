@@ -259,8 +259,7 @@ export default function RegisterPage() {
             <div className="flex justify-center pt-2">
               <Button
                 type="submit"
-                className="w-full sm:w-auto sm:min-w-[200px] text-white font-medium py-2.5 rounded-lg transition-all duration-200 hover:opacity-90"
-                style={{ background: "linear-gradient(135deg, #0b66c3, #3f89d2)" }}
+                className="w-full sm:w-auto sm:min-w-[200px] bg-brand hover:bg-brand-light text-brand-foreground font-medium py-2.5 rounded-lg transition-all duration-200"
                 disabled={loading}
               >
                 {loading ? "Creating Account..." : "Create Account"}
@@ -272,8 +271,7 @@ export default function RegisterPage() {
             <span className="text-gray-600">Already have an account? </span>
             <Link
               href="/auth/login"
-              className="font-semibold hover:underline"
-              style={{ color: "#0b66c3" }}
+              className="text-brand font-semibold hover:underline"
             >
               Sign in
             </Link>
