@@ -87,8 +87,7 @@ export default function CompanyPage() {
 
   if (editing) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto space-y-6">
           <Button
             variant="ghost"
             onClick={() => setEditing(false)}
@@ -105,13 +104,11 @@ export default function CompanyPage() {
             mode="edit"
           />
         </div>
-      </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -305,7 +302,6 @@ export default function CompanyPage() {
             </Card>
           </div>
         </div>
-      </div>
     </div>
   );
 }

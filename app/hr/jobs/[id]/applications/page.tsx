@@ -3,10 +3,10 @@
 import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Users, Send } from "lucide-react";
+import { ArrowLeft, Users, Send, SlidersHorizontal } from "lucide-react";
+import { FaUsers } from "react-icons/fa";
 import { LoadingState } from "@/components/reusables";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -418,7 +418,7 @@ export default function JobApplicationsPage({
   // Error state
   if (!data) {
     return (
-      <div className="min-h-screen bg-gradient-to-br  from-gray-50 to-blue-100  flex items-center justify-center">
+      <div className="flex items-center justify-center py-24">
         <div className="text-center">
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
             Job Not Found
@@ -438,8 +438,8 @@ export default function JobApplicationsPage({
   }
 
   return (
-    <div className="min-h-screen  ">
-      <div className="max-w-7xl mx-auto py-7">
+    <div>
+      <div className="max-w-7xl mx-auto space-y-6">
         {/* AI Analysis Dialog */}
         <AIAnalysisDialog
           open={aiDialogState.profileDialogOpen}
@@ -453,21 +453,24 @@ export default function JobApplicationsPage({
         />
 
         {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-sm flex-shrink-0">
+              <FaUsers className="w-5 h-5 text-primary-foreground" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground leading-tight">
+                {data.job.title}
+              </h1>
+              <p className="text-sm text-muted-foreground">Applications</p>
+            </div>
+          </div>
           <Link href="/hr/jobs">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="border-border text-muted-foreground hover:bg-muted">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Jobs
             </Button>
           </Link>
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold text-gray-900">
-              {data.job.title} - Applications
-            </h1>
-            <p className="text-gray-600 mt-1">
-              Manage applications for this job posting
-            </p>
-          </div>
         </div>
 
         {/* Job Info Card */}
@@ -493,45 +496,39 @@ export default function JobApplicationsPage({
         {/* Applications List */}
         <div className="space-y-4">
           {/* Results Summary */}
-          <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div>
-                    <h3 className="text-lg font-semibold text-blue-900">
-                      Applications ({data.filteredCount || 0} of{" "}
-                      {data.totalApplications})
-                    </h3>
-                    <p className="text-sm text-blue-700">
-                      {data.pagination
-                        ? `Page ${data.pagination.page} of ${data.pagination.totalPages}`
-                        : "All results shown"}
-                      {filters.searchTerm &&
-                        ` • Filtered by: "${filters.searchTerm}"`}
-                      {filters.statusFilter !== "all" &&
-                        ` • Status: ${filters.statusFilter}`}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {data.pagination && (
-                    <Badge variant="outline" className="bg-white">
-                      {data.pagination.limit} per page
-                    </Badge>
-                  )}
-                  {loading && (
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="rounded-xl border border-border bg-brand-50 dark:bg-brand-100/10 px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <SlidersHorizontal className="w-4 h-4 text-brand" />
+              <span className="text-sm font-semibold text-foreground">
+                {data.filteredCount || 0} of {data.totalApplications} applications
+              </span>
+              {(filters.searchTerm || filters.statusFilter !== "all") && (
+                <span className="text-xs text-muted-foreground">
+                  {filters.searchTerm && `• "${filters.searchTerm}"`}{" "}
+                  {filters.statusFilter !== "all" && `• ${filters.statusFilter}`}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {data.pagination && (
+                <span className="text-xs text-muted-foreground bg-card border border-border px-2 py-0.5 rounded-full">
+                  Page {data.pagination.page}/{data.pagination.totalPages}
+                </span>
+              )}
+              {loading && (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+              )}
+            </div>
+          </div>
 
           {/* Bulk Actions Toolbar */}
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
-              <h3 className="text-lg font-semibold">
-                Applications ({applications.length})
+              <h3 className="text-sm font-semibold text-foreground">
+                Applications
+                <span className="ml-1.5 bg-brand-50 text-brand text-xs font-bold px-1.5 py-0.5 rounded-full">
+                  {applications.length}
+                </span>
               </h3>
               <div className="flex items-center gap-2">
                 <Checkbox
@@ -543,7 +540,7 @@ export default function JobApplicationsPage({
                   onCheckedChange={handleSelectAll}
                   aria-label="Select all applications"
                 />
-                <Label htmlFor="select-all" className="text-sm text-gray-600">
+                <Label htmlFor="select-all" className="text-sm text-muted-foreground">
                   Select All ({bulkEmailState.selectedApplications.length}{" "}
                   selected)
                 </Label>
@@ -552,9 +549,9 @@ export default function JobApplicationsPage({
 
             {bulkEmailState.selectedApplications.length > 0 && (
               <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="px-3 py-1">
+                <span className="text-xs font-medium bg-brand-50 text-brand px-3 py-1 rounded-full border border-brand-200">
                   {bulkEmailState.selectedApplications.length} selected
-                </Badge>
+                </span>
                 <Dialog
                   open={bulkEmailState.emailDialogOpen}
                   onOpenChange={(open) =>
@@ -567,7 +564,7 @@ export default function JobApplicationsPage({
                   <DialogTrigger asChild>
                     <Button
                       size="sm"
-                      className="bg-purple-600 hover:bg-purple-700"
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground"
                       aria-label="Send bulk email to selected candidates"
                     >
                       <Send className="w-4 h-4 mr-2" />
@@ -720,16 +717,20 @@ export default function JobApplicationsPage({
 
           {/* Application Cards */}
           {applications.length === 0 ? (
-            <div className="text-center py-12">
-              <Users className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                No Applications Found
-              </h3>
-              <p className="text-gray-600">
-                {filters.searchTerm || filters.statusFilter !== "all"
-                  ? "No applications match your current filters"
-                  : "No applications have been submitted for this job yet"}
-              </p>
+            <div className="rounded-xl border border-dashed border-border bg-card text-center py-16 px-6">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-14 h-14 rounded-full bg-brand-50 flex items-center justify-center">
+                  <Users className="w-6 h-6 text-brand" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-base font-semibold text-foreground">No Applications Found</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {filters.searchTerm || filters.statusFilter !== "all"
+                      ? "No applications match your current filters"
+                      : "No applications have been submitted for this job yet"}
+                  </p>
+                </div>
+              </div>
             </div>
           ) : (
             <>
@@ -756,28 +757,24 @@ export default function JobApplicationsPage({
 
               {/* Server-Side Pagination */}
               {data.pagination && (
-                <Card className="mt-4">
-                  <CardContent className="p-4">
-                    <ServerPagination
-                      pagination={data.pagination}
-                      onPageChange={(page) =>
-                        setPaginationState((prev) => ({
-                          ...prev,
-                          currentPage: page,
-                        }))
-                      }
-                      onLimitChange={(limit) =>
-                        setPaginationState((prev) => ({
-                          ...prev,
-                          itemsPerPage: limit,
-                          currentPage: 1,
-                        }))
-                      }
-                      loading={loading}
-                      showFirstLast={true}
-                    />
-                  </CardContent>
-                </Card>
+                <ServerPagination
+                  pagination={data.pagination}
+                  onPageChange={(page) =>
+                    setPaginationState((prev) => ({
+                      ...prev,
+                      currentPage: page,
+                    }))
+                  }
+                  onLimitChange={(limit) =>
+                    setPaginationState((prev) => ({
+                      ...prev,
+                      itemsPerPage: limit,
+                      currentPage: 1,
+                    }))
+                  }
+                  loading={loading}
+                  showFirstLast={true}
+                />
               )}
             </>
           )}

@@ -49,6 +49,7 @@ import {
   MapPin,
   Filter,
 } from "lucide-react";
+import { LoadingState } from "@/components/reusables";
 
 interface AnalyticsData {
   candidates: {
@@ -282,19 +283,12 @@ export default function AnalyticsPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br  from-gray-50 to-blue-100  flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading analytics...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState variant="page" message="Loading analytics..." />;
   }
 
   if (!analytics) {
     return (
-      <div className="min-h-screen bg-gradient-to-br  from-gray-50 to-blue-100  flex items-center justify-center">
+      <div className="flex items-center justify-center py-24">
         <div className="text-center">
           <TrendingUp className="w-16 h-16 mx-auto text-gray-400 mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -309,8 +303,8 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4">
-      <div className="max-w-7xl mx-auto">
+    <div>
+      <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-between mb-4">

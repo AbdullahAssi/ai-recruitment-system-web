@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -245,8 +244,8 @@ export default function HRJobsPage() {
   }
 
   return (
-    <div className="min-h-screen  ">
-      <div className="max-w-7xl mx-auto py-8">
+    <div>
+      <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <JobsHeader
           loading={loading}
@@ -281,17 +280,13 @@ export default function HRJobsPage() {
 
             {/* Server-Side Pagination */}
             {data?.pagination && data.pagination.totalPages > 1 && (
-              <Card className="mt-6">
-                <CardContent className="p-4">
-                  <ServerPagination
-                    pagination={data.pagination}
-                    onPageChange={handlePageChange}
-                    onLimitChange={handleLimitChange}
-                    loading={loading}
-                    showFirstLast={true}
-                  />
-                </CardContent>
-              </Card>
+              <ServerPagination
+                pagination={data.pagination}
+                onPageChange={handlePageChange}
+                onLimitChange={handleLimitChange}
+                loading={loading}
+                showFirstLast={true}
+              />
             )}
           </>
         )}

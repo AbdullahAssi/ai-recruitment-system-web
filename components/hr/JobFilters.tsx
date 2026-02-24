@@ -1,7 +1,6 @@
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Search, SlidersHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -9,14 +8,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Filter } from "lucide-react";
 import { FilterState } from "../../hooks/useJobs";
 
 interface JobFiltersProps {
   filters: FilterState;
   totalJobs: number;
   filteredCount: number;
-  onFilterChange: (key: keyof FilterState, value: string) => void;
+  onFilterChange: (key: string, value: string) => void;
 }
 
 export function JobFilters({
@@ -26,111 +24,77 @@ export function JobFilters({
   onFilterChange,
 }: JobFiltersProps) {
   return (
-    <Card className="mb-6">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Filter className="w-5 h-5" />
-          Filters & Search
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-4">
-          {/* Search */}
-          <div className="space-y-2">
-            <Label>Search Jobs</Label>
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search by title, description..."
-                value={filters.search}
-                onChange={(e) => onFilterChange("search", e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </div>
+    <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      {/* Header row */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <SlidersHorizontal className="w-4 h-4 text-blue-600" />
+          <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+            Filters
+          </span>
+        </div>
+        <span className="text-xs text-gray-500 dark:text-gray-400">
+          {filteredCount} of {totalJobs} {totalJobs === 1 ? "job" : "jobs"}
+        </span>
+      </div>
 
-          {/* Status Filter */}
-          <div className="space-y-2">
-            <Label>Job Status</Label>
-            <Select
-              value={
-                ["all", "active", "inactive"].includes(filters.status)
-                  ? filters.status
-                  : "all"
-              }
-              onValueChange={(value: "all" | "active" | "inactive") =>
-                onFilterChange("status", value)
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Jobs</SelectItem>
-                <SelectItem value="active">Active Only</SelectItem>
-                <SelectItem value="inactive">Inactive Only</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Location Filter */}
-          <div className="space-y-2">
-            <Label>Location</Label>
-            <Input
-              placeholder="Filter by location..."
-              value={filters.location}
-              onChange={(e) => onFilterChange("location", e.target.value)}
-            />
-          </div>
-
-          {/* Sort By */}
-          <div className="space-y-2">
-            <Label>Sort By</Label>
-            <Select
-              value={filters.sortBy}
-              onValueChange={(value: "date" | "title" | "applications") =>
-                onFilterChange("sortBy", value)
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="date">Posted Date</SelectItem>
-                <SelectItem value="title">Job Title</SelectItem>
-                <SelectItem value="applications">Applications Count</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Sort Order */}
-          <div className="space-y-2">
-            <Label>Sort Order</Label>
-            <Select
-              value={filters.sortOrder}
-              onValueChange={(value: "asc" | "desc") =>
-                onFilterChange("sortOrder", value)
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="desc">Descending</SelectItem>
-                <SelectItem value="asc">Ascending</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+      {/* Filter grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        {/* Search  spans 2 cols on large */}
+        <div className="relative sm:col-span-2 lg:col-span-2">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Input
+            placeholder="Search jobs..."
+            value={filters.search}
+            onChange={(e) => onFilterChange("search", e.target.value)}
+            className="h-9 pl-9 text-sm bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 dark:text-gray-200 dark:placeholder-gray-500"
+          />
         </div>
 
-        {/* Results Counter */}
-        <div className="mt-4 pt-4 border-t">
-          <p className="text-sm text-gray-600">
-            Showing {filteredCount} of {totalJobs} jobs
-            {filters.search && ` for "${filters.search}"`}
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+        {/* Status */}
+        <Select
+          value={filters.status}
+          onValueChange={(v) => onFilterChange("status", v)}
+        >
+          <SelectTrigger className="h-9 text-sm bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 dark:text-gray-200">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="inactive">Inactive</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {/* Sort By */}
+        <Select
+          value={filters.sortBy}
+          onValueChange={(v) => onFilterChange("sortBy", v)}
+        >
+          <SelectTrigger className="h-9 text-sm bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 dark:text-gray-200">
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="date">Date Posted</SelectItem>
+            <SelectItem value="title">Title</SelectItem>
+            <SelectItem value="applications">Applications</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {/* Sort Order */}
+        <Select
+          value={filters.sortOrder}
+          onValueChange={(v) => onFilterChange("sortOrder", v)}
+        >
+          <SelectTrigger className="h-9 text-sm bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 dark:text-gray-200">
+            <SelectValue placeholder="Order" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="desc">Newest First</SelectItem>
+            <SelectItem value="asc">Oldest First</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
   );
 }

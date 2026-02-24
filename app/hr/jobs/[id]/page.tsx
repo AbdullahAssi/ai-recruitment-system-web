@@ -45,7 +45,7 @@ export default function JobDetailPage() {
   if (!job) return <div className="p-8 text-center">Job not found</div>;
 
   return (
-    <div className="container mx-auto py-8 max-w-4xl space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
       <div>
         <Button variant="ghost" className="mb-4 pl-0" asChild>
           <Link href="/hr/jobs">
