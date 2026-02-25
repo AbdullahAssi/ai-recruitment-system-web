@@ -22,6 +22,7 @@ import {
 import { toast } from "sonner";
 import Link from "next/link";
 import { FeedbackDialog } from "@/components/hr/FeedbackDialog";
+import { LoadingState } from "@/components/reusables";
 
 interface MatchResult {
   candidate_id: string;
@@ -113,11 +114,7 @@ export default function JobMatchingPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-[50vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
+    return <LoadingState variant="page" message="Loading matching data..." />;
   }
 
   if (!job) {
@@ -125,7 +122,7 @@ export default function JobMatchingPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 max-w-6xl space-y-8">
+    <div className="max-w-7xl mx-auto space-y-8">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>

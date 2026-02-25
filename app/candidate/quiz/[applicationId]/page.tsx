@@ -10,7 +10,8 @@ import { QuizProgress } from "@/components/quiz/QuizProgress";
 import { QuizNavigation } from "@/components/quiz/QuizNavigation";
 import { QuizResults } from "@/components/quiz/QuizResults";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, AlertTriangle } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
+import { LoadingState } from "@/components/reusables";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -278,17 +279,10 @@ export default function QuizAssessmentPage() {
   // Loading state
   if (state === "loading") {
     return (
-      <div className="container mx-auto py-8">
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
-            <p className="text-lg font-medium">Generating your assessment...</p>
-            <p className="text-sm text-muted-foreground mt-2">
-              This may take a few moments
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <LoadingState
+        variant="page"
+        message="Generating your assessment... this may take a few moments"
+      />
     );
   }
 

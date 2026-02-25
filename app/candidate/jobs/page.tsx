@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { ServerPagination } from "@/components/reusables";
+import { ServerPagination, LoadingState } from "@/components/reusables";
 import {
   MapPin,
   Briefcase,
@@ -163,7 +163,7 @@ export default function CandidateJobsPage() {
   const jobs = useMemo(() => data?.jobs || [], [data?.jobs]);
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6 min-h-[calc(100vh-6rem)]">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Browse Jobs</h1>
         <p className="text-gray-600 mt-2">
@@ -184,125 +184,119 @@ export default function CandidateJobsPage() {
       </div>
 
       {/* Jobs List */}
-      {loading ? (
-        <div className="min-h-[50vh]   flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading Jobs...</p>
-          </div>
-        </div>
-      ) : jobs.length === 0 ? (
-        <Card>
-          <CardContent className="text-center py-12">
-            <Briefcase className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">No jobs found</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {jobs.map((job) => {
-              const companyName = job.companyInfo?.name || job.company || "";
-              const initials = companyName
-                ? companyName.slice(0, 2).toUpperCase()
-                : "?";
+      <div className="flex-1">
+        {loading ? (
+          <LoadingState variant="page" message="Loading jobs..." />
+        ) : jobs.length === 0 ? (
+          <Card>
+            <CardContent className="text-center py-12">
+              <Briefcase className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">No jobs found</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {jobs.map((job) => {
+                const companyName = job.companyInfo?.name || job.company || "";
+                const initials = companyName
+                  ? companyName.slice(0, 2).toUpperCase()
+                  : "?";
 
-              return (
-                <div
-                  key={job.id}
-                  className="group relative bg-white rounded-xl border border-gray-200 hover:shadow-lg transition-all duration-200 flex flex-col overflow-hidden min-h-[320px]"
-                >
-                  {/* Brand accent bar */}
-                  {/* <div className="h-1 w-full bg-gradient-to-r from-brand to-brand-light" /> */}
+                return (
+                  <div
+                    key={job.id}
+                    className="group relative bg-white rounded-xl border border-gray-200 hover:shadow-lg transition-all duration-200 flex flex-col overflow-hidden min-h-[320px]"
+                  >
+                    {/* Brand accent bar */}
+                    {/* <div className="h-1 w-full bg-gradient-to-r from-brand to-brand-light" /> */}
 
-                  <div className="p-5 flex-1 flex flex-col">
-                    {/* Card header: avatar + title + applied badge */}
-                    <div className="flex items-start gap-3 mb-2">
-                      {/* Company avatar */}
-                      <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-brand-50 border border-brand-200 flex items-center justify-center">
-                        <span className="text-sm font-bold text-brand">
-                          {initials}
-                        </span>
-                      </div>
+                    <div className="p-5 flex-1 flex flex-col">
+                      {/* Card header: avatar + title + applied badge */}
+                      <div className="flex items-start gap-3 mb-2">
+                        {/* Company avatar */}
+                        <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-brand-50 border border-brand-200 flex items-center justify-center">
+                          <span className="text-sm font-bold text-brand">
+                            {initials}
+                          </span>
+                        </div>
 
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2">
-                          <h3 className="font-semibold text-gray-900 text-base leading-snug line-clamp-2 group-hover:text-brand transition-colors">
-                            {job.title}
-                          </h3>
-                          {job.hasApplied && (
-                            <Badge className="bg-brand-50 text-brand border border-brand-200 shrink-0 text-[10px] px-1.5 py-0.5">
-                              <CheckCircle className="w-2.5 h-2.5 mr-1" />
-                              Applied
-                            </Badge>
-                          )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <h3 className="font-semibold text-gray-900 text-base leading-snug line-clamp-2 group-hover:text-brand transition-colors">
+                              {job.title}
+                            </h3>
+                            {job.hasApplied && (
+                              <Badge className="bg-brand-50 text-brand border border-brand-200 shrink-0 text-[10px] px-1.5 py-0.5">
+                                <CheckCircle className="w-2.5 h-2.5 mr-1" />
+                                Applied
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </div>
+
+                      {/* Meta chips — own row, always single line, never wraps into header */}
+                      <div className="flex gap-1.5 mb-3 overflow-hidden">
+                        {companyName && (
+                          <span className="inline-flex items-center gap-1 text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-full px-2.5 py-1 min-w-0 shrink">
+                            <Building2 className="w-3 h-3 shrink-0" />
+                            <span className="truncate">{companyName}</span>
+                          </span>
+                        )}
+                        {job.location && (
+                          <span className="inline-flex items-center gap-1 text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-full px-2.5 py-1 min-w-0 shrink">
+                            <MapPin className="w-3 h-3 shrink-0" />
+                            <span className="truncate">{job.location}</span>
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Description */}
+                      <p className="text-gray-500 text-sm leading-relaxed line-clamp-5 flex-1">
+                        {job.description}
+                      </p>
                     </div>
 
-                    {/* Meta chips — own row, always single line, never wraps into header */}
-                    <div className="flex gap-1.5 mb-3 overflow-hidden">
-                      {companyName && (
-                        <span className="inline-flex items-center gap-1 text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-full px-2.5 py-1 min-w-0 shrink">
-                          <Building2 className="w-3 h-3 shrink-0" />
-                          <span className="truncate">{companyName}</span>
-                        </span>
-                      )}
-                      {job.location && (
-                        <span className="inline-flex items-center gap-1 text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-full px-2.5 py-1 min-w-0 shrink">
-                          <MapPin className="w-3 h-3 shrink-0" />
-                          <span className="truncate">{job.location}</span>
-                        </span>
-                      )}
+                    {/* Footer */}
+                    <div className="px-5 py-3 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1 text-[11px] text-gray-400">
+                        <Calendar className="w-3 h-3" />
+                        {new Date(job.postedDate).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </span>
+                      <Link href={`/candidate/jobs/${job.id}`}>
+                        <Button
+                          size="sm"
+                          className="bg-brand hover:bg-brand-light text-brand-foreground text-xs px-3 h-7 gap-1"
+                        >
+                          View
+                          <ArrowRight className="w-3 h-3" />
+                        </Button>
+                      </Link>
                     </div>
-
-                    {/* Description */}
-                    <p className="text-gray-500 text-sm leading-relaxed line-clamp-5 flex-1">
-                      {job.description}
-                    </p>
                   </div>
+                );
+              })}
+            </div>
 
-                  {/* Footer */}
-                  <div className="px-5 py-3 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
-                    <span className="inline-flex items-center gap-1 text-[11px] text-gray-400">
-                      <Calendar className="w-3 h-3" />
-                      {new Date(job.postedDate).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </span>
-                    <Link href={`/candidate/jobs/${job.id}`}>
-                      <Button
-                        size="sm"
-                        className="bg-brand hover:bg-brand-light text-brand-foreground text-xs px-3 h-7 gap-1"
-                      >
-                        View
-                        <ArrowRight className="w-3 h-3" />
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Server-Side Pagination */}
-          {data?.pagination && data.pagination.totalPages > 1 && (
-            <Card className="mt-6">
-              <CardContent className="p-4">
-                <ServerPagination
-                  pagination={data.pagination}
-                  onPageChange={handlePageChange}
-                  onLimitChange={handleLimitChange}
-                  loading={loading}
-                  showFirstLast={true}
-                />
-              </CardContent>
-            </Card>
-          )}
-        </>
-      )}
+            {/* Server-Side Pagination */}
+            {data?.pagination && data.pagination.totalPages > 1 && (
+              <ServerPagination
+                className="mt-6"
+                pagination={data.pagination}
+                onPageChange={handlePageChange}
+                onLimitChange={handleLimitChange}
+                loading={loading}
+                showFirstLast={true}
+              />
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }

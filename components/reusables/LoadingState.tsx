@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 interface LoadingStateProps {
   message?: string;
   className?: string;
-  variant?: "card" | "inline" | "overlay";
+  variant?: "card" | "inline" | "overlay" | "page";
 }
 
 export function LoadingState({
@@ -19,6 +19,19 @@ export function LoadingState({
       <p className="text-gray-600 text-sm">{message}</p>
     </div>
   );
+
+  if (variant === "page") {
+    return (
+      <div
+        className={`flex items-center justify-center min-h-[calc(100vh-8rem)] ${className}`}
+      >
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-12 h-12 animate-spin text-brand" />
+          <p className="text-sm text-gray-500 dark:text-gray-400">{message}</p>
+        </div>
+      </div>
+    );
+  }
 
   if (variant === "inline") {
     return (

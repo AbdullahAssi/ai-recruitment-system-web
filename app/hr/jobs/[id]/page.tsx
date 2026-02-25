@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
-import { Loader2 } from "lucide-react";
+import { LoadingState } from "@/components/reusables";
 
 export default function JobDetailPage() {
   const params = useParams();
@@ -41,15 +41,11 @@ export default function JobDetailPage() {
   }, [jobId]);
 
   if (loading)
-    return (
-      <div className="flex justify-center p-8">
-        <Loader2 className="animate-spin" />
-      </div>
-    );
+    return <LoadingState variant="page" message="Loading job details..." />;
   if (!job) return <div className="p-8 text-center">Job not found</div>;
 
   return (
-    <div className="container mx-auto py-8 max-w-4xl space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
       <div>
         <Button variant="ghost" className="mb-4 pl-0" asChild>
           <Link href="/hr/jobs">

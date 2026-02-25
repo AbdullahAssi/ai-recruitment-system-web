@@ -1,5 +1,5 @@
 import React from "react";
-import { Users } from "lucide-react";
+import { FaUsers } from "react-icons/fa";
 
 interface EmptyCandidatesStateProps {
   hasFilter: boolean;
@@ -7,15 +7,17 @@ interface EmptyCandidatesStateProps {
 
 export function EmptyCandidatesState({ hasFilter }: EmptyCandidatesStateProps) {
   return (
-    <div className="text-center py-12">
-      <Users className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-      <h3 className="text-xl font-semibold text-gray-900 mb-2">
+    <div className="flex flex-col items-center justify-center py-20 rounded-xl border border-dashed border-border bg-card">
+      <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+        <FaUsers className="w-7 h-7 text-muted-foreground" />
+      </div>
+      <h3 className="text-lg font-semibold text-foreground mb-1">
         {hasFilter ? "No Candidates Found" : "No Candidates Yet"}
       </h3>
-      <p className="text-gray-600">
+      <p className="text-sm text-muted-foreground text-center max-w-sm">
         {hasFilter
-          ? "No candidates match your current filters. Try adjusting your search criteria."
-          : "No candidates have been added to the system yet. Candidates will appear here once they upload their resumes."}
+          ? "No candidates match your filters. Try adjusting your search criteria."
+          : "Candidates will appear here once they register and upload their resumes."}
       </p>
     </div>
   );

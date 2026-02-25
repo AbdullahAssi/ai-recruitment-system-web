@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -241,19 +240,12 @@ export default function HRJobsPage() {
   const hasJobs = useMemo(() => totalJobs > 0, [totalJobs]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen    flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading jobs...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState variant="page" message="Loading jobs..." />;
   }
 
   return (
-    <div className="min-h-screen  ">
-      <div className="max-w-7xl mx-auto py-8">
+    <div>
+      <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <JobsHeader
           loading={loading}
@@ -288,17 +280,13 @@ export default function HRJobsPage() {
 
             {/* Server-Side Pagination */}
             {data?.pagination && data.pagination.totalPages > 1 && (
-              <Card className="mt-6">
-                <CardContent className="p-4">
-                  <ServerPagination
-                    pagination={data.pagination}
-                    onPageChange={handlePageChange}
-                    onLimitChange={handleLimitChange}
-                    loading={loading}
-                    showFirstLast={true}
-                  />
-                </CardContent>
-              </Card>
+              <ServerPagination
+                pagination={data.pagination}
+                onPageChange={handlePageChange}
+                onLimitChange={handleLimitChange}
+                loading={loading}
+                showFirstLast={true}
+              />
             )}
           </>
         )}

@@ -3,7 +3,6 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -24,7 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { ServerPagination } from "../../../components/reusables";
+import { ServerPagination, LoadingState } from "../../../components/reusables";
 
 import {
   CandidatesHeader,
@@ -256,19 +255,12 @@ export default function CandidatesPage() {
 
   // Loading state
   if (loading) {
-    return (
-      <div className="min-h-screen  flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading candidates...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState variant="page" message="Loading candidates..." />;
   }
 
   return (
-    <div className="min-h-screen  p-4">
-      <div className="max-w-7xl mx-auto">
+    <div>
+      <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <CandidatesHeader
           totalCandidates={candidates.length}
@@ -315,17 +307,13 @@ export default function CandidatesPage() {
 
             {/* Server-Side Pagination */}
             {data?.pagination && data.pagination.totalPages > 1 && (
-              <Card className="mt-6">
-                <CardContent className="p-4">
-                  <ServerPagination
-                    pagination={data.pagination}
-                    onPageChange={handlePageChange}
-                    onLimitChange={handleLimitChange}
-                    loading={loading}
-                    showFirstLast={true}
-                  />
-                </CardContent>
-              </Card>
+              <ServerPagination
+                pagination={data.pagination}
+                onPageChange={handlePageChange}
+                onLimitChange={handleLimitChange}
+                loading={loading}
+                showFirstLast={true}
+              />
             )}
           </>
         )}
@@ -395,11 +383,11 @@ export default function CandidatesPage() {
                     </div>
                   )}
 
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h4 className="font-medium text-sm mb-2">
+                  <div className="bg-muted rounded-lg p-4">
+                    <h4 className="font-medium text-sm text-foreground mb-2">
                       Available Variables:
                     </h4>
-                    <div className="text-xs text-gray-600 space-y-1">
+                    <div className="text-xs text-muted-foreground space-y-1">
                       <p>
                         <code>{"{{candidateName}}"}</code> - Candidate's name
                       </p>
@@ -428,7 +416,7 @@ export default function CandidatesPage() {
                         (selectedTemplate === "custom" &&
                           (!customSubject || !customBody))
                       }
-                      className="bg-blue-600 hover:bg-blue-700"
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground"
                     >
                       {sendingEmail ? (
                         <>

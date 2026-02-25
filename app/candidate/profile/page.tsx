@@ -5,13 +5,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { PrimaryResumeUpload } from "@/components/reusables/PrimaryResumeUpload";
+import { LoadingState } from "@/components/reusables";
 import {
   CandidateProfileCard,
   ResumeListCard,
   EditProfileDialog,
   ProfileStatsCard,
 } from "@/components/candidates";
-import { FaUpload } from "react-icons/fa";
+import { FaUpload, FaLightbulb, FaTimes } from "react-icons/fa";
 
 interface Resume {
   id: string;
@@ -179,11 +180,7 @@ export default function CandidateProfilePage() {
   };
 
   if (!candidateData) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
-      </div>
-    );
+    return <LoadingState variant="page" message="Loading profile..." />;
   }
 
   const activeApplications = candidateData.applications.filter(
@@ -193,11 +190,31 @@ export default function CandidateProfilePage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
-        <p className="text-gray-600 mt-2">
-          Manage your professional profile and documents
-        </p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Profile</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
+            Manage your professional profile and documents
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700">
+            {new Date().toLocaleDateString("en-US", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </div>
+          <Button
+            onClick={() => setUploadDialogOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
+            aria-label="Upload new resume"
+          >
+            <FaUpload className="w-4 h-4 mr-2" />
+            Upload Resume
+          </Button>
+        </div>
       </div>
 
       {/* Statistics Cards */}
@@ -233,19 +250,38 @@ export default function CandidateProfilePage() {
         <div className="space-y-4">
           <Button
             onClick={() => setUploadDialogOpen(true)}
-            className="w-full bg-blue-600 hover:bg-blue-700"
+            className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
             aria-label="Upload new resume"
           >
             <FaUpload className="w-4 h-4 mr-2" />
             Upload New Resume
           </Button>
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <h3 className="font-semibold text-blue-900 mb-2">Tips</h3>
-            <ul className="text-sm text-blue-800 space-y-1">
-              <li>• Keep your profile updated</li>
-              <li>• Upload a recent resume</li>
-              <li>• Add social links for better visibility</li>
-              <li>• Write a clear and concise bio</li>
+
+          {/* Tips Card */}
+          <div className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/40">
+                <FaLightbulb className="text-blue-600 dark:text-blue-400" />
+              </div>
+              <h3 className="font-semibold text-blue-900 dark:text-blue-200">Profile Tips</h3>
+            </div>
+            <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-2">
+              <li className="flex items-start gap-2">
+                <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-blue-400 shrink-0" />
+                Keep your profile updated regularly
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-blue-400 shrink-0" />
+                Upload a recent, tailored resume
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-blue-400 shrink-0" />
+                Add LinkedIn & GitHub for visibility
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-blue-400 shrink-0" />
+                Write a clear and concise bio
+              </li>
             </ul>
           </div>
         </div>
@@ -265,35 +301,55 @@ export default function CandidateProfilePage() {
 
       {/* Upload Resume Dialog */}
       {uploadDialogOpen && user?.candidate?.id && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4">
-            <PrimaryResumeUpload
-              candidateId={user.candidate.id}
-              userName={candidateData.name}
-              userEmail={candidateData.email}
-              experience={candidateData.experience || 0}
-              primaryResume={
-                candidateData.resumes.find(
-                  (r) => r.id === candidateData.primaryResumeId,
-                ) || null
-              }
-              onUploadSuccess={() => {
-                fetchCandidateData();
-                refreshUser();
-                setUploadDialogOpen(false);
-                toast({
-                  title: "Success",
-                  description: "Resume uploaded successfully",
-                });
-              }}
-            />
-            <Button
-              variant="outline"
-              onClick={() => setUploadDialogOpen(false)}
-              className="w-full mt-4"
-            >
-              Cancel
-            </Button>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 max-w-2xl w-full mx-auto">
+            <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100 dark:border-gray-800">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                  <FaUpload className="text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Upload Resume</h2>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">PDF format recommended</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setUploadDialogOpen(false)}
+                className="flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                aria-label="Close dialog"
+              >
+                <FaTimes />
+              </button>
+            </div>
+            <div className="p-6">
+              <PrimaryResumeUpload
+                candidateId={user.candidate.id}
+                userName={candidateData.name}
+                userEmail={candidateData.email}
+                experience={candidateData.experience || 0}
+                primaryResume={
+                  candidateData.resumes.find(
+                    (r) => r.id === candidateData.primaryResumeId,
+                  ) || null
+                }
+                onUploadSuccess={() => {
+                  fetchCandidateData();
+                  refreshUser();
+                  setUploadDialogOpen(false);
+                  toast({
+                    title: "Success",
+                    description: "Resume uploaded successfully",
+                  });
+                }}
+              />
+              <Button
+                variant="outline"
+                onClick={() => setUploadDialogOpen(false)}
+                className="w-full mt-4 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+              >
+                Cancel
+              </Button>
+            </div>
           </div>
         </div>
       )}

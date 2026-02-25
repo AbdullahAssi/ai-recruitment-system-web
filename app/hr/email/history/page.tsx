@@ -34,6 +34,7 @@ import {
   FileText,
 } from "lucide-react";
 import { ServerPagination } from "@/components/reusables/ServerPagination";
+import { LoadingState } from "@/components/reusables";
 
 interface EmailHistoryItem {
   id: string;
@@ -173,7 +174,7 @@ export default function EmailHistoryPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
@@ -240,14 +241,11 @@ export default function EmailHistoryPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="flex flex-col items-center gap-3">
-                <div className="w-8 h-8 border-4 border-purple-200 dark:border-purple-900 border-t-purple-600 dark:border-t-purple-400 rounded-full animate-spin"></div>
-                <p className="text-sm text-gray-400 dark:text-gray-500">
-                  Loading email history...
-                </p>
-              </div>
-            </div>
+            <LoadingState
+              variant="inline"
+              message="Loading email history..."
+              className="justify-center py-12"
+            />
           ) : emailHistory.length === 0 ? (
             <div className="text-center py-12">
               <Mail className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-700 mb-4" />
