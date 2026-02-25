@@ -1,7 +1,5 @@
 import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Send } from "lucide-react";
@@ -20,40 +18,42 @@ export function BulkActionsToolbar({
   onOpenBulkEmail,
 }: BulkActionsToolbarProps) {
   return (
-    <Card className="mb-6 shadow-lg">
-      <CardContent className="py-4">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="select-all"
-                checked={
-                  selectedCount === totalCandidates && totalCandidates > 0
-                }
-                onCheckedChange={onSelectAll}
-              />
-              <Label htmlFor="select-all" className="text-sm text-gray-600">
-                Select All ({selectedCount} selected)
-              </Label>
-            </div>
-            {selectedCount > 0 && (
-              <Badge variant="secondary" className="px-3 py-1">
-                {selectedCount} candidates selected
-              </Badge>
-            )}
-          </div>
+    <div
+      className={`flex justify-between items-center rounded-xl border px-4 py-3 transition-colors ${
+        selectedCount > 0
+          ? "bg-primary/5 border-primary/30"
+          : "bg-card border-border"
+      }`}
+    >
+      <div className="flex items-center gap-3">
+        <Checkbox
+          id="select-all"
+          checked={selectedCount === totalCandidates && totalCandidates > 0}
+          onCheckedChange={onSelectAll}
+        />
+        <Label
+          htmlFor="select-all"
+          className="text-sm text-muted-foreground cursor-pointer"
+        >
+          Select all
+        </Label>
+        {selectedCount > 0 && (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-primary text-primary-foreground">
+            {selectedCount} selected
+          </span>
+        )}
+      </div>
 
-          {selectedCount > 0 && (
-            <Button
-              onClick={onOpenBulkEmail}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Send className="w-4 h-4 mr-2" />
-              Send Bulk Email
-            </Button>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+      {selectedCount > 0 && (
+        <Button
+          size="sm"
+          onClick={onOpenBulkEmail}
+          className="h-8 text-xs bg-primary hover:bg-primary/90 text-primary-foreground"
+        >
+          <Send className="w-3.5 h-3.5 mr-1.5" />
+          Send Bulk Email
+        </Button>
+      )}
+    </div>
   );
 }

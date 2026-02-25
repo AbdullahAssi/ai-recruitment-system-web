@@ -1,25 +1,13 @@
 import React from "react";
 import Link from "next/link";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  User,
-  Mail,
-  Calendar,
-  FileText,
-  Eye,
-  Download,
-  Briefcase,
-} from "lucide-react";
+import { Mail, Calendar, Download, Eye, FileText, Briefcase } from "lucide-react";
+import { HiSparkles } from "react-icons/hi";
+import { BsTrophy } from "react-icons/bs";
 import { format } from "date-fns";
 import { Candidate } from "../../hooks/useCandidates";
-import {
-  getStatusColor,
-  getScoreColor,
-  getExperienceLabel,
-} from "../../lib/candidateUtils";
+import { getStatusColor, getScoreColor, getExperienceLabel } from "../../lib/candidateUtils";
 import { formatStatusText } from "../../lib/applicationUtil";
 
 interface CandidateCardProps {
@@ -27,6 +15,15 @@ interface CandidateCardProps {
   isSelected: boolean;
   onSelect: (checked: boolean) => void;
   onDownloadResume?: (resumeId: string, fileName: string) => void;
+}
+
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase();
 }
 
 export function CandidateCard({
@@ -45,152 +42,141 @@ export function CandidateCard({
       : 0;
 
   return (
-    <Card
-      className={`shadow-lg hover:shadow-xl transition-all ${
-        isSelected ? "ring-2 ring-blue-500 bg-blue-50" : ""
+    <div
+      className={`rounded-xl border bg-card flex flex-col transition-all duration-200 hover:shadow-md ${
+        isSelected ? "ring-2 ring-primary border-primary" : "border-border"
       }`}
     >
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-start">
-          <div className="flex items-center gap-3">
+      {/*  Header  */}
+      <div className="p-4 flex items-start gap-3">
+        {/* Avatar */}
+        <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand/20 flex items-center justify-center flex-shrink-0">
+          <span className="text-xs font-bold text-brand">
+            {getInitials(candidate.name)}
+          </span>
+        </div>
+
+        {/* Name / meta */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="text-sm font-semibold text-foreground truncate leading-tight">
+              {candidate.name}
+            </h3>
             <Checkbox
               checked={isSelected}
               onCheckedChange={onSelect}
-              className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+              className="flex-shrink-0 mt-0.5"
+              aria-label={`Select ${candidate.name}`}
             />
-            {/* <div className="w-12 h-12 bg-gradient-to-br from-blue-300 to-blue-300 rounded-full flex items-center justify-center">
-              <User className="w-6 h-6 text-white" />
-            </div> */}
-            <div>
-              <h3 className="font-semibold text-gray-900">{candidate.name}</h3>
-              <p className="text-sm text-gray-600 flex items-center gap-1">
-                <Mail className="w-3 h-3" />
-                {candidate.email}
+          </div>
+          <div className="mt-1 space-y-0.5 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1.5 truncate">
+              <Mail className="w-3 h-3 flex-shrink-0" />
+              <span className="truncate">{candidate.email}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Briefcase className="w-3 h-3 flex-shrink-0" />
+              <span>{getExperienceLabel(candidate.experience)}</span>
+              <span className="mx-1 text-border"></span>
+              <Calendar className="w-3 h-3 flex-shrink-0" />
+              <span>Joined {format(new Date(candidate.createdAt), "MMM yyyy")}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/*  Score / status badges  */}
+      <div className="px-4 pb-3 flex flex-wrap gap-1.5">
+        {averageScore > 0 && (
+          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border ${getScoreColor(averageScore)}`}>
+            <HiSparkles className="w-3 h-3" />
+            {averageScore}% avg
+          </span>
+        )}
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border bg-muted text-muted-foreground border-border">
+          <FileText className="w-3 h-3" />
+          {candidate.resumes.length} Resume{candidate.resumes.length !== 1 ? "s" : ""}
+        </span>
+        {candidate.applications.length > 0 && (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border bg-brand-50 text-brand border-brand-200 dark:bg-brand/10 dark:border-brand/30">
+            <BsTrophy className="w-3 h-3" />
+            {candidate.applications.length} App{candidate.applications.length !== 1 ? "s" : ""}
+          </span>
+        )}
+      </div>
+
+      {/*  Latest resume  */}
+      {latestResume && (
+        <div className="px-4 pb-3">
+          <div className="rounded-lg border border-border bg-muted/50 p-2.5 flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-foreground truncate">{latestResume.fileName}</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                {format(new Date(latestResume.uploadDate), "MMM dd, yyyy")}
               </p>
             </div>
-          </div>
-          {averageScore > 0 && (
-            <div
-              className={`px-2 py-1 rounded text-sm font-semibold ${getScoreColor(
-                averageScore,
-              )}`}
-            >
-              {averageScore}% avg
-            </div>
-          )}
-        </div>
-      </CardHeader>
-
-      <CardContent className="space-y-4">
-        {/* Candidate Info */}
-        <div className="flex items-center justify-between text-sm text-gray-600">
-          <div className="flex items-center gap-1">
-            <Briefcase className="w-3 h-3" />
-            {getExperienceLabel(candidate.experience)}
-          </div>
-          <div className="flex items-center gap-1">
-            <Calendar className="w-3 h-3" />
-            Joined {format(new Date(candidate.createdAt), "MMM yyyy")}
+            {onDownloadResume && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onDownloadResume(latestResume.id, latestResume.fileName)}
+                className="h-7 text-xs flex-shrink-0 border-border text-foreground hover:bg-muted"
+              >
+                <Download className="w-3 h-3 mr-1" />
+                Download
+              </Button>
+            )}
           </div>
         </div>
+      )}
 
-        {/* Resume Info */}
-        {latestResume && (
-          <div className="bg-gray-50 p-3 rounded-lg">
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="text-sm font-medium text-gray-900">
-                  Latest Resume
+      {/*  Applications list  */}
+      {candidate.applications.length > 0 && (
+        <div className="px-4 pb-3">
+          <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-1.5">
+            Applications
+          </p>
+          <div className="space-y-1.5">
+            {candidate.applications.slice(0, 2).map((application) => (
+              <div
+                key={application.id}
+                className="flex justify-between items-center px-2.5 py-1.5 rounded-lg bg-muted/50 border border-border"
+              >
+                <p className="text-xs font-medium text-foreground truncate flex-1 mr-2">
+                  {application.job.title}
                 </p>
-                <p className="text-xs text-gray-600">{latestResume.fileName}</p>
-                <p className="text-xs text-gray-500">
-                  {format(new Date(latestResume.uploadDate), "MMM dd, yyyy")}
-                </p>
-              </div>
-              {onDownloadResume && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() =>
-                    onDownloadResume(latestResume.id, latestResume.fileName)
-                  }
-                  className="text-xs"
-                >
-                  <Download className="w-3 h-3 mr-1" />
-                  Download
-                </Button>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Applications Summary */}
-        <div>
-          <div className="flex justify-between items-center mb-2">
-            <h4 className="text-sm font-medium text-gray-900">
-              Applications ({candidate.applications.length})
-            </h4>
-          </div>
-          {candidate.applications.length > 0 ? (
-            <div className="space-y-2 max-h-32 overflow-y-auto">
-              {candidate.applications.slice(0, 2).map((application) => (
-                <div
-                  key={application.id}
-                  className="flex justify-between items-center p-2 bg-gray-50 rounded"
-                >
-                  <div>
-                    <p className="text-xs font-medium text-gray-900">
-                      {application.job.title}
-                    </p>
-                    <p className="text-xs text-gray-600">
-                      {format(new Date(application.appliedAt), "MMM dd")}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      className={getStatusColor(application.status)}
-                      variant="outline"
-                    >
-                      {formatStatusText(application.status)}
-                    </Badge>
-                    <span
-                      className={`text-xs font-semibold ${getScoreColor(
-                        application.score,
-                      )}`}
-                    >
-                      {application.score}%
-                    </span>
-                  </div>
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${getStatusColor(application.status)}`}>
+                    {formatStatusText(application.status)}
+                  </span>
+                  <span className={`text-[10px] font-bold ${getScoreColor(application.score)}`}>
+                    {application.score}%
+                  </span>
                 </div>
-              ))}
-              {candidate.applications.length > 2 && (
-                <p className="text-xs text-gray-500 text-center">
-                  +{candidate.applications.length - 2} more applications
-                </p>
-              )}
-            </div>
-          ) : (
-            <p className="text-gray-500 text-sm text-center py-2">
-              No applications yet
-            </p>
-          )}
+              </div>
+            ))}
+            {candidate.applications.length > 2 && (
+              <p className="text-[10px] text-muted-foreground text-center pt-0.5">
+                +{candidate.applications.length - 2} more
+              </p>
+            )}
+          </div>
         </div>
+      )}
 
-        {/* Actions */}
-        <div className="flex gap-2 pt-2 border-t">
-          <Link href={`/hr/candidates/${candidate.id}`} className="flex-1">
-            <Button variant="outline" size="sm" className="w-full text-xs">
-              <Eye className="w-3 h-3 mr-1" />
-              View Profile
-            </Button>
-          </Link>
-          <Button variant="outline" size="sm" className="text-xs">
-            <FileText className="w-3 h-3 mr-1" />
-            {candidate.resumes.length} Resume
-            {candidate.resumes.length !== 1 ? "s" : ""}
+      {/*  Footer actions  */}
+      <div className="mt-auto border-t border-border p-3">
+        <Link href={`/hr/candidates/${candidate.id}`} className="block">
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full h-8 text-xs border-border text-foreground hover:bg-muted"
+          >
+            <Eye className="w-3.5 h-3.5 mr-1.5" />
+            View Profile
           </Button>
-        </div>
-      </CardContent>
-    </Card>
+        </Link>
+      </div>
+    </div>
   );
 }

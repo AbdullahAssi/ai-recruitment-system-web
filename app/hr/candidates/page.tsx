@@ -3,7 +3,6 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -308,17 +307,13 @@ export default function CandidatesPage() {
 
             {/* Server-Side Pagination */}
             {data?.pagination && data.pagination.totalPages > 1 && (
-              <Card className="mt-6">
-                <CardContent className="p-4">
-                  <ServerPagination
-                    pagination={data.pagination}
-                    onPageChange={handlePageChange}
-                    onLimitChange={handleLimitChange}
-                    loading={loading}
-                    showFirstLast={true}
-                  />
-                </CardContent>
-              </Card>
+              <ServerPagination
+                pagination={data.pagination}
+                onPageChange={handlePageChange}
+                onLimitChange={handleLimitChange}
+                loading={loading}
+                showFirstLast={true}
+              />
             )}
           </>
         )}
@@ -388,11 +383,11 @@ export default function CandidatesPage() {
                     </div>
                   )}
 
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h4 className="font-medium text-sm mb-2">
+                  <div className="bg-muted rounded-lg p-4">
+                    <h4 className="font-medium text-sm text-foreground mb-2">
                       Available Variables:
                     </h4>
-                    <div className="text-xs text-gray-600 space-y-1">
+                    <div className="text-xs text-muted-foreground space-y-1">
                       <p>
                         <code>{"{{candidateName}}"}</code> - Candidate's name
                       </p>
@@ -421,7 +416,7 @@ export default function CandidatesPage() {
                         (selectedTemplate === "custom" &&
                           (!customSubject || !customBody))
                       }
-                      className="bg-blue-600 hover:bg-blue-700"
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground"
                     >
                       {sendingEmail ? (
                         <>
