@@ -11,6 +11,8 @@ export interface User {
   phone?: string;
   isActive: boolean;
   isVerified: boolean;
+  /** Avatar stored at 256×256 px WebP, served from /uploads/avatars/{userId}.webp */
+  avatarUrl?: string | null;
   candidate?: {
     id: string;
     experience?: number;
@@ -87,6 +89,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (!response.ok) {
         const error = await response.json();
+        // If unverified, redirect to the verify-email page
+        if (error.requiresVerification && error.email) {
+          window.location.href = `/auth/verify-email?email=${encodeURIComponent(error.email)}`;
+        }
         throw new Error(error.error || "Login failed");
       }
 
@@ -110,7 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
-        credentials: "include", // Important: include cookies
+        credentials: "include",
       });
 
       if (!response.ok) {
@@ -120,13 +126,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const result = await response.json();
 
-      // Determine redirect path
+      // Registration successful – redirect to email verification page
+      if (result.requiresVerification) {
+        const verifyUrl = `/auth/verify-email?email=${encodeURIComponent(result.email)}`;
+        window.location.replace(verifyUrl);
+        return;
+      }
+
+      // Fallback: if somehow already verified, redirect based on role
       const targetPath =
-        result.user.role === "HR" || result.user.role === "ADMIN"
+        result.user?.role === "HR" || result.user?.role === "ADMIN"
           ? "/hr"
           : "/candidate";
-
-      // Force a full page navigation with replace
       window.location.replace(targetPath);
     } catch (error) {
       throw error;

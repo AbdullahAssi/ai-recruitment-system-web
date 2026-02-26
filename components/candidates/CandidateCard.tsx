@@ -2,12 +2,23 @@ import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Mail, Calendar, Download, Eye, FileText, Briefcase } from "lucide-react";
+import {
+  Mail,
+  Calendar,
+  Download,
+  Eye,
+  FileText,
+  Briefcase,
+} from "lucide-react";
 import { HiSparkles } from "react-icons/hi";
 import { BsTrophy } from "react-icons/bs";
 import { format } from "date-fns";
 import { Candidate } from "../../hooks/useCandidates";
-import { getStatusColor, getScoreColor, getExperienceLabel } from "../../lib/candidateUtils";
+import {
+  getStatusColor,
+  getScoreColor,
+  getExperienceLabel,
+} from "../../lib/candidateUtils";
 import { formatStatusText } from "../../lib/applicationUtil";
 
 interface CandidateCardProps {
@@ -50,11 +61,19 @@ export function CandidateCard({
       {/*  Header  */}
       <div className="p-4 flex items-start gap-3">
         {/* Avatar */}
-        <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand/20 flex items-center justify-center flex-shrink-0">
-          <span className="text-xs font-bold text-brand">
-            {getInitials(candidate.name)}
-          </span>
-        </div>
+        {candidate.user?.avatarUrl ? (
+          <img
+            src={candidate.user.avatarUrl}
+            alt={candidate.name}
+            className="w-10 h-10 rounded-xl object-cover flex-shrink-0 border border-border"
+          />
+        ) : (
+          <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand/20 flex items-center justify-center flex-shrink-0">
+            <span className="text-xs font-bold text-brand">
+              {getInitials(candidate.name)}
+            </span>
+          </div>
+        )}
 
         {/* Name / meta */}
         <div className="flex-1 min-w-0">
@@ -79,7 +98,9 @@ export function CandidateCard({
               <span>{getExperienceLabel(candidate.experience)}</span>
               <span className="mx-1 text-border"></span>
               <Calendar className="w-3 h-3 flex-shrink-0" />
-              <span>Joined {format(new Date(candidate.createdAt), "MMM yyyy")}</span>
+              <span>
+                Joined {format(new Date(candidate.createdAt), "MMM yyyy")}
+              </span>
             </div>
           </div>
         </div>
@@ -88,19 +109,23 @@ export function CandidateCard({
       {/*  Score / status badges  */}
       <div className="px-4 pb-3 flex flex-wrap gap-1.5">
         {averageScore > 0 && (
-          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border ${getScoreColor(averageScore)}`}>
+          <span
+            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border ${getScoreColor(averageScore)}`}
+          >
             <HiSparkles className="w-3 h-3" />
             {averageScore}% avg
           </span>
         )}
         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border bg-muted text-muted-foreground border-border">
           <FileText className="w-3 h-3" />
-          {candidate.resumes.length} Resume{candidate.resumes.length !== 1 ? "s" : ""}
+          {candidate.resumes.length} Resume
+          {candidate.resumes.length !== 1 ? "s" : ""}
         </span>
         {candidate.applications.length > 0 && (
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border bg-brand-50 text-brand border-brand-200 dark:bg-brand/10 dark:border-brand/30">
             <BsTrophy className="w-3 h-3" />
-            {candidate.applications.length} App{candidate.applications.length !== 1 ? "s" : ""}
+            {candidate.applications.length} App
+            {candidate.applications.length !== 1 ? "s" : ""}
           </span>
         )}
       </div>
@@ -110,7 +135,9 @@ export function CandidateCard({
         <div className="px-4 pb-3">
           <div className="rounded-lg border border-border bg-muted/50 p-2.5 flex items-center justify-between gap-2">
             <div className="min-w-0">
-              <p className="text-xs font-medium text-foreground truncate">{latestResume.fileName}</p>
+              <p className="text-xs font-medium text-foreground truncate">
+                {latestResume.fileName}
+              </p>
               <p className="text-[10px] text-muted-foreground mt-0.5">
                 {format(new Date(latestResume.uploadDate), "MMM dd, yyyy")}
               </p>
@@ -119,7 +146,9 @@ export function CandidateCard({
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => onDownloadResume(latestResume.id, latestResume.fileName)}
+                onClick={() =>
+                  onDownloadResume(latestResume.id, latestResume.fileName)
+                }
                 className="h-7 text-xs flex-shrink-0 border-border text-foreground hover:bg-muted"
               >
                 <Download className="w-3 h-3 mr-1" />
@@ -146,10 +175,14 @@ export function CandidateCard({
                   {application.job.title}
                 </p>
                 <div className="flex items-center gap-1.5 flex-shrink-0">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${getStatusColor(application.status)}`}>
+                  <span
+                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${getStatusColor(application.status)}`}
+                  >
                     {formatStatusText(application.status)}
                   </span>
-                  <span className={`text-[10px] font-bold ${getScoreColor(application.score)}`}>
+                  <span
+                    className={`text-[10px] font-bold ${getScoreColor(application.score)}`}
+                  >
                     {application.score}%
                   </span>
                 </div>

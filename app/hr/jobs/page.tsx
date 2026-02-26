@@ -249,7 +249,7 @@ export default function HRJobsPage() {
         {/* Header */}
         <JobsHeader
           loading={loading}
-          onRefresh={fetchJobs}
+  
           onCreateNew={handleOpenCreate}
         />
 

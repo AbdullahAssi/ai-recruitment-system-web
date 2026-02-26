@@ -18,10 +18,12 @@ model User {
   name              String
   phone             String?
   isActive          Boolean   @default(true)
-  isVerified        Boolean   @default(false)
-  verificationToken String?
-  resetToken        String?
-  resetTokenExpiry  DateTime?
+  avatarUrl         String? // Relative path: /uploads/avatars/{userId}.webp
+  isVerified              Boolean   @default(false)
+  verificationToken       String?
+  verificationTokenExpiry DateTime?
+  resetToken              String?
+  resetTokenExpiry        DateTime?
   lastLogin         DateTime?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt

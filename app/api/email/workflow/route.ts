@@ -86,6 +86,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Fallback company name from HR's company when job record lacks company info
+    let hrCompanyName: string | null = null;
+    if (
+      hrUser.hrProfile?.companyId &&
+      !(application.job.companyInfo?.name || application.job.company)
+    ) {
+      const company = await prisma.company.findUnique({
+        where: { id: hrUser.hrProfile.companyId },
+        select: { name: true },
+      });
+      hrCompanyName = company?.name || null;
+    }
+
     // Update application status
     await prisma.application.update({
       where: { id: applicationId },
@@ -136,6 +149,7 @@ export async function POST(request: NextRequest) {
       companyName:
         application.job.companyInfo?.name ||
         application.job.company ||
+        hrCompanyName ||
         "Your Company",
       applicationStatus: newStatus.toLowerCase().replace("_", " "),
       hrName: hrUser.name || "Hiring Team",

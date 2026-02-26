@@ -102,6 +102,11 @@ export async function GET(request: NextRequest) {
             },
           },
         },
+        user: {
+          select: {
+            avatarUrl: true,
+          },
+        },
       },
     });
 

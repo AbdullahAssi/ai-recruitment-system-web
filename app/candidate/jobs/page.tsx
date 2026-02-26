@@ -214,12 +214,20 @@ export default function CandidateJobsPage() {
                     <div className="p-5 flex-1 flex flex-col">
                       {/* Card header: avatar + title + applied badge */}
                       <div className="flex items-start gap-3 mb-2">
-                        {/* Company avatar */}
-                        <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-brand-50 border border-brand-200 flex items-center justify-center">
-                          <span className="text-sm font-bold text-brand">
-                            {initials}
-                          </span>
-                        </div>
+                        {/* Company avatar / logo */}
+                        {job.companyInfo?.logo ? (
+                          <img
+                            src={job.companyInfo.logo}
+                            alt={companyName}
+                            className="flex-shrink-0 w-10 h-10 rounded-lg object-contain border border-gray-100 bg-white p-0.5"
+                          />
+                        ) : (
+                          <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-brand-50 border border-brand-200 flex items-center justify-center">
+                            <span className="text-sm font-bold text-brand">
+                              {initials}
+                            </span>
+                          </div>
+                        )}
 
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2">

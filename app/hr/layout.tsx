@@ -15,6 +15,7 @@ import {
   HiOutlineChevronRight,
   HiOutlineInbox,
   HiOutlineOfficeBuilding,
+  HiOutlineUserCircle,
 } from "react-icons/hi";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -27,8 +28,9 @@ const navigation = [
   { name: "Candidates", href: "/hr/candidates", icon: HiOutlineUsers },
   { name: "Email Templates", href: "/hr/email/templates", icon: HiOutlineMail },
   { name: "Email History", href: "/hr/email/history", icon: HiOutlineInbox },
-  { name: "Analytics", href: "/hr/analytics", icon: HiOutlineChartBar },
+  // { name: "Analytics", href: "/hr/analytics", icon: HiOutlineChartBar },
   { name: "Company", href: "/hr/company", icon: HiOutlineOfficeBuilding },
+  { name: "My Profile", href: "/hr/profile", icon: HiOutlineUserCircle },
 ];
 
 export default function HRLayout({ children }: { children: React.ReactNode }) {
@@ -167,11 +169,19 @@ export default function HRLayout({ children }: { children: React.ReactNode }) {
             {!sidebarCollapsed ? (
               <>
                 <div className="flex items-center mb-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                    <span className="text-blue-600 font-semibold text-sm">
-                      {user?.name?.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
+                  {user?.avatarUrl ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt={user.name}
+                      className="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-gray-200"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                      <span className="text-blue-600 font-semibold text-sm">
+                        {user?.name?.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
                   <div className="ml-3 flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">
                       {user?.name}
@@ -193,14 +203,23 @@ export default function HRLayout({ children }: { children: React.ReactNode }) {
               </>
             ) : (
               <div className="flex flex-col items-center gap-3">
-                <div
-                  className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center"
-                  title={user?.name}
-                >
-                  <span className="text-blue-600 font-semibold text-sm">
-                    {user?.name?.charAt(0).toUpperCase()}
-                  </span>
-                </div>
+                {user?.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt={user.name}
+                    className="w-10 h-10 rounded-full object-cover border border-gray-200"
+                    title={user.name}
+                  />
+                ) : (
+                  <div
+                    className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center"
+                    title={user?.name}
+                  >
+                    <span className="text-blue-600 font-semibold text-sm">
+                      {user?.name?.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
                 <Button
                   onClick={logout}
                   variant="outline"

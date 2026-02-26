@@ -5,11 +5,10 @@ import { FaBriefcase } from "react-icons/fa";
 
 interface JobsHeaderProps {
   loading: boolean;
-  onRefresh: () => void;
   onCreateNew: () => void;
 }
 
-export function JobsHeader({ loading, onRefresh, onCreateNew }: JobsHeaderProps) {
+export function JobsHeader({ loading, onCreateNew }: JobsHeaderProps) {
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "short",
     month: "short",
@@ -37,7 +36,7 @@ export function JobsHeader({ loading, onRefresh, onCreateNew }: JobsHeaderProps)
         <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-full">
           {today}
         </span>
-        <Button
+        {/* <Button
           variant="outline"
           size="sm"
           onClick={onRefresh}
@@ -46,7 +45,7 @@ export function JobsHeader({ loading, onRefresh, onCreateNew }: JobsHeaderProps)
         >
           <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
           Refresh
-        </Button>
+        </Button> */}
         <Button
           onClick={onCreateNew}
           className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm"

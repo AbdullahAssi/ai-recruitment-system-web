@@ -1,18 +1,16 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
 import { FaUsers } from "react-icons/fa";
 
 interface CandidatesHeaderProps {
   totalCandidates: number;
   loading: boolean;
-  onRefresh: () => void;
 }
 
 export function CandidatesHeader({
   totalCandidates,
   loading,
-  onRefresh,
+
 }: CandidatesHeaderProps) {
   return (
     <div className="flex justify-between items-center">
@@ -27,7 +25,7 @@ export function CandidatesHeader({
           </p>
         </div>
       </div>
-      <Button
+      {/* <Button
         onClick={onRefresh}
         variant="outline"
         size="sm"
@@ -38,7 +36,7 @@ export function CandidatesHeader({
           className={`w-3.5 h-3.5 mr-2 ${loading ? "animate-spin" : ""}`}
         />
         Refresh
-      </Button>
+      </Button> */}
     </div>
   );
 }

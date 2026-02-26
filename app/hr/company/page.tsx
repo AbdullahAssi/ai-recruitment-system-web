@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { CompanyForm } from "@/components/reusables/CompanyForm";
 import { LoadingState } from "@/components/reusables";
+import { LogoUpload } from "@/components/reusables/LogoUpload";
 import { Button } from "@/components/ui/button";
 import {
   Building2,
@@ -78,6 +79,14 @@ export default function CompanyPage() {
   const handleUpdateSuccess = (updatedCompany: any) => {
     setCompany(updatedCompany);
     setEditing(false);
+  };
+
+  const handleLogoUpdate = (newUrl: string) => {
+    setCompany((prev: any) => ({ ...prev, logo: newUrl }));
+  };
+
+  const handleLogoDelete = () => {
+    setCompany((prev: any) => ({ ...prev, logo: null }));
   };
 
   if (loading) {
@@ -183,17 +192,14 @@ export default function CompanyPage() {
             <div className="px-6 pb-6">
               {/* Logo + name row */}
               <div className="flex items-end justify-between -mt-8 mb-4">
-                <div className="w-16 h-16 rounded-xl border-4 border-card bg-white dark:bg-gray-900 flex items-center justify-center shadow-sm overflow-hidden flex-shrink-0">
-                  {company.logo ? (
-                    <img
-                      src={company.logo}
-                      alt={company.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <Building2 className="w-8 h-8 text-primary" />
-                  )}
-                </div>
+                <LogoUpload
+                  companyId={company.id}
+                  currentLogoUrl={company.logo}
+                  companyName={company.name}
+                  onUploadSuccess={handleLogoUpdate}
+                  onDeleteSuccess={handleLogoDelete}
+                  sizeClass="w-16 h-16"
+                />
                 <div className="flex items-center gap-2 mb-1">
                   {company.industry && (
                     <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800">

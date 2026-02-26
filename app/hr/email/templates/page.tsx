@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { useEmailTemplates } from "@/hooks/useEmailTemplates";
+import { LoadingState } from "@/components/reusables";
 import {
   EmailTemplatesHeader,
   EmailTemplateCard,
@@ -51,24 +51,7 @@ export default function EmailTemplatesPage() {
   } = useEmailTemplates();
 
   if (loading) {
-    return (
-      <div className="space-y-6 max-w-7xl mx-auto px-4 py-8 min-h-screen">
-        <div className="flex  justify-between items-center">
-          <h1 className="text-3xl font-bold">Email Templates</h1>
-        </div>
-        <div className="grid lg:grid-cols-2 gap-6">
-          {[...Array(4)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="h-4 bg-gray-200 rounded mb-4"></div>
-                <div className="h-3 bg-gray-200 rounded mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded"></div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
+    return <LoadingState variant="page" message="Loading email templates..." />;
   }
 
   return (
