@@ -4,20 +4,19 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { CompanyForm } from "@/components/reusables/CompanyForm";
+import { LoadingState } from "@/components/reusables";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import { Building2, ArrowRight } from "lucide-react";
+  Building2,
+  CheckCircle2,
+  ChevronRight,
+  Rocket,
+  Info,
+} from "lucide-react";
 
 export default function CompanySetupPage() {
   const router = useRouter();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [hrProfile, setHrProfile] = useState<any>(null);
 
   useEffect(() => {
     if (!user) {
@@ -38,13 +37,8 @@ export default function CompanySetupPage() {
       const response = await fetch(`/api/hr/profile/${user?.id}`);
       const data = await response.json();
 
-      if (data.success && data.profile) {
-        setHrProfile(data.profile);
-
-        // If company already exists, redirect to company page
-        if (data.profile.companyId) {
-          router.push("/hr/company");
-        }
+      if (data.success && data.profile?.companyId) {
+        router.push("/hr/company");
       }
     } catch (error) {
       console.error("Failed to fetch HR profile:", error);
@@ -54,18 +48,14 @@ export default function CompanySetupPage() {
   };
 
   const handleSuccess = async (company: any) => {
-    // Link the HR profile to the company
     try {
       const response = await fetch(`/api/hr/profile/${user?.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ companyId: company.id }),
       });
-
       const data = await response.json();
-
       if (data.success) {
-        // Redirect to dashboard after successful setup
         router.push("/hr");
       }
     } catch (error) {
@@ -75,110 +65,114 @@ export default function CompanySetupPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
+      <LoadingState variant="page" message="Setting up your workspace..." />
     );
   }
 
+  const steps = [
+    {
+      label: "Account Created",
+      sub: "HR account is ready",
+      done: true,
+      active: false,
+    },
+    { label: "Company Setup", sub: "In progress", done: false, active: true },
+    {
+      label: "Start Hiring",
+      sub: "Post your first job",
+      done: false,
+      active: false,
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-4">
-            <div className="p-3 bg-primary/10 rounded-full">
-              <Building2 className="w-8 h-8 text-primary" />
-            </div>
+    <div className="min-h-screen bg-background">
+      {/* Top banner */}
+ 
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+        {/* Page heading */}
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-xl bg-brand flex items-center justify-center flex-shrink-0">
+            <Building2 className="w-6 h-6 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Set Up Your Company Profile
-          </h1>
-          <p className="mt-2 text-gray-600 max-w-2xl mx-auto">
-            Complete your company profile to start posting jobs and connecting
-            with talented candidates.
-          </p>
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">
+              Set Up Your Company Profile
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Complete your company profile to start posting jobs and connecting
+              with talented candidates.
+            </p>
+          </div>
         </div>
 
-        {/* Progress Indicator */}
-        <Card className="mb-6">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-500 text-white">
-                  ✓
+        {/* Progress stepper */}
+        <div className="rounded-xl border border-border bg-card px-6 py-5">
+          <div className="flex items-center gap-2 sm:gap-0">
+            {steps.map((step, idx) => (
+              <div
+                key={step.label}
+                className="flex items-center flex-1 min-w-0"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  {step.done ? (
+                    <CheckCircle2 className="w-8 h-8 text-green-500 flex-shrink-0" />
+                  ) : (
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0 ${
+                        step.active
+                          ? "bg-brand text-white ring-4 ring-brand/20"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {idx + 1}
+                    </div>
+                  )}
+                  <div className="min-w-0 hidden sm:block">
+                    <p
+                      className={`text-sm font-medium truncate ${step.active ? "text-brand" : step.done ? "text-foreground" : "text-muted-foreground"}`}
+                    >
+                      {step.label}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {step.sub}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-medium text-sm">Account Created</p>
-                  <p className="text-xs text-gray-500">HR account is ready</p>
-                </div>
+                {idx < steps.length - 1 && (
+                  <ChevronRight className="w-4 h-4 text-muted-foreground mx-2 flex-shrink-0" />
+                )}
               </div>
+            ))}
+          </div>
+        </div>
 
-              <ArrowRight className="w-5 h-5 text-gray-400" />
-
-              <div className="flex items-center gap-4">
-                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white">
-                  2
-                </div>
-                <div>
-                  <p className="font-medium text-sm">Company Setup</p>
-                  <p className="text-xs text-gray-500">In progress</p>
-                </div>
-              </div>
-
-              <ArrowRight className="w-5 h-5 text-gray-400" />
-
-              <div className="flex items-center gap-4">
-                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 text-gray-600">
-                  3
-                </div>
-                <div>
-                  <p className="font-medium text-sm">Start Hiring</p>
-                  <p className="text-xs text-gray-500">Post your first job</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Company Form */}
+        {/* Company form */}
         <CompanyForm onSuccess={handleSuccess} mode="create" />
 
-        {/* Help Text */}
-        <Card className="mt-6 bg-blue-50 border-blue-200">
-          <CardHeader>
-            <CardTitle className="text-sm text-blue-900">
-              Why do we need this information?
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="text-sm text-blue-800 space-y-2">
-              <li className="flex items-start">
-                <span className="mr-2">•</span>
-                <span>
-                  Your company profile helps candidates learn more about your
-                  organization
-                </span>
+        {/* Info tip */}
+        <div className="rounded-xl border border-brand/20 bg-brand/5 p-5 flex gap-3">
+          <Info className="w-4 h-4 text-brand flex-shrink-0 mt-0.5" />
+          <div className="space-y-1.5">
+            <p className="text-sm font-semibold text-brand">
+              Why do we need this?
+            </p>
+            <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+              <li>
+                Your company profile helps candidates learn more about your
+                organization
               </li>
-              <li className="flex items-start">
-                <span className="mr-2">•</span>
-                <span>
-                  Detailed information increases trust and attracts better
-                  candidates
-                </span>
+              <li>
+                Detailed information increases trust and attracts better
+                candidates
               </li>
-              <li className="flex items-start">
-                <span className="mr-2">•</span>
-                <span>
-                  You can update this information anytime from your dashboard
-                </span>
+              <li>
+                You can update this information anytime from your dashboard
               </li>
             </ul>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

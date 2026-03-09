@@ -1,14 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth } from "@/lib/apiAuth";
+import { auth } from "@/lib/auth";
 
 // Force dynamic rendering for this API route
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   // Only HR users and admins may list candidates.
-  const { user, error } = await requireAuth(["HR", "ADMIN"]);
-  if (error) return error;
+  const session = await auth(request);
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const { user } = session;
+  if (user.role !== "HR" && user.role !== "ADMIN") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   try {
     const { searchParams } = new URL(request.url);
@@ -17,9 +23,34 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search") || "";
     const experienceMin = searchParams.get("experienceMin");
     const experienceMax = searchParams.get("experienceMax");
-    const companyId = searchParams.get("companyId"); // Filter by company for HR users
+    // companyId from query is only honoured for ADMIN; HR always uses their own
+    const queryCompanyId = searchParams.get("companyId");
 
     const skip = (page - 1) * limit;
+
+    // ── RBAC: enforce company scope ──────────────────────────────────────────
+    const effectiveCompanyId =
+      user.role === "HR"
+        ? user.hrProfile?.companyId
+        : user.role === "ADMIN"
+          ? queryCompanyId
+          : null;
+
+    if (user.role === "HR" && !effectiveCompanyId) {
+      // HR user has no company yet — return empty list
+      return NextResponse.json({
+        success: true,
+        candidates: [],
+        pagination: {
+          page: 1,
+          limit,
+          total: 0,
+          totalPages: 0,
+          hasNextPage: false,
+          hasPrevPage: false,
+        },
+      });
+    }
 
     // Build where clause for filtering
     const whereClause: any = {};
@@ -52,11 +83,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Filter candidates who applied to jobs from specific company
-    if (companyId) {
+    if (effectiveCompanyId) {
       whereClause.applications = {
         some: {
           job: {
-            companyId: companyId,
+            companyId: effectiveCompanyId,
           },
         },
       };

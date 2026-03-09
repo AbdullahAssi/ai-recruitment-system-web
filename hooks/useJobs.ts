@@ -135,7 +135,7 @@ export function useJobs(
   }, [fetchJobs]);
 
   const createJob = useCallback(
-    async (formData: JobFormData, userId?: string) => {
+    async (formData: JobFormData) => {
       // Validation
       if (
         !formData.title.trim() ||
@@ -159,10 +159,8 @@ export function useJobs(
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            ...formData,
-            userId,
-          }),
+          credentials: "include",
+          body: JSON.stringify(formData),
         });
 
         const data = await response.json();

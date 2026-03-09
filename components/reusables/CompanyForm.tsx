@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,12 +14,29 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Building2, Globe, Mail, Phone, Linkedin, Twitter } from "lucide-react";
+import {
+  Building2,
+  Globe,
+  Mail,
+  Phone,
+  Linkedin,
+  Twitter,
+  Camera,
+  Trash2,
+  Loader2,
+} from "lucide-react";
+
+const ALLOWED_LOGO_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+];
+const MAX_LOGO_BYTES = 5 * 1024 * 1024;
 
 interface CompanyFormData {
   name: string;
   description: string;
-  logo: string;
   website: string;
   industry: string;
   size: string;
@@ -32,7 +49,7 @@ interface CompanyFormData {
 }
 
 interface CompanyFormProps {
-  initialData?: Partial<CompanyFormData>;
+  initialData?: Partial<CompanyFormData & { logo?: string }>;
   companyId?: string;
   onSuccess: (company: any) => void;
   mode?: "create" | "edit";
@@ -71,10 +88,15 @@ export function CompanyForm({
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
+  // Logo file state
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const existingLogoUrl = initialData?.logo ?? null;
+
   const [formData, setFormData] = useState<CompanyFormData>({
     name: initialData?.name || "",
     description: initialData?.description || "",
-    logo: initialData?.logo || "",
     website: initialData?.website || "",
     industry: initialData?.industry || "",
     size: initialData?.size || "",
@@ -85,6 +107,51 @@ export function CompanyForm({
     linkedin: initialData?.linkedin || "",
     twitter: initialData?.twitter || "",
   });
+
+  const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!ALLOWED_LOGO_TYPES.includes(file.type)) {
+      toast({
+        title: "Invalid file",
+        description: "Please upload a JPEG, PNG, WebP, or GIF.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (file.size > MAX_LOGO_BYTES) {
+      toast({
+        title: "File too large",
+        description: "Maximum size is 5 MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLogoFile(file);
+    const url = URL.createObjectURL(file);
+    setLogoPreview(url);
+    if (logoInputRef.current) logoInputRef.current.value = "";
+  };
+
+  const handleLogoClear = () => {
+    if (logoPreview) URL.revokeObjectURL(logoPreview);
+    setLogoFile(null);
+    setLogoPreview(null);
+  };
+
+  const uploadLogo = async (id: string) => {
+    if (!logoFile) return;
+    const fd = new FormData();
+    fd.append("logo", logoFile);
+    fd.append("companyId", id);
+    await fetch("/api/upload/company-logo", {
+      method: "POST",
+      body: fd,
+      credentials: "include",
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,6 +180,10 @@ export function CompanyForm({
       const data = await response.json();
 
       if (data.success) {
+        // Upload logo after company is created/updated (needs company ID)
+        if (logoFile) {
+          await uploadLogo(data.company.id);
+        }
         toast({
           title: "Success",
           description: data.message || "Company saved successfully",
@@ -345,32 +416,94 @@ export function CompanyForm({
           </div>
 
           <div>
-            <Label htmlFor="logo">Company Logo URL</Label>
-            <Input
-              id="logo"
-              type="url"
-              value={formData.logo}
-              onChange={(e) =>
-                setFormData({ ...formData, logo: e.target.value })
-              }
-              placeholder="https://example.com/logo.png"
+            <Label>Company Logo</Label>
+            <input
+              ref={logoInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              className="hidden"
+              onChange={handleLogoSelect}
+              aria-label="Upload company logo"
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Provide a URL to your company logo
-            </p>
+            <div className="mt-1.5 flex items-center gap-4">
+              {/* Preview circle */}
+              <div className="relative group w-16 h-16 flex-shrink-0">
+                <div
+                  className="w-16 h-16 rounded-xl border-2 border-dashed border-border bg-muted flex items-center justify-center overflow-hidden cursor-pointer hover:border-brand transition-colors"
+                  onClick={() => logoInputRef.current?.click()}
+                  title="Click to select logo"
+                >
+                  {logoPreview || existingLogoUrl ? (
+                    <img
+                      src={logoPreview ?? existingLogoUrl!}
+                      alt="Logo preview"
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <Building2 className="w-7 h-7 text-muted-foreground" />
+                  )}
+                </div>
+                {/* Hover camera overlay */}
+                <button
+                  type="button"
+                  onClick={() => logoInputRef.current?.click()}
+                  className="absolute inset-0 rounded-xl flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <Camera className="w-5 h-5 text-white" />
+                </button>
+              </div>
+
+              {/* Right-side actions */}
+              <div className="flex flex-col gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => logoInputRef.current?.click()}
+                  className="text-xs h-8"
+                >
+                  <Camera className="w-3.5 h-3.5 mr-1.5" />
+                  {logoPreview || existingLogoUrl
+                    ? "Change Logo"
+                    : "Upload Logo"}
+                </Button>
+                {(logoPreview || existingLogoUrl) && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleLogoClear}
+                    className="text-xs h-8 text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+                    Remove
+                  </Button>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  JPEG, PNG, WebP or GIF · max 5 MB
+                </p>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      <Button type="submit" disabled={loading} className="w-full" size="lg">
-        {loading
-          ? mode === "create"
-            ? "Creating..."
-            : "Updating..."
-          : mode === "create"
-            ? "Create Company"
-            : "Update Company"}
-      </Button>
+      <div className="flex justify-end">
+        <Button
+          type="submit"
+          disabled={loading}
+          className="bg-brand hover:bg-brand/90 text-white min-w-[160px]"
+          size="lg"
+        >
+          {loading
+            ? mode === "create"
+              ? "Creating..."
+              : "Updating..."
+            : mode === "create"
+              ? "Create Company"
+              : "Update Company"}
+        </Button>
+      </div>
     </form>
   );
 }

@@ -1,16 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { scoringService } from "@/lib/fastapi";
+import { auth } from "@/lib/auth";
 
 // Force dynamic rendering for this API route
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await auth(request);
+    const callerRole = session?.user?.role;
+    const callerCompanyId = session?.user?.hrProfile?.companyId;
+
     const { searchParams } = new URL(request.url);
     const candidateId = searchParams.get("candidateId");
     const jobId = searchParams.get("jobId");
-    const companyId = searchParams.get("companyId"); // Filter by company for HR users
+    // companyId from the query is only honoured for ADMIN callers.
+    // HR users always get their own company enforced from the token.
+    const queryCompanyId = searchParams.get("companyId");
 
     // Pagination params
     const page = parseInt(searchParams.get("page") || "1");
@@ -31,11 +38,28 @@ export async function GET(request: NextRequest) {
       whereClause.jobId = jobId;
     }
 
-    // Filter applications for jobs from specific company
-    if (companyId) {
+    // ── RBAC: resolve which companyId to scope by ────────────────────────────
+    // HR users: always enforce their own company (never trust query param)
+    // ADMIN: honour query param if provided
+    // CANDIDATE / unauthenticated: no company filter (they see their own apps via candidateId)
+    const effectiveCompanyId =
+      callerRole === "HR"
+        ? callerCompanyId
+        : callerRole === "ADMIN"
+          ? queryCompanyId
+          : null;
+
+    if (effectiveCompanyId) {
       whereClause.job = {
-        companyId: companyId,
+        companyId: effectiveCompanyId,
       };
+    } else if (callerRole === "HR" && !callerCompanyId) {
+      // HR with no company — return empty
+      return NextResponse.json({
+        success: true,
+        applications: [],
+        pagination: { page: 1, limit: 12, totalCount: 0, totalPages: 0 },
+      });
     }
 
     // Status filter
