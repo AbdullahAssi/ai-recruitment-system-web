@@ -192,7 +192,9 @@ export default function CandidateProfilePage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Profile</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            My Profile
+          </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
             Manage your professional profile and documents
           </p>
@@ -235,6 +237,9 @@ export default function CandidateProfilePage() {
         linkedinUrl={candidateData.linkedinUrl}
         githubUrl={candidateData.githubUrl}
         portfolioUrl={candidateData.portfolioUrl}
+        avatarUrl={user?.avatarUrl}
+        onAvatarChange={() => refreshUser()}
+        onAvatarDelete={() => refreshUser()}
         onEditClick={() => setEditDialogOpen(true)}
       />
 
@@ -263,7 +268,9 @@ export default function CandidateProfilePage() {
               <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/40">
                 <FaLightbulb className="text-blue-600 dark:text-blue-400" />
               </div>
-              <h3 className="font-semibold text-blue-900 dark:text-blue-200">Profile Tips</h3>
+              <h3 className="font-semibold text-blue-900 dark:text-blue-200">
+                Profile Tips
+              </h3>
             </div>
             <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-2">
               <li className="flex items-start gap-2">
@@ -309,8 +316,12 @@ export default function CandidateProfilePage() {
                   <FaUpload className="text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Upload Resume</h2>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">PDF format recommended</p>
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Upload Resume
+                  </h2>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    PDF format recommended
+                  </p>
                 </div>
               </div>
               <button

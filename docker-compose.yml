@@ -29,8 +29,12 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      # Mount for file uploads (persistent)
+      # Mount for resume file uploads (persistent)
       - ./uploads:/app/uploads
+      # Mount for profile images & company logos (persistent across deploys)
+      # Served statically by Next.js as /uploads/avatars/* and /uploads/company-logos/*
+      # Size estimate: ~20 KB/user × 10 000 users ≈ 200 MB for avatars
+      - ./public/uploads:/app/public/uploads
     networks:
       - nextjs-network
     restart: unless-stopped

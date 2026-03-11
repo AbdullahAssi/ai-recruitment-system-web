@@ -1,9 +1,8 @@
 import React from "react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { AvatarUpload } from "@/components/reusables/AvatarUpload";
 import {
-  FaUser,
   FaEnvelope,
   FaPhone,
   FaMapMarkerAlt,
@@ -24,6 +23,12 @@ interface CandidateProfileCardProps {
   linkedinUrl?: string;
   githubUrl?: string;
   portfolioUrl?: string;
+  /** Current avatar URL — stored at 256×256 px WebP, displayed at 96×96 */
+  avatarUrl?: string | null;
+  /** Callback fired after user uploads a new avatar */
+  onAvatarChange?: (newUrl: string) => void;
+  /** Callback fired after user removes their avatar */
+  onAvatarDelete?: () => void;
   onEditClick: () => void;
 }
 
@@ -37,6 +42,9 @@ export function CandidateProfileCard({
   linkedinUrl,
   githubUrl,
   portfolioUrl,
+  avatarUrl,
+  onAvatarChange,
+  onAvatarDelete,
   onEditClick,
 }: CandidateProfileCardProps) {
   const getInitials = (name: string) => {
@@ -63,11 +71,13 @@ export function CandidateProfileCard({
       <div className="relative px-6 pb-6">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between -mt-12">
           <div className="flex flex-col md:flex-row items-center md:items-end gap-4">
-            <Avatar className="w-24 h-24 border-4 border-white dark:border-gray-900 shadow-xl">
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-cyan-500 text-white text-2xl font-bold">
-                {getInitials(name)}
-              </AvatarFallback>
-            </Avatar>
+            <AvatarUpload
+              currentUrl={avatarUrl}
+              initials={getInitials(name)}
+              onUploadSuccess={onAvatarChange ?? (() => {})}
+              onDeleteSuccess={onAvatarDelete}
+              sizeClass="w-24 h-24"
+            />
             <div className="text-center md:text-left pb-2">
               <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
                 {name}

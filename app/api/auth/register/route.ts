@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { hashPassword, generateToken } from "@/lib/auth";
+import { hashPassword } from "@/lib/auth";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { sendEmail } from "@/lib/emailService";
+import { verificationEmailHtml } from "@/lib/emailTemplates";
 import { z } from "zod";
+
+function generateVerificationCode(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
 
 const registerSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -46,7 +52,11 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await hashPassword(validatedData.password);
 
-    // Create user
+    // Generate 6-digit verification code (expires in 15 minutes)
+    const verificationCode = generateVerificationCode();
+    const verificationTokenExpiry = new Date(Date.now() + 15 * 60 * 1000);
+
+    // Create user (unverified)
     const user = await prisma.user.create({
       data: {
         email: validatedData.email,
@@ -54,6 +64,9 @@ export async function POST(request: NextRequest) {
         name: validatedData.name,
         role: validatedData.role,
         phone: validatedData.phone,
+        verificationToken: verificationCode,
+        verificationTokenExpiry,
+        isVerified: false,
       },
     });
 
@@ -76,38 +89,24 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Generate token
-    const token = generateToken({
-      userId: user.id,
-      email: user.email,
-      role: user.role,
-      name: user.name,
+    // Send verification email
+    await sendEmail({
+      to: validatedData.email,
+      subject: "Verify your email – QMindAI",
+      html: verificationEmailHtml({
+        name: validatedData.name,
+        code: verificationCode,
+        role: validatedData.role,
+      }),
     });
 
-    // Create response
-    const response = NextResponse.json({
+    return NextResponse.json({
       success: true,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-      },
-      token,
+      requiresVerification: true,
+      email: validatedData.email,
+      message:
+        "Account created. Please check your email for the verification code.",
     });
-
-    // Set auth cookie.
-    // COOKIE_SECURE should be "true" only when the app is served over HTTPS.
-    // Defaults to false so plain-HTTP deployments (e.g. direct port access) work correctly.
-    response.cookies.set("auth_token", token, {
-      httpOnly: true,
-      secure: process.env.COOKIE_SECURE === "true",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: "/",
-    });
-
-    return response;
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(

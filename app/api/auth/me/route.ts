@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -21,6 +21,7 @@ export async function GET() {
         phone: true,
         isActive: true,
         isVerified: true,
+        avatarUrl: true,
         createdAt: true,
         candidate: {
           select: {
@@ -56,6 +57,42 @@ export async function GET() {
     console.error("Get current user error:", error);
     return NextResponse.json(
       { error: "Failed to get user details" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { name, phone } = body;
+
+    const updated = await prisma.user.update({
+      where: { id: currentUser.userId },
+      data: {
+        ...(name !== undefined && { name: name.trim() }),
+        ...(phone !== undefined && { phone: phone.trim() || null }),
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        phone: true,
+        avatarUrl: true,
+      },
+    });
+
+    return NextResponse.json({ success: true, user: updated });
+  } catch (error) {
+    console.error("Update user error:", error);
+    return NextResponse.json(
+      { error: "Failed to update profile" },
       { status: 500 },
     );
   }

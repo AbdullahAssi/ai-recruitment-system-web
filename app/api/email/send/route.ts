@@ -119,6 +119,19 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Fallback company name from HR's company if job is missing company info
+    let hrCompanyName: string | null = null;
+    if (
+      hrUser.hrProfile?.companyId &&
+      !(job?.companyInfo?.name || job?.company)
+    ) {
+      const company = await prisma.company.findUnique({
+        where: { id: hrUser.hrProfile.companyId },
+        select: { name: true },
+      });
+      hrCompanyName = company?.name || null;
+    }
+
     const emailRecords = [];
     const failedEmails = [];
 
@@ -131,7 +144,11 @@ export async function POST(request: NextRequest) {
           candidateEmail: candidate.email,
           jobTitle: job?.title || "",
           jobLocation: job?.location || "",
-          companyName: job?.companyInfo?.name || job?.company || "Your Company",
+          companyName:
+            job?.companyInfo?.name ||
+            job?.company ||
+            hrCompanyName ||
+            "Your Company",
           hrName: hrUser.name || "Hiring Team",
         };
 

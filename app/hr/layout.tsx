@@ -15,10 +15,11 @@ import {
   HiOutlineChevronRight,
   HiOutlineInbox,
   HiOutlineOfficeBuilding,
+  HiOutlineUserCircle,
 } from "react-icons/hi";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { LoadingState } from "@/components/reusables";
 
 const navigation = [
@@ -27,8 +28,9 @@ const navigation = [
   { name: "Candidates", href: "/hr/candidates", icon: HiOutlineUsers },
   { name: "Email Templates", href: "/hr/email/templates", icon: HiOutlineMail },
   { name: "Email History", href: "/hr/email/history", icon: HiOutlineInbox },
-  { name: "Analytics", href: "/hr/analytics", icon: HiOutlineChartBar },
+  // { name: "Analytics", href: "/hr/analytics", icon: HiOutlineChartBar },
   { name: "Company", href: "/hr/company", icon: HiOutlineOfficeBuilding },
+  { name: "My Profile", href: "/hr/profile", icon: HiOutlineUserCircle },
 ];
 
 export default function HRLayout({ children }: { children: React.ReactNode }) {
@@ -38,10 +40,12 @@ export default function HRLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [checkingCompany, setCheckingCompany] = useState(true);
+  // Cache the company-verified result so we don't hit the API on every navigation
+  const companyVerifiedRef = useRef<boolean | null>(null);
 
   useEffect(() => {
     checkCompanySetup();
-  }, [user]);
+  }, [user, pathname]);
 
   const checkCompanySetup = async () => {
     if (!user || user.role !== "HR") {
@@ -49,11 +53,25 @@ export default function HRLayout({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Skip check if already on company setup page
+    // Allow access to all company-related pages (setup, view, edit)
     if (pathname?.startsWith("/hr/company")) {
+      // Invalidate the cache when coming back from the setup page so a
+      // fresh check happens on the next non-company navigation.
+      if (pathname === "/hr/company/setup") {
+        companyVerifiedRef.current = null;
+      }
       setCheckingCompany(false);
       return;
     }
+
+    // If we already confirmed this session that the user has a company, skip the API call
+    if (companyVerifiedRef.current === true) {
+      setCheckingCompany(false);
+      return;
+    }
+
+    // Need to verify – show the loading screen so no content flashes
+    setCheckingCompany(true);
 
     try {
       const response = await fetch(`/api/hr/profile/${user.id}`);
@@ -62,9 +80,12 @@ export default function HRLayout({ children }: { children: React.ReactNode }) {
       if (data.success && data.profile) {
         // If no company, redirect to setup
         if (!data.profile.companyId) {
+          companyVerifiedRef.current = false;
           router.push("/hr/company/setup");
           return;
         }
+        // Company is set – cache this so later navigations are instant
+        companyVerifiedRef.current = true;
       }
     } catch (error) {
       console.error("Failed to check company setup:", error);
@@ -167,11 +188,19 @@ export default function HRLayout({ children }: { children: React.ReactNode }) {
             {!sidebarCollapsed ? (
               <>
                 <div className="flex items-center mb-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                    <span className="text-blue-600 font-semibold text-sm">
-                      {user?.name?.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
+                  {user?.avatarUrl ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt={user.name}
+                      className="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-gray-200"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                      <span className="text-blue-600 font-semibold text-sm">
+                        {user?.name?.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
                   <div className="ml-3 flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">
                       {user?.name}
@@ -193,14 +222,23 @@ export default function HRLayout({ children }: { children: React.ReactNode }) {
               </>
             ) : (
               <div className="flex flex-col items-center gap-3">
-                <div
-                  className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center"
-                  title={user?.name}
-                >
-                  <span className="text-blue-600 font-semibold text-sm">
-                    {user?.name?.charAt(0).toUpperCase()}
-                  </span>
-                </div>
+                {user?.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt={user.name}
+                    className="w-10 h-10 rounded-full object-cover border border-gray-200"
+                    title={user.name}
+                  />
+                ) : (
+                  <div
+                    className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center"
+                    title={user?.name}
+                  >
+                    <span className="text-blue-600 font-semibold text-sm">
+                      {user?.name?.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
                 <Button
                   onClick={logout}
                   variant="outline"

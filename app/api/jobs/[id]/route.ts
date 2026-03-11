@@ -1,8 +1,52 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 
 // Force dynamic rendering for this API route
 export const dynamic = "force-dynamic";
+
+/** Helper: verify the caller is HR/ADMIN and owns this job. */
+async function authorizeJobMutation(
+  request: NextRequest,
+  jobId: string,
+): Promise<
+  { authorized: true; job: any } | { authorized: false; response: NextResponse }
+> {
+  const session = await auth(request);
+  if (!session) {
+    return {
+      authorized: false,
+      response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
+    };
+  }
+  if (session.user.role !== "HR" && session.user.role !== "ADMIN") {
+    return {
+      authorized: false,
+      response: NextResponse.json({ error: "Forbidden" }, { status: 403 }),
+    };
+  }
+
+  const job = await prisma.job.findUnique({ where: { id: jobId } });
+  if (!job) {
+    return {
+      authorized: false,
+      response: NextResponse.json({ error: "Job not found" }, { status: 404 }),
+    };
+  }
+
+  // HR users can only modify jobs belonging to their own company
+  if (
+    session.user.role === "HR" &&
+    job.companyId !== session.user.hrProfile?.companyId
+  ) {
+    return {
+      authorized: false,
+      response: NextResponse.json({ error: "Forbidden" }, { status: 403 }),
+    };
+  }
+
+  return { authorized: true, job };
+}
 
 // GET specific job
 export async function GET(
@@ -68,6 +112,10 @@ export async function PUT(
 ) {
   try {
     const jobId = params.id;
+
+    const authResult = await authorizeJobMutation(request, jobId);
+    if (!authResult.authorized) return authResult.response;
+
     const body = await request.json();
     const { title, description, location, requirements } = body;
 
@@ -78,16 +126,6 @@ export async function PUT(
       );
     }
 
-    // Check if job exists
-    const existingJob = await prisma.job.findUnique({
-      where: { id: jobId },
-    });
-
-    if (!existingJob) {
-      return NextResponse.json({ error: "Job not found" }, { status: 404 });
-    }
-
-    // Update job
     const updatedJob = await prisma.job.update({
       where: { id: jobId },
       data: {
@@ -120,6 +158,10 @@ export async function PATCH(
 ) {
   try {
     const jobId = params.id;
+
+    const authResult = await authorizeJobMutation(request, jobId);
+    if (!authResult.authorized) return authResult.response;
+
     const body = await request.json();
     const { isActive } = body;
 
@@ -130,22 +172,9 @@ export async function PATCH(
       );
     }
 
-    // Check if job exists
-    const existingJob = await prisma.job.findUnique({
-      where: { id: jobId },
-    });
-
-    if (!existingJob) {
-      return NextResponse.json({ error: "Job not found" }, { status: 404 });
-    }
-
-    // Update job status
     const updatedJob = await prisma.job.update({
       where: { id: jobId },
-      data: {
-        isActive,
-        updatedAt: new Date(),
-      },
+      data: { isActive, updatedAt: new Date() },
     });
 
     return NextResponse.json({
@@ -170,19 +199,10 @@ export async function DELETE(
   try {
     const jobId = params.id;
 
-    // Check if job exists
-    const existingJob = await prisma.job.findUnique({
-      where: { id: jobId },
-    });
+    const authResult = await authorizeJobMutation(request, jobId);
+    if (!authResult.authorized) return authResult.response;
 
-    if (!existingJob) {
-      return NextResponse.json({ error: "Job not found" }, { status: 404 });
-    }
-
-    // Delete job (this will cascade delete applications due to schema)
-    await prisma.job.delete({
-      where: { id: jobId },
-    });
+    await prisma.job.delete({ where: { id: jobId } });
 
     return NextResponse.json({
       success: true,

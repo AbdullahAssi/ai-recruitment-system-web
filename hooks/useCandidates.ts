@@ -43,6 +43,7 @@ export interface Candidate {
   createdAt: string;
   resumes: CandidateResume[];
   applications: CandidateApplication[];
+  user?: { avatarUrl: string | null } | null;
 }
 
 export interface CandidateProfile extends Candidate {
@@ -136,9 +137,9 @@ export function useCandidates(
     } finally {
       setLoading(false);
     }
-  // Use individual primitives so a new object reference does not cause a
-  // re-fetch when the parent re-renders without changing any filter value.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Use individual primitives so a new object reference does not cause a
+    // re-fetch when the parent re-renders without changing any filter value.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     companyId,
     paginationState?.currentPage,

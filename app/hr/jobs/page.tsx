@@ -134,7 +134,7 @@ export default function HRJobsPage() {
   const handleCreateJob = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
-      const success = await createJob(formData, user?.id);
+      const success = await createJob(formData);
       if (success) {
         setShowCreateDialog(false);
         setFormData({
@@ -247,11 +247,7 @@ export default function HRJobsPage() {
     <div>
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <JobsHeader
-          loading={loading}
-          onRefresh={fetchJobs}
-          onCreateNew={handleOpenCreate}
-        />
+        <JobsHeader loading={loading} onCreateNew={handleOpenCreate} />
 
         {/* Filters */}
         <JobFilters

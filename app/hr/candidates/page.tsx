@@ -265,7 +265,7 @@ export default function CandidatesPage() {
         <CandidatesHeader
           totalCandidates={candidates.length}
           loading={loading}
-          onRefresh={fetchCandidates}
+         
         />
 
         {/* Filters */}
