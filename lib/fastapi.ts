@@ -6,6 +6,9 @@
 const FASTAPI_BASE_URL =
   process.env.NEXT_PUBLIC_FASTAPI_URL || "http://localhost:8000/api/v1";
 
+// Only accessible server-side (Next.js API routes). Never sent to the browser.
+const INTERNAL_API_KEY = process.env.INTERNAL_API_KEY || "";
+
 export interface FastAPIError {
   detail: string;
   status: number;
@@ -24,6 +27,7 @@ async function fastAPIFetch<T>(
       ...options,
       headers: {
         "Content-Type": "application/json",
+        ...(INTERNAL_API_KEY ? { "x-api-key": INTERNAL_API_KEY } : {}),
         ...options?.headers,
       },
     });
@@ -70,6 +74,9 @@ async function fastAPIUpload<T>(
     const response = await fetch(url, {
       method: "POST",
       body: formData,
+      headers: {
+        ...(INTERNAL_API_KEY ? { "x-api-key": INTERNAL_API_KEY } : {}),
+      },
     });
 
     if (!response.ok) {

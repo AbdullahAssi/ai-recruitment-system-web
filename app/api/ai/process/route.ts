@@ -46,9 +46,13 @@ export async function POST(request: NextRequest) {
     // Call FastAPI Process Endpoint
     const fastApiUrl =
       process.env.NEXT_PUBLIC_FASTAPI_URL || "http://localhost:8000/api/v1";
+    const internalApiKey = process.env.INTERNAL_API_KEY || "";
     const response = await fetch(`${fastApiUrl}/resumes/process`, {
       method: "POST",
       body: formData,
+      headers: {
+        ...(internalApiKey ? { "x-api-key": internalApiKey } : {}),
+      },
       // Note: fetch with FormData automatically sets Content-Type to multipart/form-data with boundary
     });
 

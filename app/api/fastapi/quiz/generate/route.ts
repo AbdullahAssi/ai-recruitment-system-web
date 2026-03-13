@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 
 const FASTAPI_BASE_URL =
   process.env.NEXT_PUBLIC_FASTAPI_URL || "http://localhost:8000/api/v1";
+const INTERNAL_API_KEY = process.env.INTERNAL_API_KEY || "";
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,6 +30,7 @@ export async function POST(request: NextRequest) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...(INTERNAL_API_KEY ? { "x-api-key": INTERNAL_API_KEY } : {}),
       },
       body: JSON.stringify(body),
     });
